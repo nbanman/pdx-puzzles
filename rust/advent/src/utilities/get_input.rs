@@ -1,7 +1,11 @@
-use std::{fs::File, io::{self, Read}, path::Path};
+use std::{fs::File, io::{self, Read}, path::{Path, PathBuf}};
 
 pub fn get_input(year: u8, day: u8) -> io::Result<String> {
-    let path = format!("./inputs/20{}/y{}d{}.txt", year, year, day);
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
+        .expect("Failed to find manifest directory");
+    let path = manifest_dir
+        + &format!("/../../inputs/advent/20{}/y{}d{}.txt", year, year, day);
+    println!("path: {path}");
     // Try to open local file first
     match File::open(&path) {
         Ok(mut file) => {
@@ -17,6 +21,7 @@ pub fn get_input(year: u8, day: u8) -> io::Result<String> {
 }
 
 fn download_input(year: u8, day: u8, path: &str) -> Result<String, io::Error> {
+
     // Ensure the directory exists
     if let Some(parent) = Path::new(path).parent() {
         std::fs::create_dir_all(parent)?;
