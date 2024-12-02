@@ -50,3 +50,16 @@ fn part2(levels: &Vec<Vec<isize>>) -> usize {
         })
         .count()
 }
+
+#[test]
+fn default() {
+    let input = get_input(24, 2).unwrap();
+    let input = parse_input(&input);
+    assert_eq!(591, part1(&input));
+    assert_eq!(621, part2(&input));
+}
+
+    // Input parsed (302μs)
+    // 1. 591 (85μs)
+    // 2. 621 (272μs)
+    // Total: 662μs

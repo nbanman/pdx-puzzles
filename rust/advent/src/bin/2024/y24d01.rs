@@ -43,3 +43,15 @@ fn part2(input: &str) -> usize {
     }
     a.into_iter().map(|n| n * freq.get(&n).unwrap_or(&0)).sum()   
 }
+
+#[test]
+fn default() {
+    let input = get_input(24, 1).unwrap();
+    assert_eq!(1222801, part1(&input));
+    assert_eq!(22545250, part2(&input));
+}
+
+// Inputs loaded (21μs)
+// 1. 1222801 (96μs)
+// 2. 22545250 (112μs)
+// Total: 233μs
