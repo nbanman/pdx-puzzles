@@ -2,6 +2,9 @@ use advent::utilities::get_input::get_input;
 use itertools::Itertools;
 use utilities::{parsing::get_numbers::ContainsNumbers, structs::stopwatch::{ReportDuration, Stopwatch}};
 
+type Input = Vec<Vec<isize>>;
+type Output = usize;
+
 fn main() {
     let mut stopwatch = Stopwatch::new();
     stopwatch.start();
@@ -13,7 +16,7 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse_input(input: &str) -> Vec<Vec<isize>> {
+fn parse_input(input: &str) -> Input {
     input.lines().map(|line| line.get_numbers().collect()).collect()
 }
 
@@ -22,11 +25,11 @@ fn safe(level: &Vec<isize>) -> bool {
     level.iter().tuple_windows().all(|(a, b)| rng.contains(&(a - b)))
 }
 
-fn part1(levels: &Vec<Vec<isize>>) -> usize {
+fn part1(levels: &Input) -> Output {
     levels.iter().filter(|&level| safe(level)).count()
 }
 
-fn part2(levels: &Vec<Vec<isize>>) -> usize {
+fn part2(levels: &Input) -> Output {
     levels.iter()
         .filter(|&level| {
             if safe(level) {
