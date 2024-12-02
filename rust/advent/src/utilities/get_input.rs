@@ -1,4 +1,4 @@
-use std::{fs::File, io::{self, Read}, path::{Path, PathBuf}};
+use std::{fs::File, io::{self, Read}, path::Path};
 
 pub fn get_input(year: u8, day: u8) -> io::Result<String> {
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
