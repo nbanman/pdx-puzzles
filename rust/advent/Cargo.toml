@@ -5,9 +5,14 @@ edition = "2021"
 
 [dependencies]
 utilities = { path = "../utilities" }
+ureq = "2.11.0"
 itertools = { workspace = true }
 rayon = { workspace = true }
 
 [[bin]]
 name = "y24d01"
 path = "src/bin/2024/y24d01.rs"
+
+[[bin]]
+name = "y24d02"
+path = "src/bin/2024/y24d02.rs"
