@@ -1,0 +1,10 @@
+[package]
+name = "utilities"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+num-traits = "0.2.19"
+indexmap = "2.6.0"
+itertools = { workspace = true }
+rayon = { workspace = true }

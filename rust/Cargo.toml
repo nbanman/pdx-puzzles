@@ -1,0 +1,14 @@
+[workspace]
+
+resolver = "2"
+
+members = [
+    "utilities",
+    "advent", 
+    "everybody-codes",
+]
+
+[workspace.dependencies]
+itertools = "0.13.0"
+rayon = "1.10.0"
+num-traits = "0.2.19"
