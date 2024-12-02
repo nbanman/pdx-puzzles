@@ -18,9 +18,12 @@ fn parse_input(input: &str) -> Vec<Vec<isize>> {
 }
 
 fn safe(level: &Vec<isize>) -> bool {
-    let level: Vec<(isize, isize)> = level.iter().copied().tuple_windows().collect();
-    level.iter().all(|(a, b)| (1..=3).contains(&(a - b))) 
-        || level.iter().all(|(a, b)| (1..=3).contains(&(b - a))) 
+    let rng = if level[0] < level[1] {
+        -3..=-1
+    } else {
+        1..=3
+    };
+    level.iter().tuple_windows().all(|(a, b)| rng.contains(&(a - b)))
 }
 
 fn part1(levels: &Vec<Vec<isize>>) -> usize {
@@ -59,7 +62,7 @@ fn default() {
     assert_eq!(621, part2(&input));
 }
 
-    // Input parsed (302μs)
-    // 1. 591 (85μs)
-    // 2. 621 (272μs)
-    // Total: 662μs
+// Input parsed (300μs)
+// 1. 591 (16μs)
+// 2. 621 (156μs)
+// Total: 474μs
