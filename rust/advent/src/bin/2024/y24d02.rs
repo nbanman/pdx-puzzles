@@ -61,6 +61,20 @@ fn default() {
     assert_eq!(621, part2(&input));
 }
 
+#[test]
+fn examples() {
+    let inputs = [r"7 6 4 2 1
+1 2 7 8 9
+9 7 6 2 1
+1 3 2 4 5
+8 6 4 4 1
+1 3 6 7 9
+", ];
+    let input = parse_input(&inputs[0]);
+    assert_eq!(2, part1(&input));
+    assert_eq!(4, part2(&input));
+}
+
 // Input parsed (300μs)
 // 1. 591 (16μs)
 // 2. 621 (156μs)
