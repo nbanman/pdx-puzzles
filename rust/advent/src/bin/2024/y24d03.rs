@@ -31,14 +31,14 @@ fn part2(input: &Input) -> Output {
 fn default() {
     let input = get_input(24, 2).unwrap();
     let input = parse_input(&input);
-    assert_eq!(0, part1(&input));
-    assert_eq!(0, part2(&input));
+    assert_eq!(X, part1(&input));
+    assert_eq!(X, part2(&input));
 }
 
 #[test]
 fn examples() {
     let inputs = [r"", ];
     let input = parse_input(&inputs[0]);
-    assert_eq!(0, part1(&input));
-    assert_eq!(0, part2(&input));
+    assert_eq!(X, part1(&input));
+    assert_eq!(X, part2(&input));
 }
