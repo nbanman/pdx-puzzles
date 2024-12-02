@@ -1,7 +1,7 @@
 use std::{fs::File, io::{self, Read}, path::Path};
 
 pub fn get_input(year: u8, day: u8) -> io::Result<String> {
-    let path = format!("./advent/inputs/20{}/y{}d{}.txt", year, year, day);
+    let path = format!("./inputs/20{}/y{}d{}.txt", year, year, day);
     // Try to open local file first
     match File::open(&path) {
         Ok(mut file) => {
