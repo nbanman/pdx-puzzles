@@ -18,11 +18,7 @@ fn parse_input(input: &str) -> Vec<Vec<isize>> {
 }
 
 fn safe(level: &Vec<isize>) -> bool {
-    let rng = if level[0] < level[1] {
-        -3..=-1
-    } else {
-        1..=3
-    };
+    let rng = if level[0] < level[1] { -3..=-1 } else { 1..=3 };
     level.iter().tuple_windows().all(|(a, b)| rng.contains(&(a - b)))
 }
 
@@ -37,13 +33,13 @@ fn part2(levels: &Vec<Vec<isize>>) -> usize {
                 true
             } else {
                 (0..level.len())
-                    .map(|i| {
+                    .map(|exclude| {
                         level.iter().enumerate()
                             .filter_map(|(idx, &value)| {
-                                if i != idx {
-                                    Some(value)
-                                } else {
+                                if idx == exclude {
                                     None
+                                } else {
+                                    Some(value)
                                 }
                             })
                             .collect::<Vec<isize>>()
