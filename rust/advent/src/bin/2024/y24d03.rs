@@ -24,7 +24,7 @@ fn part1(input: Input) -> Output {
 }
 
 fn part2(input: Input) -> Output {
-    let rx = Regex::new(r"(?s)don't\(\).*?do\(\)|mul\((\d+),(\d+)\)").unwrap();
+    let rx = Regex::new(r"(?s)don't\(\).*?(?:do\(\)|$)|mul\((\d+),(\d+)\)").unwrap();
     rx.captures_iter(input)
         .filter(|cap| !cap.get(1).is_none())
         .map(|cap| {
