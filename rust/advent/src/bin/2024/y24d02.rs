@@ -33,8 +33,7 @@ fn is_somewhat_safe(level: &Vec<isize>) -> bool {
     let penultimate_index = last_index - 1;
     let rng = match diffs {
         0 | 1 => 1..=3,
-        x if x == last_index => -3..=-1,
-        x if x == penultimate_index => -3..=-1,
+        x if x == last_index || x == penultimate_index => -3..=-1,
         _ => { return false; }
     };
     let mut removed = false;
