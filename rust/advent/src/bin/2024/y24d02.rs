@@ -20,37 +20,51 @@ fn parse_input(input: &str) -> Input {
     input.lines().map(|line| line.get_numbers().collect()).collect()
 }
 
-fn safe(level: &Vec<isize>) -> bool {
+fn is_safe(level: &Vec<isize>) -> bool {
     let rng = if level[0] < level[1] { -3..=-1 } else { 1..=3 };
     level.iter().tuple_windows().all(|(a, b)| rng.contains(&(a - b)))
 }
 
+fn is_somewhat_safe(level: &Vec<isize>) -> bool {
+    let diffs = level.iter().tuple_windows()
+        .filter(|(&a, &b)| b - a > 0)
+        .count();
+    let last_index = level.len() - 1;
+    let penultimate_index = last_index - 1;
+    let rng = match diffs {
+        0 | 1 => 1..=3,
+        x if x == last_index => -3..=-1,
+        x if x == penultimate_index => -3..=-1,
+        _ => { return false; }
+    };
+    let mut removed = false;
+    let mut i = 0;
+    while i < last_index {
+        if !rng.contains(&(level[i] - level[i + 1])) {
+            if removed { return false; }
+            removed = true;
+            if i != 0 {
+                if !rng.contains(&(level[i - 1] - level[i + 1])) {
+                    if i != penultimate_index && !rng.contains(&(level[i] - level[i + 2])) {
+                        return false;
+                    }
+                    i += 1;
+                }
+            } else if rng.contains(&(level[0] - level[2])) {
+                i += 1;
+            }
+        }
+        i += 1;
+    }
+    true
+}
+
 fn part1(levels: &Input) -> Output {
-    levels.iter().filter(|&level| safe(level)).count()
+    levels.iter().filter(|&level| is_safe(level)).count()
 }
 
 fn part2(levels: &Input) -> Output {
-    levels.iter()
-        .filter(|&level| {
-            if safe(level) {
-                true
-            } else {
-                (0..level.len())
-                    .map(|exclude| {
-                        level.iter().enumerate()
-                            .filter_map(|(idx, &value)| {
-                                if idx == exclude {
-                                    None
-                                } else {
-                                    Some(value)
-                                }
-                            })
-                            .collect::<Vec<isize>>()
-                    })
-                    .any(|abridged_level| safe(&abridged_level))
-            }
-        })
-        .count()
+    levels.iter().filter(|&level| is_somewhat_safe(level)).count()
 }
 
 #[test]
@@ -75,7 +89,8 @@ fn examples() {
     assert_eq!(4, part2(&input));
 }
 
-// Input parsed (300μs)
-// 1. 591 (16μs)
-// 2. 621 (156μs)
-// Total: 474μs
+// Input parsed (299μs)
+// 1. 591 (12μs)
+// 2. 621 (24μs)
+// Total: 337μs
+
