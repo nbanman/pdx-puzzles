@@ -20,12 +20,12 @@ fn parse_input(input: &str) -> Input {
     input.lines().map(|line| line.get_numbers().collect()).collect()
 }
 
-fn is_safe(level: &Vec<isize>) -> bool {
+fn is_safe(level: &[isize]) -> bool {
     let rng = if level[0] < level[1] { -3..=-1 } else { 1..=3 };
     level.iter().tuple_windows().all(|(a, b)| rng.contains(&(a - b)))
 }
 
-fn is_somewhat_safe(level: &Vec<isize>) -> bool {
+fn is_somewhat_safe(level: &[isize]) -> bool {
     let diffs = level.iter().tuple_windows()
         .filter(|(&a, &b)| b - a > 0)
         .count();
@@ -58,12 +58,19 @@ fn is_somewhat_safe(level: &Vec<isize>) -> bool {
     true
 }
 
+fn solve<F>(levels: &Input, predicate: F) -> Output 
+where 
+    F: Fn(&[isize]) -> bool,
+{
+    levels.iter().filter(|&level| predicate(level)).count()
+}
+
 fn part1(levels: &Input) -> Output {
-    levels.iter().filter(|&level| is_safe(level)).count()
+    solve(levels, |level| is_safe(level))
 }
 
 fn part2(levels: &Input) -> Output {
-    levels.iter().filter(|&level| is_somewhat_safe(level)).count()
+    solve(levels, |level| is_somewhat_safe(level))
 }
 
 #[test]
