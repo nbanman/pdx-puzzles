@@ -24,23 +24,13 @@ fn part1(input: Input) -> Output {
 }
 
 fn part2(input: Input) -> Output {
-    let rx = Regex::new(r"mul\(\d+,\d+\)|do\(\)|don't\(\)").unwrap();
-    rx.find_iter(input)
-        .map(|rx_match| rx_match.as_str())
-        .fold((0, true), |(sum, active), instruction| {
-            let new_active = match instruction {
-                "do()" => true,
-                "don't()" => false,
-                _ => active,
-            };
-            let new_sum = sum + if active && instruction.starts_with("mul") {
-                instruction.get_numbers().reduce(usize::mul).unwrap()
-            } else {
-                0
-            };
-            (new_sum, new_active)
+    let rx = Regex::new(r"(?s)don't\(\).*?do\(\)|mul\((\d+),(\d+)\)").unwrap();
+    rx.captures_iter(input)
+        .filter(|cap| !cap.get(1).is_none())
+        .map(|cap| {
+            cap[1].parse::<usize>().unwrap() * cap[2].parse::<usize>().unwrap()
         })
-        .0
+        .sum()
 }
 
 #[test]
