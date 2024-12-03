@@ -4,7 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
-import org.gristle.utils.*
+import org.gristle.utilities.Printer
 
 internal class PrinterTest {
 

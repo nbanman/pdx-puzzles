@@ -1,4 +1,4 @@
-package org.gristle.utils
+package org.gristle.utilities
 
 import kotlinx.datetime.*
 import kotlinx.serialization.Serializable
