@@ -10,7 +10,7 @@ internal class PrinterTest {
 
     @Test
     fun testMessage() {
-        val message = "message 2"
+        val message = "message"
         val testPrinter = Printer(message)
         assertEquals(testPrinter.message, message)
     }
