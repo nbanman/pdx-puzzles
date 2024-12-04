@@ -30,6 +30,7 @@ class Y22D17(private val jetPattern: String) : Day {
 
     data class Block(val index: Int, val wind: Int, val x: Int, val y: Int, val previousTop: Int) {
 
+        @Suppress("unused", "MemberVisibilityCanBePrivate")
         fun BooleanArray.representation() = buildString {
             for (y in top downTo 0) {
                 append('|')
@@ -91,7 +92,7 @@ class Y22D17(private val jetPattern: String) : Day {
         }
     }
 
-    private val blocks = sequence<Block> {
+    private val blocks = sequence {
         val chamber = BooleanArray(10_000_000)
         var block = Block(0, 0, 2, 3, 0).drop(chamber, jetPattern)
         while (true) {
@@ -108,6 +109,7 @@ class Y22D17(private val jetPattern: String) : Day {
         }
     }
 
+    @Suppress("unused", "MemberVisibilityCanBePrivate")
     fun BooleanArray.representation(lastBlock: Block) = buildString {
         for (y in lastBlock.top downTo 0) {
             append('|')
