@@ -17,14 +17,14 @@ fn main() {
 }
 
 fn part1(input: Input) -> Output {
-    let rx = Regex::new(r"mul\(\d+,\d+\)").unwrap();
+    let rx = Regex::new(r"mul\(\d{1,3},\d{1,3}\)").unwrap();
     rx.find_iter(input)
         .map(|rx_match| rx_match.as_str().get_numbers().reduce(usize::mul).unwrap())
         .sum()
 }
 
 fn part2(input: Input) -> Output {
-    let rx = Regex::new(r"(?s)don't\(\).*?(?:do\(\)|$)|mul\((\d+),(\d+)\)").unwrap();
+    let rx = Regex::new(r"(?s)don't\(\).*?(?:do\(\)|$)|mul\((\d{1,3}),(\d{1,3})\)").unwrap();
     rx.captures_iter(input)
         .filter(|cap| !cap.get(1).is_none())
         .map(|cap| {
