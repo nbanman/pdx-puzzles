@@ -17,17 +17,17 @@ class Y24D4(input: String) : Day {
                             .mapNotNull { pos -> jumble.getOrNull(pos) }
                             .joinToString("")
                     }
-            }
-            .count { it == "XMAS" }
+            }.count { it == "XMAS" }
     }
     override fun part2(): Int {
         val starts = jumble.withIndex().filter { (_, c) -> c == 'A' }.map { (idx) -> jumble.coordOf(idx) }
-        val lr = listOf(Coord(-1, -1), Coord.ORIGIN, Coord(1, 1))
-        val rl = listOf(Coord(1, -1), Coord.ORIGIN, Coord(-1, 1))
+        val lr = listOf(Coord(-1, -1), Coord(1, 1))
+        val rl = listOf(Coord(1, -1), Coord(-1, 1))
+        val ms = "MS".toSet()
         return starts.count { start ->
-            val lMas = lr.map { pos -> jumble.getOrNull(start + pos) }.joinToString("")
-            val rMas = rl.map { pos -> jumble.getOrNull(start + pos) }.joinToString("")
-            (lMas == "MAS" || lMas == "SAM") && (rMas == "MAS" || rMas == "SAM")
+            val lMas = lr.mapNotNull { pos -> jumble.getOrNull(start + pos) }.toSet()
+            val rMas = rl.mapNotNull { pos -> jumble.getOrNull(start + pos) }.toSet()
+            lMas == ms && rMas == ms
         }
     }
 }
