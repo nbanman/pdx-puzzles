@@ -9,6 +9,7 @@ class Y24D4(input: String) : Day {
 
 fun main() = Day.runDay(Y24D4::class)
 
+@Suppress("UNUSED")
 private val input = listOf(
     """""",
 )
