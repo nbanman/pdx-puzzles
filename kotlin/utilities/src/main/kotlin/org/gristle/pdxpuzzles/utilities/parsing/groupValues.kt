@@ -1,6 +1,21 @@
 @file:Suppress("UNUSED")
 
-package org.gristle.pdxpuzzles.advent.utilities.parsing
+package org.gristle.pdxpuzzles.utilities.parsing
+
+/**
+ * Convenience method to obtain the group values of a findall regex search of a string.
+ */
+fun String.groupValues(pattern: String): List<List<String>> = groupValues(pattern.toRegex())
+
+/**
+ * Convenience method to obtain the group values of a findall regex search of a string.
+ */
+fun String.groupValues(pattern: Regex): List<List<String>> {
+    return pattern
+        .findAll(this)
+        .map { it.groupValues.drop(1) }
+        .toList()
+}
 
 /**
  * Convenience method to obtain the group values of a findall regex search of a string,

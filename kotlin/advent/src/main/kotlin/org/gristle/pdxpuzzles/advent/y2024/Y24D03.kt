@@ -1,7 +1,7 @@
 package org.gristle.pdxpuzzles.advent.y2024
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
-import org.gristle.pdxpuzzles.advent.utilities.parsing.gvs
+import org.gristle.pdxpuzzles.utilities.parsing.gvs
 
 class Y24D3(val input: String) : Day {
 

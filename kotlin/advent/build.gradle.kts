@@ -11,6 +11,8 @@ dependencies {
     // Project "app" depends on project "utils". (Project paths are separated with ":", so ":utils" refers to the top-level "utils" project.)
     implementation(project(":utilities"))
     implementation(kotlin("reflect"))
+    // Apply the kotlinx bundle of dependencies from the version catalog (`gradle/libs.versions.toml`).
+    implementation(libs.bundles.kotlinxEcosystem)
 }
 
 group = "org.gristle.puzzle-utilities.advent"
