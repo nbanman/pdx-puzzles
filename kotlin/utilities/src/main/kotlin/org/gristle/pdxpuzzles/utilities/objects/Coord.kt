@@ -1,8 +1,8 @@
 @file:Suppress("unused")
 
-package objects
+package org.gristle.pdxpuzzles.utilities.objects
 
-import org.gristle.utilities.enums.Nsew
+import org.gristle.pdxpuzzles.utilities.enums.Nsew
 import kotlin.math.*
 
 data class Coord(val x: Int, val y: Int) : Comparable<Coord> {

@@ -1,8 +1,8 @@
 @file:Suppress("unused")
 
-package org.gristle.utilities.enums
+package org.gristle.pdxpuzzles.utilities.enums
 
-import objects.Coord
+import org.gristle.pdxpuzzles.utilities.objects.Coord
 
 enum class Nsew {
     NORTH {

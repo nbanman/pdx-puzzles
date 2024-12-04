@@ -1,4 +1,4 @@
-package org.gristle.app.utilities
+package org.gristle.pdxpuzzles.advent.utilities
 
 import java.io.File
 import java.net.HttpURLConnection
