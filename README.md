@@ -8,8 +8,8 @@ Feel free to clone, lmk if you need any help setting things up.
 
 | Project | Kotlin | Rust |
 |---------|--------|------|
-| **Advent of Code** | [108⭐](https://github.com/nbanman/pdx-puzzles/tree/main/kotlin/advent/src/main/kotlin/org/gristle/pdxpuzzles/advent) | [8⭐](https://github.com/nbanman/pdx-puzzles/tree/main/rust/advent/src/bin) |
-| 2024 | [8⭐](https://github.com/nbanman/pdx-puzzles/tree/main/kotlin/advent/src/main/kotlin/org/gristle/pdxpuzzles/advent/y2024) | [8⭐](https://github.com/nbanman/pdx-puzzles/tree/main/rust/advent/src/bin/2024) |
+| **Advent of Code** | [260](https://github.com/nbanman/pdx-puzzles/tree/main/kotlin/advent/src/main/kotlin/org/gristle/pdxpuzzles/advent) | [10⭐](https://github.com/nbanman/pdx-puzzles/tree/main/rust/advent/src/bin) |
+| 2024 | [10⭐](https://github.com/nbanman/pdx-puzzles/tree/main/kotlin/advent/src/main/kotlin/org/gristle/pdxpuzzles/advent/y2024) | [10⭐](https://github.com/nbanman/pdx-puzzles/tree/main/rust/advent/src/bin/2024) |
 | 2023 | [50⭐](https://github.com/nbanman/pdx-puzzles/tree/main/kotlin/advent/src/main/kotlin/org/gristle/pdxpuzzles/advent/y2023) | |
 | 2022 | [50⭐](https://github.com/nbanman/pdx-puzzles/tree/main/kotlin/advent/src/main/kotlin/org/gristle/pdxpuzzles/advent/y2022) | |
 | **Everybody Codes** | | [27 pts](https://github.com/nbanman/pdx-puzzles/tree/main/rust/everybody-codes/src) |
