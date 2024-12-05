@@ -29,11 +29,7 @@ fn parse_input(input: &str) -> Input {
     let mut rules: Rules = Rules::new();
     for rule in rules_build {
         let [l, r] = rule[..2] else { panic!("Invalid rule") };
-        if !rules.contains_key(&r) {
-            rules.insert(r, HashSet::new());
-        }
-        rules.entry(r)
-            .and_modify(|it| { it.insert(l); } );
+        rules.entry(r).or_insert(HashSet::new()).insert(l);
         rules.entry(l).or_insert(HashSet::new());
     }
     (updates, rules)
