@@ -12,3 +12,4 @@ members = [
 itertools = "0.13.0"
 rayon = "1.10.0"
 num-traits = "0.2.19"
+indexmap = "2.7.0"
