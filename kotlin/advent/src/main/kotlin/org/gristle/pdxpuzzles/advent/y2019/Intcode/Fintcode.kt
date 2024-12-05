@@ -1,4 +1,4 @@
-package org.gristle.pdxpuzzles.advent.y2019
+package org.gristle.pdxpuzzles.advent.y2019.Intcode
 
 import org.gristle.pdxpuzzles.utilities.debugging.print
 import org.gristle.pdxpuzzles.utilities.iteration.nextOrNull

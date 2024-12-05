@@ -2,6 +2,7 @@
 
 package org.gristle.pdxpuzzles.utilities.objects
 
+import org.gristle.pdxpuzzles.utilities.graph.Graph
 import kotlin.math.min
 
 interface Grid<out E> : List<E> {
@@ -604,3 +605,24 @@ fun Grid<Boolean>.rep() = representation { if (it) '*' else '.' }
 
 fun Grid<Char>.rep() = representation { it }
 
+fun Grid<Char>.getEdgeMapIndexed(ignore: String = "#. "): Map<IndexedValue<Char>, List<Graph.Edge<IndexedValue<Char>>>> {
+    val edgeMap = mutableMapOf<IndexedValue<Char>, List<Graph.Edge<IndexedValue<Char>>>>()
+
+    val getEdges: (IndexedValue<Char>) -> List<IndexedValue<Char>> = { node ->
+        getNeighborsIndexedValue(node.index)
+            .filter { it.value != '#' }
+    }
+    withIndex().filter { it.value !in ignore }.forEach { node ->
+        edgeMap[node] = Graph.bfs(node, defaultEdges = getEdges)
+            .filter { it.id.value !in ignore }
+            .drop(1)
+            .map { Graph.Edge(it.id, it.weight) }
+    }
+    return edgeMap
+}
+
+fun Grid<Char>.getEdgeMap(ignore: String = "#. "): Map<Char, List<Graph.Edge<Char>>> = getEdgeMapIndexed(ignore)
+    .entries
+    .associate { entry ->
+        entry.key.value to entry.value.map { edge -> Graph.Edge(edge.vertexId.value, edge.weight) }
+    }
