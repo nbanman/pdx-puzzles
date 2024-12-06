@@ -12,6 +12,38 @@ rayon = { workspace = true }
 indexmap = { workspace = true }
 
 [[bin]]
+name = "y23d01"
+path = "src/bin/2023/y23d01.rs"
+
+[[bin]]
+name = "y23d02"
+path = "src/bin/2023/y23d02.rs"
+
+[[bin]]
+name = "y23d03"
+path = "src/bin/2023/y23d03.rs"
+
+[[bin]]
+name = "y23d04"
+path = "src/bin/2023/y23d04.rs"
+
+[[bin]]
+name = "y23d05"
+path = "src/bin/2023/y23d05.rs"
+
+[[bin]]
+name = "y23d06"
+path = "src/bin/2023/y23d06.rs"
+
+[[bin]]
+name = "y23d07"
+path = "src/bin/2023/y23d07.rs"
+
+[[bin]]
+name = "y23d08"
+path = "src/bin/2023/y23d08.rs"
+
+[[bin]]
 name = "y24d01"
 path = "src/bin/2024/y24d01.rs"
 
