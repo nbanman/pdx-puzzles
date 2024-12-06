@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::{cmp::Ordering, collections::{HashMap, HashSet}};
 
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
@@ -35,46 +35,34 @@ fn parse_input(input: &str) -> Input {
     (updates, rules)
 }
 
-fn sort_update(update: &HashSet<usize>, rules: &Rules) -> Vec<usize> {
-    rules.iter()
-        .filter_map(|(page, on_left)| {
-            if update.contains(page) {
-                Some((*page, on_left.intersection(update).count()))
-            } else {
-                None
-            }
-        })
-        .sorted_by_key(|(_, pages_on_left)| *pages_on_left)
-        .map(|(page, _)| page)
-        .collect()
-}
-
 fn part1(input: &Input) -> Output {
     let (updates, rules) = input;
     updates.iter()
-        .map(|update| {
-            let update_set: HashSet<usize> = update.iter().copied().collect();
-            let sorted = sort_update(&update_set, rules);
-            if *update == sorted {
-                update[update.len() / 2]
-            } else {
-                0
-            }
+        .filter(|update| { 
+            update.iter().tuple_windows().all(|(a, b)| rules[b].contains(a))
         })
+        .map(|update| update[update.len() / 2])
         .sum()
 }
 
 fn part2(input: &Input) -> Output {
     let (updates, rules) = input;
     updates.iter()
+        .filter(|update| {
+            update.iter().tuple_windows().any(|(a, b)| !rules[b].contains(a))
+        })
         .map(|update| {
-            let update_set: HashSet<usize> = update.iter().copied().collect();
-            let sorted = sort_update(&update_set, rules);
-            if *update != sorted {
-                sorted[update.len() / 2]
-            } else {
-                0
-            }
+            update.iter()
+                .sorted_by(|&a, &b| {
+                    if rules[b].contains(a) {
+                        Ordering::Less
+                    } else {
+                        Ordering::Greater
+                    }
+                })
+                .take(update.len() / 2 + 1)
+                .last()
+                .unwrap()
         })
         .sum()
 }
@@ -87,7 +75,8 @@ fn default() {
     assert_eq!(4077, part2(&input));
 }
 
-// Input parsed (384μs)
-// 1. 5129 (982μs)
-// 2. 4077 (952μs)
-// Total: 2ms
+// Input parsed (392μs)
+// 1. 5129 (46μs)
+// 2. 4077 (202μs)
+// Total: 644μs
+
