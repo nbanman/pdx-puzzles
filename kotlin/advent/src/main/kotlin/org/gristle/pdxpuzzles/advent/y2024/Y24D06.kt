@@ -63,10 +63,10 @@ class Y24D6(input: String) : Day {
 
 fun main() = Day.runDay(Y24D6::class)
 
-//    Class creation: 9ms
-//    Part 1: 5444 (13ms)
-//    Part 2: 1946 (2254ms)
-//    Total time: 2278ms
+//    Class creation: 24ms
+//    Part 1: 5444 (2ms)
+//    Part 2: 1946 (517ms)
+//    Total time: 544ms
 
 
 @Suppress("unused")
