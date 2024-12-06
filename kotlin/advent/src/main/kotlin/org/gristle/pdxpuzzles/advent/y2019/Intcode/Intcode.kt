@@ -131,7 +131,7 @@ class IntCode(
                 }
             }
         }
-        return true
+        return false
     }
 
     private fun getVerbose(instruction: Int, parameters: Int, name: String) {
