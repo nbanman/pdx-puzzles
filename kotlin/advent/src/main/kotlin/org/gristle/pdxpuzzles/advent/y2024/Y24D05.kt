@@ -20,38 +20,20 @@ class Y24D5(input: String) : Day {
         this.leftOf = leftOf
     }
 
-    private fun updateSort(update: Set<Int>): List<Int> = leftOf
-        .mapNotNull { (page, onLeft) ->
-            if (page in update) {
-                page to onLeft.intersect(update).size
-            } else {
-                null
-            }
-        }.sortedBy { (_, pagesOnLeft) -> pagesOnLeft }
-        .map { (page, _) -> page }
+    override fun part1(): Int = updates
+        .filter { update -> update.zipWithNext().all { (a, b) -> a in leftOf.getValue(b) } }
+        .sumOf { update -> update[update.size / 2] }
 
-    override fun part1(): Int = updates.sumOf { update ->
-        val sorted = updateSort(update.toSet())
-        if (update == sorted) {
-            update[update.size / 2]
-        } else {
-            0
+    override fun part2(): Int = updates
+        .filter { update -> update.zipWithNext().any { (a, b) -> a !in leftOf.getValue(b)} }
+        .sumOf { update ->
+            update.sortedWith { a, b -> if (a in leftOf.getValue(b)) -1 else 1 }[update.size / 2]
         }
     }
-
-    override fun part2(): Int = updates.sumOf { update ->
-        val sorted = updateSort(update.toSet())
-        if (update != sorted) {
-            sorted[update.size / 2]
-        } else {
-            0
-        }
-    }
-}
 
 fun main() = Day.runDay(Y24D5::class)
 
-//    Class creation: 24ms
-//    Part 1: 5129 (18ms)
-//    Part 2: 4077 (9ms)
-//    Total time: 52ms
+//    Class creation: 18ms
+//    Part 1: 5129 (4ms)
+//    Part 2: 4077 (7ms)
+//    Total time: 29ms
