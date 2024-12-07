@@ -3,7 +3,7 @@ package org.gristle.pdxpuzzles.advent.y2024
 import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.parsing.getIntList
 
-class Y24D2(input: String) : Day {
+class Y24D02(input: String) : Day {
     private val levels: List<List<Int>> = input.lines().map { it.getIntList() }
 
     private fun List<Int>.isSafe(): Boolean {
@@ -44,7 +44,7 @@ class Y24D2(input: String) : Day {
     override fun part1() = levels.count { level -> level.isSafe() }
     override fun part2() = levels.count { level -> level.isSomewhatSafe() }
 }
-fun main() = Day.runDay(Y24D2::class)
+fun main() = Day.runDay(Y24D02::class)
 
 @Suppress("unused")
 private const val test = """7 6 4 2 1

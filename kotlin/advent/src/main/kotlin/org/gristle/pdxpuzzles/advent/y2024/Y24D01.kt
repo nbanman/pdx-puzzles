@@ -5,7 +5,7 @@ import org.gristle.pdxpuzzles.advent.utilities.iteration.collate
 import org.gristle.pdxpuzzles.utilities.parsing.getIntList
 import kotlin.math.abs
 
-class Y24D1(private val input: String) : Day {
+class Y24D01(private val input: String) : Day {
 
     override fun part1() = input
         .getIntList()
@@ -21,7 +21,7 @@ class Y24D1(private val input: String) : Day {
     }
 }
 
-fun main() = Day.runDay(Y24D1::class)
+fun main() = Day.runDay(Y24D01::class)
 
 //    Class creation: 1ms
 //    Part 1: 1222801 (11ms)

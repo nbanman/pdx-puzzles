@@ -41,7 +41,7 @@ class Y24D6(input: String) : Day {
     override fun part2(): Int = runBlocking {
         withContext(Dispatchers.Default) {
             goldenPath
-                .filter { lab[it] == '.' }
+                .drop(1)
                 .map { obstacle ->
                     async {
                         val visited = mutableSetOf<State>()

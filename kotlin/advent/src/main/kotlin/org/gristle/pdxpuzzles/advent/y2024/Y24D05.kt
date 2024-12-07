@@ -4,7 +4,7 @@ import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.parsing.blankSplit
 import org.gristle.pdxpuzzles.utilities.parsing.getIntList
 
-class Y24D5(input: String) : Day {
+class Y24D05(input: String) : Day {
     private val updates: List<List<Int>>
     private val leftOf: Map<Int, Set<Int>>
     init {
@@ -31,7 +31,7 @@ class Y24D5(input: String) : Day {
         }
     }
 
-fun main() = Day.runDay(Y24D5::class)
+fun main() = Day.runDay(Y24D05::class)
 
 //    Class creation: 18ms
 //    Part 1: 5129 (4ms)

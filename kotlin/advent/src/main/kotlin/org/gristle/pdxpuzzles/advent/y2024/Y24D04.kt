@@ -4,7 +4,7 @@ import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.objects.Coord
 import org.gristle.pdxpuzzles.utilities.objects.toGrid
 
-class Y24D4(input: String) : Day {
+class Y24D04(input: String) : Day {
     private val jumble = input.toGrid()
     override fun part1(): Int {
         val starts = jumble.withIndex().filter { (_, c) -> c == 'X' }.map { (idx) -> jumble.coordOf(idx) }
@@ -32,7 +32,7 @@ class Y24D4(input: String) : Day {
     }
 }
 
-fun main() = Day.runDay(Y24D4::class)
+fun main() = Day.runDay(Y24D04::class)
 
 @Suppress("unused")
 private val test = listOf(

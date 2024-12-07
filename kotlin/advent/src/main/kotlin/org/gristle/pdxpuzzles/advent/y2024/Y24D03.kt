@@ -3,7 +3,7 @@ package org.gristle.pdxpuzzles.advent.y2024
 import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.parsing.gvs
 
-class Y24D3(val input: String) : Day {
+class Y24D03(val input: String) : Day {
 
     override fun part1(): Long = input
         .gvs(Regex("""mul\((\d+),(\d+)\)""")) { it.toLong() }
@@ -14,7 +14,7 @@ class Y24D3(val input: String) : Day {
         .sumOf { mr -> (mr.groupValues[1].toLongOrNull() ?: 0L) * (mr.groupValues[2].toLongOrNull() ?: 0L) }
 }
 
-fun main() = Day.runDay(Y24D3::class)
+fun main() = Day.runDay(Y24D03::class)
 
 @Suppress("unused")
 private val test = listOf(
