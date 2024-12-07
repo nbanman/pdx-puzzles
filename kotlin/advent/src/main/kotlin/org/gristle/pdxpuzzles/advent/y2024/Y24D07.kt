@@ -5,52 +5,59 @@ import org.gristle.pdxpuzzles.utilities.parsing.getLongList
 
 class Y24D07(input: String) : Day {
     enum class Operation {
-        Add { override fun operate(a: Long, b: Long) = a + b },
-        Multiply { override fun operate(a: Long, b: Long) = a * b },
-        Concatenate { override fun operate(a: Long, b: Long): Long = (a.toString() + b.toString()).toLong() };
-
-        abstract fun operate(a: Long, b: Long): Long
+        Sub { override fun operate(a: Long, b: Long) = a - b },
+        Divide { override fun operate(a: Long, b: Long) = if (a % b == 0L) { a / b } else null },
+        Slough {
+            override fun operate(a: Long, b: Long): Long? {
+                val aString = a.toString()
+                val bString = b.toString()
+                return if (aString.takeLast(bString.length) == bString) {
+                    aString.dropLast(bString.length).toLongOrNull()
+                } else {
+                    null
+                }
+            }
+        };
+        abstract fun operate(a: Long, b: Long): Long?
     }
 
-    data class Equation(val test: Long, val values: List<Long>) {
+    @JvmInline
+    value class Equation(val values: List<Long>) {
         fun isValid(operations: List<Operation>): Boolean {
+            val test = values[1]
             fun dfs(current: Long, index: Int): Boolean = when {
-                current > test -> false
-                index > values.lastIndex -> current == test
+                current < test -> false
+                index == 1 -> current == test
                 else -> {
                     operations.any { operation ->
-                        dfs(operation.operate(current, values[index]), index + 1)
+                        operation.operate(current, values[index])
+                            ?.let {
+                                dfs(it, index - 1)
+                            }
+                            ?: false
                     }
                 }
             }
-            return dfs(values[0], 1)
-        }
-
-        companion object {
-            fun new(s: String): Equation {
-                val (test, values) = s.split(':').map { it.getLongList() }
-                return Equation(test[0], values)
-            }
+            return dfs(values.first(), values.lastIndex)
         }
     }
 
-    private val equations = input.lines().map(Equation::new)
+    private val equations = input.lines().map { Equation(it.getLongList()) }
 
-    override fun part1(): Long = equations
-        .filter { it.isValid(listOf(Operation.Multiply, Operation.Add)) }
-        .sumOf { it.test }
+    private fun solve(operations: List<Operation>): Long = equations
+        .filter { it.isValid(operations) }
+        .sumOf { it.values.first() }
 
-    override fun part2(): Long = equations
-        .filter { it.isValid(listOf(Operation.Multiply, Operation.Concatenate, Operation.Add)) }
-        .sumOf { it.test }
+    override fun part1(): Long = solve(listOf(Operation.Sub, Operation.Divide))
+    override fun part2(): Long = solve(listOf(Operation.Divide, Operation.Slough, Operation.Sub))
 }
 
 fun main() = Day.runDay(Y24D07::class)
 
-//    Class creation: 27ms
-//    Part 1: 945512582195 (15ms)
-//    Part 2: 271691107779347 (232ms)
-//    Total time: 275ms
+//    Class creation: 19ms
+//    Part 1: 945512582195 (5ms)
+//    Part 2: 271691107779347 (9ms)
+//    Total time: 34ms
 
 @Suppress("unused")
 private val test = listOf("""190: 10 19
@@ -62,4 +69,6 @@ private val test = listOf("""190: 10 19
 192: 17 8 14
 21037: 9 7 18 13
 292: 11 6 16 20
-""")
+""",
+    """161011: 16 10 13"""
+)
