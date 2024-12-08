@@ -1,11 +1,9 @@
 package org.gristle.pdxpuzzles.advent.y2024
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.enums.Nsew
+import org.gristle.pdxpuzzles.utilities.iteration.parMap
 import org.gristle.pdxpuzzles.utilities.objects.Coord
 import org.gristle.pdxpuzzles.utilities.objects.toGrid
 
@@ -32,33 +30,29 @@ class Y24D6(input: String) : Day {
 
     data class State(val pos: Coord, val dir: Nsew = Nsew.NORTH, val turned: Boolean = false)
 
-    val goldenPath = generateSequence(State(start)) { move(it, null) }
+    private val goldenPath = generateSequence(State(start)) { move(it, null) }
         .map { (pos, _) -> pos }
         .toSet()
 
     override fun part1(): Int = goldenPath.size
 
     override fun part2(): Int = runBlocking {
-        withContext(Dispatchers.Default) {
-            goldenPath
-                .drop(1)
-                .map { obstacle ->
-                    async {
-                        val visited = mutableSetOf<State>()
-                        generateSequence(State(start)) { move(it, obstacle) }
-                            .firstOrNull { state ->
-                                if (state.turned) {
-                                    !visited.add(state)
-                                } else {
-                                    false
-                                }
-                            }
-                            ?.let { true }
-                            ?: false
+        goldenPath
+            .drop(1)
+            .parMap { obstacle ->
+                val visited = mutableSetOf<State>()
+                generateSequence(State(start)) { move(it, obstacle) }
+                    .firstOrNull { state ->
+                        if (state.turned) {
+                            !visited.add(state)
+                        } else {
+                            false
+                        }
                     }
-                }.count { it.await() }
-        }
-    }
+                    ?.let { true }
+                    ?: false
+                }
+            }.count { it }
 }
 
 fun main() = Day.runDay(Y24D6::class)
