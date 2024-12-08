@@ -43,23 +43,21 @@ class Y24D6(input: String) : Day {
         goldenPath
             .zipWithNext()
             .toList()
+            .filter { (_, next) -> obstacles.add(next.pos) }
             .parMap { (current, next) ->
                 val obstacle = next.pos
-                if (!obstacles.add(obstacle)) {
-                    false
-                } else {
-                    val visited = mutableSetOf<State>()
-                    generateSequence(current) { move(it, obstacle) }
-                        .firstOrNull { state ->
-                            if (state.turned) {
-                                !visited.add(state)
-                            } else {
-                                false
-                            }
+
+                val visited = mutableSetOf<State>()
+                generateSequence(current) { move(it, obstacle) }
+                    .firstOrNull { state ->
+                        if (state.turned) {
+                            !visited.add(state)
+                        } else {
+                            false
                         }
-                        ?.let { true }
-                        ?: false
-                }
+                    }
+                    ?.let { true }
+                    ?: false
             }.count { it }
         }
     }
@@ -67,9 +65,9 @@ class Y24D6(input: String) : Day {
 fun main() = Day.runDay(Y24D6::class)
 
 //    Class creation: 11ms
-//    Part 1: 5444 (16ms)
-//    Part 2: 1947 (328ms)
-//    Total time: 356ms
+//    Part 1: 5444 (13ms)
+//    Part 2: 1946 (272ms)
+//    Total time: 296ms
 
 
 @Suppress("unused")
