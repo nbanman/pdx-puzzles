@@ -17,9 +17,9 @@ class Y24D08(val input: String) : Day {
             }
     }
 
-    private inline fun solve(antinode: (Pair<Coord, Coord>) -> List<Coord>) = antennae.values
-        .flatMap { positions -> positions.getPairs().flatMap(antinode) }
-        .toSet()
+    private inline fun solve(getAntinodes: (Pair<Coord, Coord>) -> List<Coord>) = antennae.values
+        .flatMap { positions -> positions.getPairs().flatMap(getAntinodes) }
+        .distinct()
         .size
 
     override fun part1() = solve { (a, b) ->
@@ -56,7 +56,7 @@ private val test = listOf(
 """,
 )
 
-//    Class creation: 1ms
-//    Part 1: 191183308 (14ms)
-//    Part 2: 92082041 (9ms)
-//    Total time: 25ms
+//    Class creation: 7ms
+//    Part 1: 228 (4ms)
+//    Part 2: 766 (8ms)
+//    Total time: 20ms
