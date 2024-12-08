@@ -10,11 +10,16 @@ import org.gristle.pdxpuzzles.utilities.objects.toGrid
 class Y24D6(input: String) : Day {
     private val lab = input.toGrid()
     private val start = lab.coordOf(lab.indexOf('^'))
+
+    data class State(val pos: Coord, val dir: Nsew, val turned: Boolean)
+
     private val move: (State, Coord?) -> State? = { (pos, dir, _), obstacle ->
         val forward = pos.move(dir)
+
+        // if this is null that means it's gone off the map, which is a valid thing to do!
         lab.getOrNull(forward)?.let { space ->
             if (space != '#' && forward != obstacle) {
-                State(forward, dir)
+                State(forward, dir, false)
             } else {
                 val right = dir.right()
                 val newMove = pos.move(right)
@@ -28,39 +33,43 @@ class Y24D6(input: String) : Day {
         }
     }
 
-    data class State(val pos: Coord, val dir: Nsew = Nsew.NORTH, val turned: Boolean = false)
+    private val goldenPath = generateSequence(State(start, Nsew.NORTH, false)) { move(it, null) }
 
-    private val goldenPath = generateSequence(State(start)) { move(it, null) }
-        .map { (pos, _) -> pos }
-        .toSet()
-
-    override fun part1(): Int = goldenPath.size
+    override fun part1(): Int = goldenPath.map{ it.pos }.distinct().count()
 
     override fun part2(): Int = runBlocking {
+        val obstacles = mutableSetOf<Coord>()
+
         goldenPath
-            .drop(1)
-            .parMap { obstacle ->
-                val visited = mutableSetOf<State>()
-                generateSequence(State(start)) { move(it, obstacle) }
-                    .firstOrNull { state ->
-                        if (state.turned) {
-                            !visited.add(state)
-                        } else {
-                            false
+            .zipWithNext()
+            .toList()
+            .parMap { (current, next) ->
+                val obstacle = next.pos
+                if (!obstacles.add(obstacle)) {
+                    false
+                } else {
+                    val visited = mutableSetOf<State>()
+                    generateSequence(current) { move(it, obstacle) }
+                        .firstOrNull { state ->
+                            if (state.turned) {
+                                !visited.add(state)
+                            } else {
+                                false
+                            }
                         }
-                    }
-                    ?.let { true }
-                    ?: false
+                        ?.let { true }
+                        ?: false
                 }
             }.count { it }
-}
+        }
+    }
 
 fun main() = Day.runDay(Y24D6::class)
 
-//    Class creation: 24ms
-//    Part 1: 5444 (2ms)
-//    Part 2: 1946 (517ms)
-//    Total time: 544ms
+//    Class creation: 11ms
+//    Part 1: 5444 (16ms)
+//    Part 2: 1947 (328ms)
+//    Total time: 356ms
 
 
 @Suppress("unused")
