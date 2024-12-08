@@ -11,7 +11,7 @@ class Y24D07(input: String) : Day {
             override fun operate(a: Long, b: Long): Long? {
                 val aString = a.toString()
                 val bString = b.toString()
-                return if (aString.takeLast(bString.length) == bString) {
+                return if (aString.endsWith(bString)) {
                     aString.dropLast(bString.length).toLongOrNull()
                 } else {
                     null
