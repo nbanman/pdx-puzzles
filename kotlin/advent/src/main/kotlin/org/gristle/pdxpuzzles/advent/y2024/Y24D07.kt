@@ -48,7 +48,7 @@ class Y24D07(input: String) : Day {
         .filter { it.isValid(operations) }
         .sumOf { it.values.first() }
 
-    override fun part1(): Long = solve(listOf(Operation.Sub, Operation.Divide))
+    override fun part1(): Long = solve(listOf(Operation.Divide, Operation.Sub))
     override fun part2(): Long = solve(listOf(Operation.Divide, Operation.Slough, Operation.Sub))
 }
 
