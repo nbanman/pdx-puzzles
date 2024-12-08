@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package org.gristle.pdxpuzzles.utilities.iteration
 
 import kotlinx.coroutines.Dispatchers
