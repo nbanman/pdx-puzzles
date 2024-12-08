@@ -38,7 +38,8 @@ fn move_guard(lab: Input, width: usize, state: &State, obstacle: Option<usize>) 
     let forward = move_dir(state.pos, state.dir, width)?;
     let lab = lab.as_bytes();
     let space = *lab.get(forward)?;
-    if Some(forward) != obstacle && space != b'#' && space != b'\n' {
+    if space == b'\n' { return None; }
+    if Some(forward) != obstacle && space != b'#' {
         Some(State { pos: forward, dir: state.dir, turned: false })
     } else {
         let right = state.dir.right();
@@ -53,46 +54,47 @@ fn move_guard(lab: Input, width: usize, state: &State, obstacle: Option<usize>) 
     }
 }
 
+fn golden_path(lab: &str, width: usize, start: State) -> impl Iterator<Item = State> + use<'_>{
+    successors(Some(start), move |state| {
+        move_guard(lab, width, state, None)
+    })
+}
+
 fn part1(lab: Input) -> Output {
     let width = lab.find('\n').unwrap() + 1;
     let start = lab.find('^').unwrap();
     let start = State { pos: start, dir: Cardinal::North, turned: false };
     golden_path(lab, width, start)
+        .map(|state| state.pos)
         .unique()
         .count()
-}
-
-fn golden_path(lab: &str, width: usize, start: State) -> impl Iterator<Item = usize> + use<'_>{
-    successors(Some(start), move |state| {
-        move_guard(lab, width, state, None)
-    })
-        .map(|state| state.pos)
 }
 
 fn part2(lab: &str) -> Output {
     let width = lab.find('\n').unwrap() + 1;
     let start = lab.find('^').unwrap();
     let start = State { pos: start, dir: Cardinal::North, turned: false };
-    let mut first = true;
+    let mut obstacles = vec![false; lab.len()];
     golden_path(lab, width, start)
-        .dropping(1)
-        .unique()
-        //.par_bridge()
-        .filter(|&obstacle| {
+        .tuple_windows::<(_, _)>()
+        .filter(|(_, next)| {
+            let obstacle = next.pos;
+            if obstacles[obstacle] {
+                false
+            } else {
+                obstacles[obstacle] = true;
+                true
+            }
+        })
+        .par_bridge()
+        .filter(|(current, next)| {
+            let obstacle = next.pos;
             let mut visited = HashSet::new();
-            let truth = successors(Some(start), move |state| {
+
+            successors(Some(*current), move |state| {
                 move_guard(lab, width, state, Some(obstacle))
             })
                 .find(|state| {
-                    if first {
-                        print!(
-                            "({}, {}), {:?}, {}-",
-                            state.pos % width,
-                            state.pos / width,
-                            state.dir,
-                            state.turned,
-                        );
-                    }
                     if state.turned {
                         if !visited.insert(state.clone()) {
                             true
@@ -102,9 +104,8 @@ fn part2(lab: &str) -> Output {
                     } else {
                         false
                     }
-                }).is_some();
-            if first { first = !first; }
-            truth
+                })
+                .is_some()
         })
         .count()
 }
@@ -115,6 +116,12 @@ fn default() {
     assert_eq!(5444, part1(&input));
     assert_eq!(1946, part2(&input));
 }
+
+// Input parsed (25μs)
+// 1. 5444 (350μs)
+// 2. 1946 (13ms)
+// Total: 14ms
+
 
 #[test]
 fn examples() {
