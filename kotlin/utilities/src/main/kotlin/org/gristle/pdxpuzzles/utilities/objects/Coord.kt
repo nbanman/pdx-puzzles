@@ -60,6 +60,8 @@ data class Coord(val x: Int, val y: Int) : Comparable<Coord> {
 
     operator fun rem(other: Coord) = Coord(x % other.x, y % other.y)
 
+    operator fun unaryMinus() = Coord(-x, -y)
+
     fun mod(other: Coord) = Coord(x.mod(other.x), y.mod(other.y))
 
     fun max(other: Coord) = Coord(max(x, other.x), max(y, other.y))
@@ -164,6 +166,8 @@ data class Coord(val x: Int, val y: Int) : Comparable<Coord> {
         Nsew.EAST -> east(distance, size)
         Nsew.WEST -> west(distance, size)
     }
+
+    infix fun <T> isWithin(grid: Grid<T>): Boolean = grid.validCoord(this)
 
     override fun compareTo(other: Coord) = manhattanDistance() - other.manhattanDistance()
 }
