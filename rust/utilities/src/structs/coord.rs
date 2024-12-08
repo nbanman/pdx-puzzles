@@ -1,7 +1,7 @@
-use std::{fmt::Display, ops::{Add, AddAssign, Div, Mul, Sub, SubAssign}};
+use std::{fmt::Display, ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign}};
 
 use itertools::Itertools;
-use num_traits::{CheckedAdd, CheckedSub, One, PrimInt, Unsigned, Zero};
+use num_traits::{CheckedAdd, CheckedSub, NumCast, One, PrimInt, Signed, Zero};
 
 use crate::enums::cardinals::Cardinal;
 
@@ -24,6 +24,29 @@ impl<T: Coordinate, const N: usize>  Coord<T, N> {
     pub fn new(coordinates: [T; N]) -> Self {
         Coord(coordinates)
     }
+
+    pub fn get_index(&self, dimensions: &[usize]) -> Option<usize> {
+        let mut usized = Vec::with_capacity(N);
+        for n in self.0 {
+            let as_usize = n.to_usize()?;
+            usized.push(as_usize);
+        }
+
+        let mut multipliers = Vec::with_capacity(N);
+        let mut acc = 1;
+        multipliers.push(acc);
+        for &dim in dimensions {
+            acc *= dim;
+            multipliers.push(acc);
+        }
+
+        let index = usized.into_iter()
+            .zip(multipliers)
+            .map(|(xyz, multiplier)| xyz * multiplier)
+            .sum();
+        Some(index)
+    }
+
 
     pub fn x(&self) -> T { self.0[0] }
 
@@ -214,27 +237,12 @@ impl<T: Coordinate, const N: usize> Ord for Coord<T, N> {
     }
 }
 
-impl<T: Coordinate+Unsigned, const N: usize>  Coord<T, N> {
-    pub fn get_index(&self, dimensions: &[usize]) -> Option<usize> {
-        let mut usized = Vec::with_capacity(N);
-        for n in self.0 {
-            let as_usize = n.to_usize()?;
-            usized.push(as_usize);
-        }
-
-        let mut multipliers = Vec::with_capacity(N);
-        let mut acc = 1;
-        multipliers.push(acc);
-        for &dim in dimensions {
-            acc *= dim;
-            multipliers.push(acc);
-        }
-
-        let index = usized.into_iter()
-            .zip(multipliers)
-            .map(|(xyz, multiplier)| xyz * multiplier)
-            .sum();
-        Some(index)
+impl<T: Coordinate+Signed+std::fmt::Debug, const N: usize> Neg for Coord<T, N> {
+    type Output = Self;
+    fn neg(self) -> Self::Output {
+        let iter = self.0.iter().map(|&n| -n);
+        let neg_self = <[T; N]>::try_from(iter.collect::<Vec<_>>()).unwrap();
+        Self(neg_self)
     }
 }
 
@@ -244,6 +252,12 @@ impl<T: Coordinate> Coord<T, 2> {
         contents[0] = x;
         contents[1] = y;
         Self(contents)
+    }
+
+    pub fn from_index(index: usize, width: usize) -> Option<Self> {
+        let x = NumCast::from(index % width)?;
+        let y = NumCast::from(index / width)?;
+        Some(Self([x, y]))
     }
 
     pub fn y(&self) -> T { self.0[1] }
@@ -349,7 +363,6 @@ impl<T: Coordinate> From<(T, T, T)> for Coord<T, 3> {
         Self::new3d(value.0, value.1, value.2)
     }
 }
-
 
 #[test]
 fn unsigned_math_operations() {
