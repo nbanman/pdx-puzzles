@@ -1,7 +1,6 @@
-use std::iter::successors;
+use std::{collections::{HashMap, HashSet}, iter::successors};
 
 use advent::utilities::get_input::get_input;
-use indexmap::{IndexMap, IndexSet};
 use itertools::Itertools;
 use utilities::structs::{coord::Coord, stopwatch::{ReportDuration, Stopwatch}};
 
@@ -28,7 +27,7 @@ where
         .flat_map(|positions| {
             positions.iter().tuple_combinations::<(_, _)>().flat_map(get_antinodes)
         })
-        .collect::<IndexSet<_>>()
+        .collect::<HashSet<_>>()
         .len()
 }
 
@@ -78,7 +77,7 @@ fn ray(start: Pos, diff: &Pos, width: usize, height: usize) -> impl Iterator<Ite
 
 fn get_antennae(city_limits: Input) -> Vec<Vec<Pos>> {
     let width = city_limits.find('\n').unwrap() + 1;
-    let mut antennae = IndexMap::new();
+    let mut antennae = HashMap::new();
     for (index, roof) in city_limits.chars().enumerate() {
         if roof.is_ascii_alphanumeric() {
             let pos = Pos::from_index(index, width).unwrap();
