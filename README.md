@@ -8,7 +8,7 @@ Feel free to clone, lmk if you need any help setting things up.
 
 | Project | Kotlin | Rust |
 |---------|--------|------|
-| **Advent of Code** | [260](https://github.com/nbanman/pdx-puzzles/tree/main/kotlin/advent/src/main/kotlin/org/gristle/pdxpuzzles/advent) | [10⭐](https://github.com/nbanman/pdx-puzzles/tree/main/rust/advent/src/bin) |
+| **Advent of Code** | [464](https://github.com/nbanman/pdx-puzzles/tree/main/kotlin/advent/src/main/kotlin/org/gristle/pdxpuzzles/advent) | [29⭐](https://github.com/nbanman/pdx-puzzles/tree/main/rust/advent/src/bin) |
 | 2015 | [50⭐](https://github.com/nbanman/pdx-puzzles/tree/main/kotlin/advent/src/main/kotlin/org/gristle/pdxpuzzles/advent/y2015) | |
 | 2016 | [50⭐](https://github.com/nbanman/pdx-puzzles/tree/main/kotlin/advent/src/main/kotlin/org/gristle/pdxpuzzles/advent/y2016) | |
 | 2017 | [50⭐](https://github.com/nbanman/pdx-puzzles/tree/main/kotlin/advent/src/main/kotlin/org/gristle/pdxpuzzles/advent/y2017) | |
