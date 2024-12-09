@@ -2,6 +2,7 @@ package org.gristle.pdxpuzzles.advent.y2024
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.math.isEven
+import java.util.PriorityQueue
 
 class Y24D09(val input: String) : Day {
 
@@ -26,61 +27,47 @@ class Y24D09(val input: String) : Day {
         return defragged.foldIndexed(0L) { index, acc, i -> acc + index * i }
     }
 
-    private sealed interface Block {
-        val index: Int
-        val size: Int
-
-        fun checksum(): Long
-    }
-
-    private class Data(
-        override val index: Int,
-        override val size: Int,
-        val value: Int,
-        var defragged: Boolean
-    ) : Block {
-        override fun checksum(): Long = checksum(index)
-        fun checksum(index: Int): Long = (index.toLong() until (index + size).toLong()).sumOf { it * value }
-    }
-
-    private class Space(
-        override val index: Int,
-        override var size: Int,
-        val data: MutableList<Data>
-    ) : Block {
-        override fun checksum(): Long = data
-            .dropLast(1)
-            .runningFold(index) { acc, data -> acc + data.size  }
-            .zip(data)
-            .sumOf { (index, datum) -> datum.checksum(index) }
+    private class Block(var index: Int, val size: Int, val value: Int) {
+        fun checksum(): Long = (index.toLong() until (index + size).toLong())
+            .sumOf { it * value }
     }
 
     override fun part2(): Long {
+        val spaces = List(10) { PriorityQueue<Int>() }
         var index = 0
-        val spaces = mutableListOf<Space>()
-        val data = buildList {
-            for ((order, n) in input.map { it.digitToInt() }.withIndex()) {
-                if (n > 0) {
+        val blocks = buildList {
+            for ((order, size) in input.map(Char::digitToInt).withIndex()) {
+                if (size > 0) {
                     if (order.isEven()) {
-                        add(Data(index, n, order / 2, false))
+                        add(Block(index, size, order / 2))
                     } else {
-                        spaces.add(Space(index, n, mutableListOf()))
+                        spaces[size].add(index)
                     }
+                    index += size
                 }
-                index += n
             }
         }
-        val spacesPosterity = spaces.toList()
-        for (datum in data.reversed()) {
-            // checks that a) there is room; and b) that the space is not to the right of the data
-            spaces.find { it.size >= datum.size && it.index < datum.index }?.let { space ->
-                datum.defragged = true
-                space.data.add(datum)
-                space.size -= datum.size
-                if (space.size == 0) spaces.remove(space)
+        for (block in blocks.reversed()) {
+            val (spaceIndex, heapOffset) = spaces.subList(block.size, spaces.size)
+                .withIndex()
+                .mapNotNull { (heapIndex, space) ->
+                    space.peek()?.let { spaceIndex ->
+                        if (spaceIndex < block.index) {
+                            spaceIndex to heapIndex
+                        } else {
+                            null
+                        }
+                    }
+                }.minByOrNull { it.first }
+                ?: continue
+            val heapIndex = heapOffset + block.size
+            spaces[heapIndex].poll()
+            block.index = spaceIndex
+            if (block.size < heapIndex) {
+                spaces[heapIndex - block.size].add(spaceIndex + block.size)
             }
         }
-        return (data.filter { !it.defragged } + spacesPosterity).sumOf { it.checksum() }
+        return blocks.sumOf { it.checksum() }
     }
 }
 
