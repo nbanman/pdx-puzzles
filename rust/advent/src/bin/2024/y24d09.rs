@@ -65,6 +65,7 @@ impl Block {
     }
 }
 
+// Implemented /u/maneatingape's idea to use minheaps for space management for 50x speedup
 fn part2(input: Input) -> Output {
     let mut spaces: [BinaryHeap<Reverse<usize>>; 10] = std::array::from_fn(|_| BinaryHeap::new());
     let mut blocks = Vec::new();
