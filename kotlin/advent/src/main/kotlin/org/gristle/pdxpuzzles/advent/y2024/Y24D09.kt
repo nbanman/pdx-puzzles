@@ -9,7 +9,6 @@ class Y24D09(val input: String) : Day {
 
     override fun part1(): Long {
         val fragmented = buildList {
-
             for ((idx, n) in input.map { it.digitToInt() }.withIndex()) {
                 if (idx.isEven()) {
                     repeat(n) { add(idx / 2) }
@@ -69,10 +68,12 @@ class Y24D09(val input: String) : Day {
         val spaces = mutableListOf<Space>()
         val data = buildList {
             for ((order, n) in input.map { it.digitToInt() }.withIndex()) {
-                if (order.isEven()) {
-                    add(Data(order, index, n, order / 2, false))
-                } else {
-                    spaces.add(Space(order, index, n, mutableListOf()))
+                if (n > 0) {
+                    if (order.isEven()) {
+                        add(Data(order, index, n, order / 2, false))
+                    } else {
+                        spaces.add(Space(order, index, n, mutableListOf()))
+                    }
                 }
                 index += n
             }
@@ -97,5 +98,5 @@ private val test = listOf("12345", "2333133121414131402")
 
 //    Class creation: 2ms
 //    Part 1: 6390180901651 (26ms)
-//    Part 2: 6412390114238 (200ms)
-//    Total time: 230ms
+//    Part 2: 6412390114238 (172ms)
+//    Total time: 201ms
