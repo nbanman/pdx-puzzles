@@ -40,7 +40,7 @@ class Y24D09(val input: String) : Day {
         fun checksum(): Long
     }
 
-    private data class Data(
+    private class Data(
         override val order: Int,
         override val index: Int,
         override val size: Int,
@@ -51,7 +51,7 @@ class Y24D09(val input: String) : Day {
         fun checksum(index: Int): Long = (index.toLong() until (index + size).toLong()).sumOf { it * value }
     }
 
-    private data class Space(
+    private class Space(
         override val order: Int,
         override val index: Int,
         override var size: Int,
@@ -65,27 +65,29 @@ class Y24D09(val input: String) : Day {
     }
 
     override fun part2(): Long {
-        val data = mutableListOf<Data>()
-        val spaces = mutableListOf<Space>()
         var index = 0
-        for ((order, n) in input.map { it.digitToInt() }.withIndex()) {
-            if (order.isEven()) {
-                data.add(Data(order, index, n, order / 2, false))
-            } else {
-                spaces.add(Space(order, index, n, mutableListOf()))
+        val spaces = mutableListOf<Space>()
+        val data = buildList {
+            for ((order, n) in input.map { it.digitToInt() }.withIndex()) {
+                if (order.isEven()) {
+                    add(Data(order, index, n, order / 2, false))
+                } else {
+                    spaces.add(Space(order, index, n, mutableListOf()))
+                }
+                index += n
             }
-            index += n
         }
+        val spacesPosterity = spaces.toList()
         for (datum in data.reversed()) {
-
             // checks that a) there is room; and b) that the space is not to the right of the data
             spaces.find { it.size >= datum.size && it.index < datum.index }?.let { space ->
                 datum.defragged = true
                 space.data.add(datum)
                 space.size -= datum.size
+                if (space.size == 0) spaces.remove(space)
             }
         }
-        return (data.filter { !it.defragged } + spaces).sumOf { it.checksum() }
+        return (data.filter { !it.defragged } + spacesPosterity).sumOf { it.checksum() }
     }
 }
 
@@ -94,6 +96,6 @@ fun main() = Day.runDay(Y24D09::class)
 private val test = listOf("12345", "2333133121414131402")
 
 //    Class creation: 2ms
-//    Part 1: 6390180901651 (27ms)
-//    Part 2: 6412390114238 (367ms)
-//    Total time: 396ms
+//    Part 1: 6390180901651 (26ms)
+//    Part 2: 6412390114238 (200ms)
+//    Total time: 230ms
