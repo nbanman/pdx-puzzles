@@ -5,16 +5,11 @@ import org.gristle.pdxpuzzles.utilities.math.isEven
 
 class Y24D09(val input: String) : Day {
 
-    private fun List<Int>.checksum() = foldIndexed(0L) { index, acc, i -> acc + index * i }
-
     override fun part1(): Long {
         val fragmented = buildList {
             for ((idx, n) in input.map { it.digitToInt() }.withIndex()) {
-                if (idx.isEven()) {
-                    repeat(n) { add(idx / 2) }
-                } else {
-                    repeat(n) { add(null) }
-                }
+                val value = if (idx.isEven()) idx / 2 else null
+                repeat(n) { add(value) }
             }
         }
         var left = 0
@@ -28,11 +23,10 @@ class Y24D09(val input: String) : Day {
                 add(fragmented[right--]!!)
             }
         }
-        return defragged.checksum()
+        return defragged.foldIndexed(0L) { index, acc, i -> acc + index * i }
     }
 
     private sealed interface Block {
-        val order: Int
         val index: Int
         val size: Int
 
@@ -40,7 +34,6 @@ class Y24D09(val input: String) : Day {
     }
 
     private class Data(
-        override val order: Int,
         override val index: Int,
         override val size: Int,
         val value: Int,
@@ -51,7 +44,6 @@ class Y24D09(val input: String) : Day {
     }
 
     private class Space(
-        override val order: Int,
         override val index: Int,
         override var size: Int,
         val data: MutableList<Data>
@@ -70,9 +62,9 @@ class Y24D09(val input: String) : Day {
             for ((order, n) in input.map { it.digitToInt() }.withIndex()) {
                 if (n > 0) {
                     if (order.isEven()) {
-                        add(Data(order, index, n, order / 2, false))
+                        add(Data(index, n, order / 2, false))
                     } else {
-                        spaces.add(Space(order, index, n, mutableListOf()))
+                        spaces.add(Space(index, n, mutableListOf()))
                     }
                 }
                 index += n
