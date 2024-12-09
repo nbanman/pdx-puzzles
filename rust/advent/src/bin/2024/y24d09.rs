@@ -1,4 +1,7 @@
+use std::{cmp::Reverse, collections::BinaryHeap};
+
 use advent::utilities::get_input::get_input;
+use itertools::Itertools;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 type Input<'a> = &'a str;
@@ -48,98 +51,65 @@ fn part1(input: Input) -> Output {
 }
 
 #[derive(Debug)]
-enum Block<'a> {
-    DataBlock(&'a Data),
-    SpaceBlock(&'a Space),
-}
-
-impl Block<'_> {
-    fn checksum(&self) -> usize {
-        match self {
-            Block::DataBlock(data) => data.checksum(),
-            Block::SpaceBlock(space) => space.checksum(),
-        }
-    }
-}
-
-#[derive(Debug)]
-struct Data {
+struct Block {
     index: usize,
     size: usize,
     value: usize,
 }
 
-impl Data {
-    fn checksum(&self) -> usize { self.checksum_from_index(self.index) }
-
-    fn checksum_from_index(&self, index: usize) -> usize {
-        (index..index + self.size)
-            .map(|idx| idx * self.value)
+impl Block {
+    fn checksum(&self) -> usize {
+        (self.index..self.index + self.size)
+            .map(|index| index * self.value)
             .sum()
     }
 }
 
-
-#[derive(Debug)]
-struct Space {
-    index: usize,
-    size: usize,
-    data: Vec<Data>
-}
-
-impl Space {
-    fn checksum(&self) -> usize {
-        let mut checksum = 0;
-        let mut index = self.index;
-        for datum in self.data.iter() {
-            checksum += datum.checksum_from_index(index);
-            index += datum.size
-        }
-        checksum
-    }
-}
-
 fn part2(input: Input) -> Output {
+    let mut spaces: [BinaryHeap<Reverse<usize>>; 10] = std::array::from_fn(|_| BinaryHeap::new());
+    let mut blocks = Vec::new();
     let mut index = 0;
-    let mut spaces = Vec::new();
-    let mut data = Vec::new();
     for (order, size) in input.chars()
         .filter_map(|c| c.to_digit(10))
         .enumerate() {
         let size = size as usize;
         if size > 0 {
             if order & 1 == 0 {
-                let datum = Data {
-                    index,
-                    size,
-                    value: order / 2,
-                };
-                data.push(datum);
+                let block = Block { index, size, value: order / 2 };
+                blocks.push(block);
             } else {
-                let space = Space { index, size, data: Vec::new() };
-                spaces.push(space);
+                spaces[size].push(Reverse(index));
             }
-        }
-        index += size
-    }
-    let mut space_ref: Vec<&mut Space> = spaces.iter_mut().collect();
-    for data_idx in (0..data.len()).rev() {
-        if let Some(space_idx) = space_ref.iter().position(|space| 
-            space.size >= data[data_idx].size && space.index < data[data_idx].index
-        ) {
-            let datum = data.remove(data_idx);
-            space_ref[space_idx].size -= datum.size;
-            space_ref[space_idx].data.push(datum);
-            if space_ref[space_idx].size == 0 {
-                space_ref.remove(space_idx);
-            }
+            index += size
         }
     }
 
-    data.iter().map(Block::DataBlock)
-        .chain(spaces.iter().map(Block::SpaceBlock))
-        .map(|block| block.checksum())
-        .sum()
+    for block in blocks.iter_mut().rev() {
+        if let Some((&space_idx, heap_idx)) = &spaces[block.size..].iter().enumerate()
+            .filter_map(|(heap_idx, space)| {
+                if let Some(Reverse(space_index)) = space.peek() {
+                    if *space_index < block.index {
+                        Some((space_index, heap_idx))
+                    } else {
+                        None
+                    }                    
+                } else {
+                    None
+                }
+            })
+            .sorted_unstable()
+            .next()
+        {
+            let heap_idx = heap_idx + block.size;
+            spaces[heap_idx].pop();
+            block.index = space_idx;
+            if block.size < heap_idx {
+                spaces[heap_idx - block.size].push(Reverse(space_idx + block.size));
+            }
+        }
+        
+    }
+    blocks.iter().map(|block| block.checksum()).sum()
 }
 
 #[test]
@@ -151,7 +121,13 @@ fn default() {
 
 #[test]
 fn examples() {
-    let inputs = [r"", ];
-    assert_eq!(1, part1(&inputs[0]));
-    // assert_eq!(Y, part2(&input));
+    let inputs = [r"2333133121414131402", ];
+    assert_eq!(1928, part1(inputs[0]));
+    assert_eq!(2858, part2(inputs[0]));
 }
+
+// Input parsed (25μs)
+// 1. 6390180901651 (2ms)
+// 2. 6412390114238 (1ms)
+// Total: 3ms
+
