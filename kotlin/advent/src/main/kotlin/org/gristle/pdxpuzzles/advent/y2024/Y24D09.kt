@@ -90,6 +90,10 @@ class Y24D09(val input: String) : Day {
 }
 
 fun main() = Day.runDay(Y24D09::class)
-// 8593662006385 too high
 @Suppress("unused")
 private val test = listOf("12345", "2333133121414131402")
+
+//    Class creation: 2ms
+//    Part 1: 6390180901651 (27ms)
+//    Part 2: 6412390114238 (367ms)
+//    Total time: 396ms
