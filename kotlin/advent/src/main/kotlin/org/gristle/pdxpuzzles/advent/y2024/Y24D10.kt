@@ -4,6 +4,7 @@ import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.graph.Graph
 import org.gristle.pdxpuzzles.utilities.objects.Coord
 import org.gristle.pdxpuzzles.utilities.objects.toGrid
+import java.util.ArrayDeque
 
 class Y24D10(input: String) : Day {
     private val topoMap = input.toGrid(Char::digitToInt)
@@ -15,10 +16,11 @@ class Y24D10(input: String) : Day {
     }
 
     private fun distinctPaths(trailhead: Coord): Int {
-        val q = mutableListOf(trailhead to 0)
+        val q = ArrayDeque<Pair<Coord, Int>>()
+        q.add(trailhead to 0)
         var distinctPaths = 0
         while (q.isNotEmpty()) {
-            val state = q.removeLast()
+            val state = q.removeFirst()
             if (state.second == 9) distinctPaths++
             q.addAll(hike(state))
         }
@@ -26,7 +28,13 @@ class Y24D10(input: String) : Day {
     }
 
     override fun part1(): Int = trailheads.sumOf { trailhead ->
-        Graph.bfsSequence(trailhead to 0, defaultEdges = hike).count { it.id.second == 9 }
+//        println("trailhead: $trailhead")
+        Graph.bfsSequence(trailhead to 0, defaultEdges = hike).count {
+//            if (it.id.second == 9) {
+//                println(it.id)
+//            }
+            it.id.second == 9
+        }
     }
 
     override fun part2(): Int = trailheads.sumOf(::distinctPaths)
@@ -57,4 +65,4 @@ private val test = listOf("""0123
 234567
 345678
 4.6789
-56789.""")
+56789""")
