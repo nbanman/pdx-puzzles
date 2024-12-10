@@ -1,4 +1,4 @@
-use std::collections::{HashSet, VecDeque};
+use std::collections::VecDeque;
 
 use advent::utilities::get_input::get_input;
 use utilities::{parsing::try_get::TryGet, structs::stopwatch::{ReportDuration, Stopwatch}};
@@ -16,18 +16,42 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-// returns (topo_map, width, trailheads)
-fn parse_input(input: Input) -> (Vec<u8>, isize, Vec<usize>) {
-    let topo_map: Vec<u8> = input.as_bytes().iter()
-        .filter(|b| b.is_ascii_digit())
-        .map(|b| *b - 48)
-        .collect();
-    let width = (input.find('\n').unwrap()) as isize;
-    let trailheads = topo_map.iter().enumerate()
-        .filter(|&(_, height)| *height == 0)
-        .map(|(pos, _)| pos)
-        .collect();
-    (topo_map, width, trailheads)
+fn part1(topo_map: Input) -> Output { solve(topo_map, false) }
+fn part2(topo_map: Input) -> Output { solve(topo_map, true) }
+
+fn solve(topo_map: Input, distinct_paths: bool) -> Output {
+    let width = (topo_map.find('\n').unwrap() + 1) as isize;
+    topo_map.as_bytes().iter().enumerate()
+        .filter(|&(_, height)| *height == b'0')
+        .map(|(trailhead, _)| {
+            paths(trailhead, topo_map.as_bytes(), width, distinct_paths)
+        })
+        .sum()
+}
+
+fn paths(trailhead: usize, topo_map: &[u8], width: isize, distinct_paths: bool) -> usize {
+    let mut q = VecDeque::new();
+    q.push_back((trailhead, b'0'));
+    let mut paths = 0;
+    let mut visited = if distinct_paths {
+        None
+    } else {
+        Some(vec![false; topo_map.len()])
+    };
+    while let Some(state) = q.pop_front() {
+        if state.1 == b'9' { paths += 1; }
+        for neighbor in hike(state, topo_map, width) {
+            if !distinct_paths {
+                let visited = visited.as_mut()
+                    .unwrap()
+                    .get_mut(neighbor.0)
+                    .unwrap();
+                if *visited { continue; } else { *visited = true; }
+            }
+            q.push_back(neighbor);
+        }
+    }
+    paths
 }
 
 fn hike(
@@ -38,9 +62,6 @@ fn hike(
     [-width, 1, width, -1].into_iter()
         .filter_map(move |offset| {
             let neighbor_pos = pos as isize + offset;
-            // common footgun for me when I venture away from strings!
-            if neighbor_pos as usize == pos + 1 && neighbor_pos % width == 0 { return None; }
-            if neighbor_pos + 1 == pos as isize && pos as isize % width == 0 { return None; }  
             let neighbor_height = topo_map.try_get(neighbor_pos)?;
             if *neighbor_height == height + 1 {
                 Some((neighbor_pos as usize, *neighbor_height))
@@ -48,50 +69,6 @@ fn hike(
                 None   
             }
         })
-}
-
-fn paths(trailhead: usize, topo_map: &[u8], width: isize) -> usize {
-    let mut q = VecDeque::new();
-    q.push_back((trailhead, 0u8));
-    let mut paths = 0;
-    let mut visited = HashSet::new();
-    while let Some(state) = q.pop_front() {
-        if state.1 == 9 { paths += 1; }
-        for neighbor in hike(state, topo_map, width)
-            .filter(|neighbor| visited.insert(*neighbor))
-        {
-            q.push_back(neighbor);
-        }
-    }
-    paths
-}
-
-fn distinct_paths(trailhead: usize, topo_map: &[u8], width: isize) -> usize {
-    let mut q = VecDeque::new();
-    q.push_back((trailhead, 0u8));
-    let mut paths = 0;
-    while let Some(state) = q.pop_front() {
-        if state.1 == 9 { paths += 1; }
-        for neighbor in hike(state, topo_map, width) {
-            q.push_back(neighbor);
-        }
-    }
-    paths
-}
-
-
-fn part1(input: Input) -> Output {
-    let (topo_map, width, trailheads) = parse_input(input);
-    trailheads.iter()
-        .map(|&trailhead| paths(trailhead, &topo_map, width))
-        .sum()
-}
-
-fn part2(input: Input) -> Output {
-    let (topo_map, width, trailheads) = parse_input(input);
-    trailheads.iter()
-        .map(|&trailhead| distinct_paths(trailhead, &topo_map, width))
-        .sum()
 }
 
 #[test]
@@ -115,7 +92,8 @@ fn examples() {
     // assert_eq!(Y, part2(&input));
 }
 
-// Input parsed (24μs)
-// 1. 461 (460μs)
-// 2. 875 (203μs)
-// Total: 692μs
+// Input parsed (16μs)
+// 1. 461 (76μs)
+// 2. 875 (81μs)
+// Total: 176μs
+
