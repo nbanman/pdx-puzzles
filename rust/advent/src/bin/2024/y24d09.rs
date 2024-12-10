@@ -27,27 +27,25 @@ fn part1(input: Input) -> Output {
             fragmented.push(value);
         }
     }
+    let mut checksum = 0;
     let mut left = 0;
     let mut right = fragmented.len() - 1;
     let blocks = fragmented.iter().filter(|it| it.is_some()).count();
-    let mut defragged = Vec::new();
     while left < blocks {
         while let Some(block) = fragmented[left] {
             if left < right { 
-                defragged.push(block);
+                checksum += left * block;
                 left += 1;
             } else {
                 break;
             }
         }
         while let None = fragmented[right] { right -= 1; }
+        checksum += left * fragmented[right].unwrap();
         left += 1;
-        defragged.push(fragmented[right].unwrap());
         right -= 1;
     }
-    defragged.iter().enumerate().fold(0, |state, (idx, &i)| {
-        state + idx * i
-    })
+    checksum
 }
 
 #[derive(Debug)]
@@ -58,8 +56,8 @@ struct Block {
 }
 
 impl Block {
-    fn checksum(&self) -> usize {
-        (self.index..self.index + self.size)
+    fn checksum(&self, index: usize) -> usize {
+        (self.index..index + self.size)
             .map(|index| index * self.value)
             .sum()
     }
@@ -85,6 +83,7 @@ fn part2(input: Input) -> Output {
         }
     }
 
+    let mut checksum = 0;
     for block in blocks.iter_mut().rev() {
         if let Some((&space_idx, heap_idx)) = &spaces[block.size..].iter().enumerate()
             .filter_map(|(heap_idx, space)| {
@@ -107,10 +106,13 @@ fn part2(input: Input) -> Output {
             if block.size < heap_idx {
                 spaces[heap_idx - block.size].push(Reverse(space_idx + block.size));
             }
+            checksum += block.checksum(space_idx)
+        } else {
+            checksum += block.checksum(block.index)
         }
         
     }
-    blocks.iter().map(|block| block.checksum()).sum()
+    checksum
 }
 
 #[test]
@@ -127,8 +129,9 @@ fn examples() {
     assert_eq!(2858, part2(inputs[0]));
 }
 
-// Input parsed (25μs)
-// 1. 6390180901651 (2ms)
-// 2. 6412390114238 (1ms)
-// Total: 3ms
+// Input parsed (28μs)
+// 1. 6390180901651 (1ms)
+// 2. 6412390114238 (862μs)
+// Total: 2ms
+
 
