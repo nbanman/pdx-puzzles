@@ -1,7 +1,7 @@
 use advent::utilities::get_input::get_input;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
-type Input = usize;
+type Input<'a> = &'a str;
 type Output = usize;
 
 fn main() {
