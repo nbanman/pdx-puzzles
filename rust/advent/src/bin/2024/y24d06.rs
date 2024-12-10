@@ -43,14 +43,7 @@ fn move_guard(lab: Input, width: usize, state: &State, obstacle: Option<usize>) 
         Some(State { pos: forward, dir: state.dir, turned: false })
     } else {
         let right = state.dir.right();
-        let new_move = move_dir(state.pos, right, width);
-        if new_move == None || new_move == obstacle || lab[new_move.unwrap()] == b'\n' || lab[new_move.unwrap()] == b'#' {
-            let flipped = state.dir.flip();
-            let flip_move = move_dir(state.pos, flipped, width).unwrap();
-            Some(State { pos: flip_move, dir: flipped, turned: true })
-        } else {
-            Some(State { pos: new_move.unwrap(), dir: right, turned: true })
-        }
+        Some(State { pos: state.pos, dir: right, turned: true })
     }
 }
 
@@ -89,16 +82,17 @@ fn part2(lab: &str) -> Output {
         .par_bridge()
         .filter(|(current, next)| {
             let obstacle = next.pos;
-            let mut visited = HashSet::new();
+            let mut visited = vec![false; lab.len()];
 
             successors(Some(*current), move |state| {
                 move_guard(lab, width, state, Some(obstacle))
             })
                 .find(|state| {
-                    if state.turned {
-                        if !visited.insert(state.clone()) {
+                    if state.turned && state.dir == Cardinal::North {
+                        if visited[state.pos] {
                             true
                         } else {
+                            visited[state.pos] = true;
                             false
                         }
                     } else {
@@ -117,11 +111,10 @@ fn default() {
     assert_eq!(1946, part2(&input));
 }
 
-// Input parsed (25μs)
-// 1. 5444 (350μs)
-// 2. 1946 (13ms)
-// Total: 14ms
-
+// Input parsed (26μs)
+// 1. 5444 (355μs)
+// 2. 1946 (4ms)
+// Total: 5ms
 
 #[test]
 fn examples() {
