@@ -317,7 +317,7 @@ object Graph {
         q.add(start)
         val visited = mutableMapOf(startId to start)
         while (q.isNotEmpty()) {
-            val current = q.poll()
+            val current = q.removeFirst()
             yield(current)
             (edges[current.id] ?: defaultEdges(current.id))
                 .filter { it !in visited }
