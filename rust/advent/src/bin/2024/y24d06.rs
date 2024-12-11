@@ -1,4 +1,4 @@
-use std::{collections::HashSet, iter::successors};
+use std::iter::successors;
 
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
