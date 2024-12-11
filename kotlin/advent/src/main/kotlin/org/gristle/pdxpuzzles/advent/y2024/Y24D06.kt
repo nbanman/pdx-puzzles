@@ -13,22 +13,17 @@ class Y24D6(input: String) : Day {
 
     data class State(val pos: Coord, val dir: Nsew, val turned: Boolean)
 
-    private val move: (State, Coord?) -> State? = { (pos, dir, _), obstacle ->
+    private fun move(state: State, obstacle: Coord?): State?  {
+        val (pos, dir) = state
         val forward = pos.move(dir)
 
         // if this is null that means it's gone off the map, which is a valid thing to do!
-        lab.getOrNull(forward)?.let { space ->
+        return lab.getOrNull(forward)?.let { space ->
             if (space != '#' && forward != obstacle) {
                 State(forward, dir, false)
             } else {
                 val right = dir.right()
-                val newMove = pos.move(right)
-                if (newMove == obstacle || lab.getOrNull(newMove) == '#') {
-                    val flipped = dir.flip()
-                    State(pos.move(flipped), flipped, true)
-                } else {
-                    State(newMove, right, true)
-                }
+                State(pos, right, true)
             }
         }
     }
@@ -39,18 +34,16 @@ class Y24D6(input: String) : Day {
 
     override fun part2(): Int = runBlocking {
         val obstacles = mutableSetOf<Coord>()
-
         goldenPath
             .zipWithNext()
             .toList()
             .filter { (_, next) -> obstacles.add(next.pos) }
             .parMap { (current, next) ->
                 val obstacle = next.pos
-
                 val visited = mutableSetOf<State>()
                 generateSequence(current) { move(it, obstacle) }
                     .firstOrNull { state ->
-                        if (state.turned) {
+                        if (state.turned && state.dir == Nsew.NORTH) {
                             !visited.add(state)
                         } else {
                             false
@@ -62,7 +55,7 @@ class Y24D6(input: String) : Day {
         }
     }
 
-fun main() = Day.runDay(Y24D6::class)
+fun main() = Day.benchmarkDay(Y24D6::class)
 
 //    Class creation: 11ms
 //    Part 1: 5444 (13ms)
