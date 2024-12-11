@@ -19,8 +19,9 @@ fn main() {
 
 fn part1(input: Input) -> Output {
     let mut fragmented = Vec::new();
-    for (idx, n) in input.chars()
-        .filter_map(|c| c.to_digit(10))
+    for (idx, n) in input.as_bytes().iter()
+        .filter(|&&c| c != b'\n')
+        .map(|c| c - b'0')
         .enumerate() {
         let value = if idx & 1 == 0 { Some(idx / 2) } else { None };
         for _ in 0..n {
@@ -68,8 +69,9 @@ fn part2(input: Input) -> Output {
     let mut spaces: [BinaryHeap<Reverse<usize>>; 10] = std::array::from_fn(|_| BinaryHeap::new());
     let mut blocks = Vec::new();
     let mut index = 0;
-    for (order, size) in input.chars()
-        .filter_map(|c| c.to_digit(10))
+    for (order, size) in input.as_bytes().iter()
+        .filter(|&&c| c != b'\n')
+        .map(|c| c - b'0')
         .enumerate() {
         let size = size as usize;
         if size > 0 {
@@ -129,9 +131,10 @@ fn examples() {
     assert_eq!(2858, part2(inputs[0]));
 }
 
-// Input parsed (28μs)
+// Input parsed (25μs)
 // 1. 6390180901651 (1ms)
-// 2. 6412390114238 (862μs)
-// Total: 2ms
+// 2. 6412390114238 (739μs)
+// Total: 1ms
+
 
 
