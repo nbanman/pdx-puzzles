@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 use advent::utilities::get_input::get_input;
 use utilities::{parsing::try_get::TryGet, structs::stopwatch::{ReportDuration, Stopwatch}};
 
@@ -34,17 +32,17 @@ fn solve(topo_map: Input, distinct_paths: bool) -> Output {
 
 struct State { pos: usize, height: u8, }
 
-// Standard BFS, with node tracking enabled or disabled depending on which part.
+// Standard DFS, with node tracking enabled or disabled depending on which part.
 fn paths(trailhead: usize, topo_map: &[u8], width: isize, distinct_paths: bool) -> usize {
-    let mut q = VecDeque::new();
-    q.push_back(State { pos: trailhead, height: b'0' });
+    let mut q = Vec::new();
+    q.push(State { pos: trailhead, height: b'0' });
     let mut paths = 0;
     let mut visited = if distinct_paths {
         None
     } else {
         Some(vec![false; topo_map.len()])
     };
-    while let Some(state) = q.pop_front() {
+    while let Some(state) = q.pop() {
         if state.height == b'9' { paths += 1; }
         for neighbor in hike_path(state, topo_map, width) {
             if !distinct_paths {
@@ -54,7 +52,7 @@ fn paths(trailhead: usize, topo_map: &[u8], width: isize, distinct_paths: bool) 
                     .unwrap();
                 if *visited { continue; } else { *visited = true; }
             }
-            q.push_back(neighbor);
+            q.push(neighbor);
         }
     }
     paths
