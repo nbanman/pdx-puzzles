@@ -58,6 +58,11 @@ enum class Nsew {
             'D', 'S' -> SOUTH
             else -> throw IllegalArgumentException("Invalid input")
         }
+
+        /**
+         * Horrid kludge due to not ordering enum properly.
+         */
+        fun nesw() = listOf(NORTH, EAST, SOUTH, WEST)
     }
 }
 
