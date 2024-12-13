@@ -8,3 +8,4 @@ num-traits = "0.2.19"
 indexmap = "2.6.0"
 itertools = { workspace = true }
 rayon = { workspace = true }
+thiserror = { workspace = true }

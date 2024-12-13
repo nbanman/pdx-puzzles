@@ -10,6 +10,7 @@ lazy-regex = "3.3.0"
 itertools = { workspace = true }
 rayon = { workspace = true }
 indexmap = { workspace = true }
+rustc-hash = { workspace = true }
 
 [[bin]]
 name = "y23d01"
@@ -86,3 +87,11 @@ path = "src/bin/2024/y24d10.rs"
 [[bin]]
 name = "y24d11"
 path = "src/bin/2024/y24d11.rs"
+
+[[bin]]
+name = "y24d11b"
+path = "src/bin/2024/y24d11_maneatingape.rs"
+
+[[bin]]
+name = "y24d12"
+path = "src/bin/2024/y24d12.rs"
