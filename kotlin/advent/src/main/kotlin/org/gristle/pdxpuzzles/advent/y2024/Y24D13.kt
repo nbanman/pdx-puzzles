@@ -57,6 +57,7 @@ fun main() = Day.runDay(Y24D13::class)
 //    Part 2: 74914228471331 (4ms)
 //    Total time: 17ms
 
+@Suppress("unused")
 private val test = listOf("""Button A: X+94, Y+34
 Button B: X+22, Y+67
 Prize: X=8400, Y=5400
