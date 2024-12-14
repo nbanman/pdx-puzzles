@@ -7,7 +7,7 @@ import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-fun Sequence<Pair<Long, Long>>.crt(): Long {
+fun List<Pair<Long, Long>>.crt(): Long {
     val n = fold(1L) { acc, (mod, _) -> acc * mod }
     val bigPhase = sumOf { (mod, remainder) ->
         val ni = (n / mod)
