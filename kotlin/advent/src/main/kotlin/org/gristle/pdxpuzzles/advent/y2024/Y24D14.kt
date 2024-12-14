@@ -2,13 +2,12 @@ package org.gristle.pdxpuzzles.advent.y2024
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.objects.Coord
-import org.gristle.pdxpuzzles.utilities.objects.toGraphicString
 import org.gristle.pdxpuzzles.utilities.parsing.getInts
 
 class Y24D14(input: String) : Day {
-    val width = 101
-    val height = 103
-    val seconds = 100
+    private val width = 101
+    private val height = 103
+    private val seconds = 100
     data class Robot(val p: Coord, val v: Coord)
     private val robots = input
         .getInts()
@@ -44,14 +43,10 @@ class Y24D14(input: String) : Day {
         .take(seconds + 1)
         .last()
         .score()
+
     override fun part2() = generateSequence(robots) { robots -> robots.move() }
-        .mapIndexed { index, robots -> index to robots.map { it.p }.toSet() }
-        .filter { (_, robots) -> robots.size > 495 }
-        .take(20)
-//        .forEach { (idx, robots) ->
-//            println("$idx:")
-//            println(robots.toGraphicString())
-//        }
+        .map { robots -> robots.map(Robot::p) }
+        .indexOfFirst { it.distinct().size == it.size }
 }
 
 fun main() = Day.runDay(Y24D14::class)
