@@ -1,8 +1,11 @@
 package org.gristle.pdxpuzzles.advent.y2024
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
+import org.gristle.pdxpuzzles.utilities.math.pow
 import org.gristle.pdxpuzzles.utilities.objects.Coord
+import org.gristle.pdxpuzzles.utilities.objects.map
 import org.gristle.pdxpuzzles.utilities.parsing.getInts
+import kotlin.math.max
 
 class Y24D14(input: String) : Day {
     private val width = 101
@@ -14,7 +17,7 @@ class Y24D14(input: String) : Day {
         .chunked(4) { (px, py, vx, vy) -> Robot(Coord(px, py), Coord(vx, vy)) }
         .toList()
 
-    private fun List<Robot>.move() = map {
+    private fun move(robots: List<Robot>) = robots.map {
         val p = Coord((it.p.x + it.v.x).mod(width), (it.p.y + it.v.y).mod(height))
         it.copy(p = p)
     }
@@ -39,22 +42,40 @@ class Y24D14(input: String) : Day {
         return quadrants.reduce(Int::times)
     }
 
-    override fun part1() = generateSequence(robots) { robots -> robots.move() }
+    override fun part1() = generateSequence(robots, ::move)
         .take(seconds + 1)
         .last()
         .score()
 
-    override fun part2() = generateSequence(robots) { robots -> robots.move() }
-        .map { robots -> robots.map(Robot::p) }
-        .indexOfFirst { it.distinct().size == it.size }
+    override fun part2(): Int {
+        val sample = generateSequence(robots, ::move)
+            .take(max(width, height))
+            .map { robotList ->
+                val robots = robotList.map(Robot::p)
+                // note that this isn't totally accurate for width because the larger height sample is used,
+                // but it should still work because the stars will align only once per period and the
+                // variance for that instance should be dramatically lower than for anything else.
+                val (xMean, yMean) = robots
+                    .reduce(Coord::plus)
+                    .let { (x, y) -> x / robots.size to y / robots.size }
+                robots
+                    .map { (x, y) -> (x - xMean).pow(2) to (y - yMean).pow(2) }
+                    .unzip()
+                    .map { it.average() }
+            }.toList()
+        val xOffset = sample.withIndex().minBy { (_, variances) -> variances.first }.index
+        val yOffset = sample.withIndex().minBy { (_, variances) -> variances.second }.index
+
+        return generateSequence(xOffset) { it + width }.first { (it - yOffset).mod(height) == 0 }
+    }
 }
 
 fun main() = Day.runDay(Y24D14::class)
 
 //    Class creation: 9ms
-//    Part 1: 210587128 (23ms)
-//    Part 2: 7286 (216ms)
-//    Total time: 250ms
+//    Part 1: 210587128 (24ms)
+//    Part 2: 7286 (39ms)
+//    Total time: 73ms
 
 @Suppress("unused")
 private val test = listOf("""p=0,4 v=3,-3
