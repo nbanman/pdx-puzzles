@@ -95,3 +95,7 @@ path = "src/bin/2024/y24d11_maneatingape.rs"
 [[bin]]
 name = "y24d12"
 path = "src/bin/2024/y24d12.rs"
+
+[[bin]]
+name = "y24d13"
+path = "src/bin/2024/y24d13.rs"
