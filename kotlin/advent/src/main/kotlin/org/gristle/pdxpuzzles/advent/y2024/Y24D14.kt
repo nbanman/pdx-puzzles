@@ -51,6 +51,11 @@ class Y24D14(input: String) : Day {
 
 fun main() = Day.runDay(Y24D14::class)
 
+//    Class creation: 9ms
+//    Part 1: 210587128 (23ms)
+//    Part 2: 7286 (216ms)
+//    Total time: 250ms
+
 @Suppress("unused")
 private val test = listOf("""p=0,4 v=3,-3
 p=6,3 v=-1,-3
