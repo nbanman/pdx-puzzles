@@ -14,7 +14,7 @@ class Y16D15(input: String) : Day {
 
     // Uses a sieve version of CRT
     private fun solve(discs: Sequence<Disc>): Long {
-        val (_, answer) = discs.fold(1L to 0L) { (interval, seconds), (positions, offset) ->
+        val (_, answer) = discs.reduce { (interval, seconds), (positions, offset) ->
 
             // take the current number of seconds that works for the previous discs, and keep adding the current
             // interval until it works for the next disc.
