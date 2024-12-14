@@ -198,11 +198,12 @@ fun Iterable<Coord>.printToConsole(blankSpace: Char = '.') {
 }
 
 fun Iterable<Coord>.toGraphicString(blankSpace: Char = '.'): String {
+    val set = toSet()
     val (xRange, yRange) = minMaxRanges()
     return buildString {
         Coord.forRectangle(xRange, yRange) { coord ->
             if (coord.x == xRange.first && coord.y != yRange.first) append('\n')
-            append(if (coord in this@toGraphicString) '#' else blankSpace)
+            append(if (coord in set) '#' else blankSpace)
         }
         append('\n')
     }
