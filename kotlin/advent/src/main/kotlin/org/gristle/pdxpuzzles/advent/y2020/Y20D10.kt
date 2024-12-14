@@ -13,7 +13,7 @@ class Y20D10(input: String) : Day {
             ArrayList<Int>(adapters.size + 2).apply {
                 add(0)
                 addAll(adapters)
-                adapters.last() + 3
+                add(adapters.last() + 3)
             }
         }.zipWithNext { a, b -> b - a } // map to List of delta from previous device
 
@@ -46,6 +46,6 @@ class Y20D10(input: String) : Day {
 fun main() = Day.runDay(Y20D10::class)
 
 //    Class creation: 4ms
-//    Part 1: 1820 (2ms)
+//    Part 1: 1890 (2ms)
 //    Part 2: 49607173328384 (2ms)
 //    Total time: 9ms
