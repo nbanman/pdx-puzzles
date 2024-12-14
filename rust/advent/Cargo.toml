@@ -14,89 +14,89 @@ rustc-hash = { workspace = true }
 ordered-float = { workspace = true }
 
 [[bin]]
-name = "y23d01"
+name = "advent-y23d01"
 path = "src/bin/2023/y23d01.rs"
 
 [[bin]]
-name = "y23d02"
+name = "advent-y23d02"
 path = "src/bin/2023/y23d02.rs"
 
 [[bin]]
-name = "y23d03"
+name = "advent-y23d03"
 path = "src/bin/2023/y23d03.rs"
 
 [[bin]]
-name = "y23d04"
+name = "advent-y23d04"
 path = "src/bin/2023/y23d04.rs"
 
 [[bin]]
-name = "y23d05"
+name = "advent-y23d05"
 path = "src/bin/2023/y23d05.rs"
 
 [[bin]]
-name = "y23d06"
+name = "advent-y23d06"
 path = "src/bin/2023/y23d06.rs"
 
 [[bin]]
-name = "y23d07"
+name = "advent-y23d07"
 path = "src/bin/2023/y23d07.rs"
 
 [[bin]]
-name = "y23d08"
+name = "advent-y23d08"
 path = "src/bin/2023/y23d08.rs"
 
 [[bin]]
-name = "y24d01"
+name = "advent-y24d01"
 path = "src/bin/2024/y24d01.rs"
 
 [[bin]]
-name = "y24d02"
+name = "advent-y24d02"
 path = "src/bin/2024/y24d02.rs"
 
 [[bin]]
-name = "y24d03"
+name = "advent-y24d03"
 path = "src/bin/2024/y24d03.rs"
 
 [[bin]]
-name = "y24d04"
+name = "advent-y24d04"
 path = "src/bin/2024/y24d04.rs"
 
 [[bin]]
-name = "y24d05"
+name = "advent-y24d05"
 path = "src/bin/2024/y24d05.rs"
 
 [[bin]]
-name = "y24d06"
+name = "advent-y24d06"
 path = "src/bin/2024/y24d06.rs"
 
 [[bin]]
-name = "y24d07"
+name = "advent-y24d07"
 path = "src/bin/2024/y24d07.rs"
 
 [[bin]]
-name = "y24d08"
+name = "advent-y24d08"
 path = "src/bin/2024/y24d08.rs"
 
 [[bin]]
-name = "y24d09"
+name = "advent-y24d09"
 path = "src/bin/2024/y24d09.rs"
 
 [[bin]]
-name = "y24d10"
+name = "advent-y24d10"
 path = "src/bin/2024/y24d10.rs"
 
 [[bin]]
-name = "y24d11"
+name = "advent-y24d11"
 path = "src/bin/2024/y24d11.rs"
 
 [[bin]]
-name = "y24d12"
+name = "advent-y24d12"
 path = "src/bin/2024/y24d12.rs"
 
 [[bin]]
-name = "y24d13"
+name = "advent-y24d13"
 path = "src/bin/2024/y24d13.rs"
 
 [[bin]]
-name = "y24d14"
+name = "advent-y24d14"
 path = "src/bin/2024/y24d14.rs"
