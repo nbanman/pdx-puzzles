@@ -11,6 +11,7 @@ itertools = { workspace = true }
 rayon = { workspace = true }
 indexmap = { workspace = true }
 rustc-hash = { workspace = true }
+ordered-float = { workspace = true }
 
 [[bin]]
 name = "y23d01"
