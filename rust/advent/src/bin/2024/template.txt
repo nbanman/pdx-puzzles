@@ -8,7 +8,6 @@ fn main() {
     let mut stopwatch = Stopwatch::new();
     stopwatch.start();
     let input = get_input(24, XX).unwrap();
-    let input = parse_input(&input);
     println!("Input parsed ({})", stopwatch.lap().report());
     println!("1. {} ({})", part1(&input), stopwatch.lap().report());
     println!("2. {} ({})", part2(&input), stopwatch.lap().report());
