@@ -89,10 +89,6 @@ name = "y24d11"
 path = "src/bin/2024/y24d11.rs"
 
 [[bin]]
-name = "y24d11b"
-path = "src/bin/2024/y24d11_maneatingape.rs"
-
-[[bin]]
 name = "y24d12"
 path = "src/bin/2024/y24d12.rs"
 
