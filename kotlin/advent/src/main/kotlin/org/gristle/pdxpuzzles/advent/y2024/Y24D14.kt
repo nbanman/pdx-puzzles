@@ -6,6 +6,7 @@ import org.gristle.pdxpuzzles.utilities.objects.Coord
 import org.gristle.pdxpuzzles.utilities.objects.map
 import org.gristle.pdxpuzzles.utilities.parsing.getInts
 import kotlin.math.max
+import kotlin.math.pow
 
 class Y24D14(input: String) : Day {
     private val width = 101
@@ -48,7 +49,7 @@ class Y24D14(input: String) : Day {
         .score()
 
     override fun part2(): Int {
-        val sample = generateSequence(robots, ::move)
+        val sample: List<Pair<Double, Double>> = generateSequence(robots, ::move)
             .take(max(width, height))
             .map { robotList ->
                 val robots = robotList.map(Robot::p)
@@ -57,7 +58,7 @@ class Y24D14(input: String) : Day {
                 // variance for that instance should be dramatically lower than for anything else.
                 val (xMean, yMean) = robots
                     .reduce(Coord::plus)
-                    .let { (x, y) -> x / robots.size to y / robots.size }
+                    .let { (x, y) -> x / robots.size.toDouble() to y / robots.size.toDouble() }
                 robots
                     .map { (x, y) -> (x - xMean).pow(2) to (y - yMean).pow(2) }
                     .unzip()
