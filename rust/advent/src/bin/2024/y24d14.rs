@@ -2,6 +2,7 @@ use std::iter::successors;
 
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
+use rustc_hash::FxHashSet;
 use utilities::{parsing::get_numbers::ContainsNumbers, structs::{coord::Coord2, stopwatch::{ReportDuration, Stopwatch}}};
 
 type Input<'a> = &'a str;
@@ -85,7 +86,9 @@ fn part2(input: Input) -> Output {
     successors(Some(robots), |robots| Some(warp(robots)))
         .map(|robots| robots.iter().map(|robot| robot.p).collect::<Vec<_>>())
         .enumerate()
-        .find(|(_, robots)| robots.len() == robots.iter().unique().count())
+        .find(|(_, robots)| {
+            robots.len() == robots.iter().collect::<FxHashSet<_>>().len()
+        })
         .unwrap()
         .0    
 }
@@ -97,7 +100,8 @@ fn default() {
     assert_eq!(7286, part2(&input));
 }
 
-// Input parsed (20μs)
-// 1. 210587128 (257μs)
-// 2. 7286 (115ms)
-// Total: 116ms
+// Input parsed (31μs)
+// 1. 210587128 (507μs)
+// 2. 7286 (57ms)
+// Total: 58ms
+
