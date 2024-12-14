@@ -2,34 +2,56 @@ package org.gristle.pdxpuzzles.advent.y2024
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.objects.Coord
+import org.gristle.pdxpuzzles.utilities.objects.toGraphicString
 import org.gristle.pdxpuzzles.utilities.parsing.getInts
 
 class Y24D14(input: String) : Day {
+    val width = 101
+    val height = 103
+    val seconds = 100
     data class Robot(val p: Coord, val v: Coord)
     private val robots = input
         .getInts()
         .chunked(4) { (px, py, vx, vy) -> Robot(Coord(px, py), Coord(vx, vy)) }
         .toList()
 
-    private fun List<Robot>.move(width: Int, height: Int) = map {
+    private fun List<Robot>.move() = map {
         val p = Coord((it.p.x + it.v.x).mod(width), (it.p.y + it.v.y).mod(height))
         it.copy(p = p)
     }
-    private fun List<Robot>.score(width: Int, height: Int): Int {
+    private fun List<Robot>.score(): Int {
         val quadrants = IntArray(4)
-        for (robot in this) {
+        val splitX = width / 2
+        val splitY = height / 2
 
+        mapNotNull { (p) ->
+            when (p.x) {
+                in 0 until splitX -> 0
+                splitX -> null
+                else -> 2
+            }?.let { x ->
+                when(p.y) {
+                    in 0 until splitY -> 0
+                    splitY -> null
+                    else -> 1
+                }?.let { y -> quadrants[x + y]++ }
+            }
         }
+        return quadrants.reduce(Int::times)
     }
 
-    private fun solve(seconds: Int, width: Int, height: Int): Int =
-        generateSequence(robots) { robots -> robots.move(width, height) }
+    override fun part1() = generateSequence(robots) { robots -> robots.move() }
         .take(seconds + 1)
         .last()
-        .score(width, height)
-
-    override fun part1() = 3
-    override fun part2() = 3
+        .score()
+    override fun part2() = generateSequence(robots) { robots -> robots.move() }
+        .mapIndexed { index, robots -> index to robots.map { it.p }.toSet() }
+        .filter { (_, robots) -> robots.size > 495 }
+        .take(20)
+//        .forEach { (idx, robots) ->
+//            println("$idx:")
+//            println(robots.toGraphicString())
+//        }
 }
 
 fun main() = Day.runDay(Y24D14::class)
