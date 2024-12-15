@@ -83,11 +83,15 @@ fn part1(input: Input) -> Output {
 
 fn part2(input: Input) -> Output {
     let robots = parse_robots(input);
-    let sample: Vec<(f64, f64)> = successors(Some(robots), |robots| Some(warp(robots)))
-        .take(max(WIDTH, HEIGHT) as usize)
-        .map(|robot_list| {
-            let robots: Vec<Pos> = robot_list.iter()
-                .map(|robot| robot.p)
+    let sample: Vec<(f64, f64)> = (0..max(WIDTH, HEIGHT))
+        .map(|moves| {
+            let robots: Vec<Pos> = robots.iter()
+                .map(|robot| {
+                    Pos::new2d(
+                        (robot.p.x() + robot.v.x() * moves).rem_euclid(WIDTH), 
+                        (robot.p.y() + robot.v.y() * moves).rem_euclid(HEIGHT), 
+                    )
+                })
                 .collect();
 
             // note that this isn't totally accurate for width because the larger height sample is used,
@@ -111,6 +115,7 @@ fn part2(input: Input) -> Output {
             (x_var, y_var)
         })
         .collect();
+
     let x_offset = sample.iter().enumerate()
         .min_by_key(|(_, (variance, _))| OrderedFloat(*variance))
         .unwrap()
@@ -132,9 +137,10 @@ fn default() {
     assert_eq!(7286, part2(&input));
 }
 
-// Input parsed (32μs)
-// 1. 210587128 (454μs)
-// 2. 7286 (711μs)
-// Total: 1ms
+// Input parsed (18μs)
+// 1. 210587128 (228μs)
+// 2. 7286 (348μs)
+// Total: 597μs
+
 
 
