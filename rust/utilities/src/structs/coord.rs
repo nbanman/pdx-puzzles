@@ -204,6 +204,21 @@ impl<T: Coordinate, const N: usize> Mul for Coord<T, N> {
     }
 }
 
+impl<T, const N: usize> Mul<T> for Coord<T, N> 
+where 
+    T: Coordinate + Mul<Output = T>,
+{
+    type Output = Self;
+    
+    fn mul(self, rhs: T) -> Self::Output {
+        let mut difference = self.0;
+        for idx in 0usize..N {
+            difference[idx] = difference[idx] * rhs;
+        }
+        Self(difference)
+    }
+}
+
 impl<T: Coordinate, const N: usize> Div for Coord<T, N> {
     type Output = Self;
     
