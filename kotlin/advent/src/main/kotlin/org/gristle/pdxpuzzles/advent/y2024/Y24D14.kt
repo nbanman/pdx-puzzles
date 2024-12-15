@@ -1,11 +1,9 @@
 package org.gristle.pdxpuzzles.advent.y2024
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
-import org.gristle.pdxpuzzles.utilities.math.pow
 import org.gristle.pdxpuzzles.utilities.objects.Coord
 import org.gristle.pdxpuzzles.utilities.objects.map
 import org.gristle.pdxpuzzles.utilities.parsing.getInts
-import kotlin.math.max
 import kotlin.math.pow
 
 class Y24D14(input: String) : Day {
@@ -18,16 +16,12 @@ class Y24D14(input: String) : Day {
         .chunked(4) { (px, py, vx, vy) -> Robot(Coord(px, py), Coord(vx, vy)) }
         .toList()
 
-    private fun move(robots: List<Robot>) = robots.map {
-        val p = Coord((it.p.x + it.v.x).mod(width), (it.p.y + it.v.y).mod(height))
-        it.copy(p = p)
-    }
-    private fun List<Robot>.score(): Int {
+    private fun List<Coord>.score(): Int {
         val quadrants = IntArray(4)
         val splitX = width / 2
         val splitY = height / 2
 
-        mapNotNull { (p) ->
+        mapNotNull { p ->
             when (p.x) {
                 in 0 until splitX -> 0
                 splitX -> null
@@ -43,19 +37,20 @@ class Y24D14(input: String) : Day {
         return quadrants.reduce(Int::times)
     }
 
-    override fun part1() = generateSequence(robots, ::move)
-        .take(seconds + 1)
-        .last()
-        .score()
+    override fun part1() = robots
+        .map { robot ->
+            Coord((robot.p.x + robot.v.x * seconds).mod(width), (robot.p.y + robot.v.y * seconds).mod(height))
+        }.score()
 
     override fun part2(): Int {
-        val sample: List<Pair<Double, Double>> = generateSequence(robots, ::move)
-            .take(max(width, height))
-            .map { robotList ->
-                val robots = robotList.map(Robot::p)
-                // note that this isn't totally accurate for width because the larger height sample is used,
-                // but it should still work because the stars will align only once per period and the
-                // variance for that instance should be dramatically lower than for anything else.
+        val sample: List<Pair<Double, Double>> = (0..height)
+            .map { moves ->
+                val robots: List<Coord> = robots.map { robot ->
+                    Coord(
+                        (robot.p.x + robot.v.x * moves).mod(width),
+                        (robot.p.y + robot.v.y * moves).mod(height)
+                    )
+                }
                 val (xMean, yMean) = robots
                     .reduce(Coord::plus)
                     .let { (x, y) -> x / robots.size.toDouble() to y / robots.size.toDouble() }
@@ -74,9 +69,9 @@ class Y24D14(input: String) : Day {
 fun main() = Day.runDay(Y24D14::class)
 
 //    Class creation: 9ms
-//    Part 1: 210587128 (24ms)
+//    Part 1: 210587128 (2ms)
 //    Part 2: 7286 (39ms)
-//    Total time: 73ms
+//    Total time: 52ms
 
 @Suppress("unused")
 private val test = listOf("""p=0,4 v=3,-3
