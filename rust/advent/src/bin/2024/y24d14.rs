@@ -34,32 +34,19 @@ fn parse_robots(input: Input) -> Vec<Robot> {
         .collect()
 }
 
-fn warp(robots: &[Robot]) -> Vec<Robot> {
-    robots.iter()
-        .map(|robot| {
-            let p = Pos::new2d(
-                (robot.p.x() + robot.v.x()).rem_euclid(WIDTH), 
-                (robot.p.y() + robot.v.y()).rem_euclid(HEIGHT)
-            );
-            Robot { p, ..*robot }
-        })
-        .collect()
-}
-
-fn score(robots: Vec<Robot>) -> usize {
+fn score(robots: Vec<Pos>) -> usize {
     let mut quadrants = [0usize; 4];
     let split_x = WIDTH / 2;
     let split_y = HEIGHT / 2;
 
     robots.iter()
         .filter_map(|robot| {
-            let p = robot.p;
-            let x = match p.x() {
+            let x = match robot.x() {
                 x if (0..split_x).contains(&x) => Some(0),
                 x if x == split_x => None,
                 _ => Some(2),
             }?;
-            let y = match p.y() {
+            let y = match robot.y() {
                 y if (0..split_y).contains(&y) => Some(0),
                 y if y == split_y => None,
                 _ => Some(1),
@@ -73,10 +60,14 @@ fn score(robots: Vec<Robot>) -> usize {
 
 fn part1(input: Input) -> Output {
     let robots = parse_robots(input);
-    let moved_robots = successors(Some(robots), |robots| Some(warp(robots)))
-        .take(101)
-        .last()
-        .unwrap();
+    let moved_robots: Vec<Pos> = robots.iter()
+        .map(|robot| {
+            Pos::new2d(
+                (robot.p.x() + robot.v.x() * 100).rem_euclid(WIDTH), 
+                (robot.p.y() + robot.v.y() * 100).rem_euclid(HEIGHT), 
+            )
+        })
+        .collect();
     score(moved_robots)
 }
 
@@ -137,10 +128,9 @@ fn default() {
     assert_eq!(7286, part2(&input));
 }
 
-// Input parsed (18μs)
-// 1. 210587128 (228μs)
-// 2. 7286 (348μs)
-// Total: 597μs
-
+// Input parsed (19μs)
+// 1. 210587128 (68μs)
+// 2. 7286 (346μs)
+// Total: 435μs
 
 
