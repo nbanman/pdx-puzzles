@@ -9,7 +9,7 @@ import org.gristle.pdxpuzzles.utilities.objects.Coord
 import org.gristle.pdxpuzzles.utilities.objects.toGrid
 import java.util.PriorityQueue
 
-class Y24D016(input: String) : Day {
+class Y24D16(input: String) : Day {
     private val maze = input.toGrid()
     private val start = State(maze.coordOfElement('S'), Nsew.EAST)
     private val end = maze.coordOfElement('E')
@@ -67,7 +67,7 @@ class Y24D016(input: String) : Day {
     }
 }
 
-fun main() = Day.benchmarkDay(Y24D016::class)
+fun main() = Day.runDay(Y24D16::class)
 
 //    Class creation: 12ms
 //    Part 1: 105496 (48ms)
