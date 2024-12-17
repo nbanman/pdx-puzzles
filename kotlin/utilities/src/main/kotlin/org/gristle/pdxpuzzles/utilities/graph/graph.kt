@@ -367,7 +367,9 @@ object Graph {
             val current = q.pollUntil { !visited.contains(it.id) } ?: break
             yield(current)
             visited.add(current.id)
-            (edges[current.id] ?: defaultEdges(current.id)).forEach { neighborEdge ->
+            val neighborEdges = (edges[current.id] ?: defaultEdges(current.id))
+
+            neighborEdges.forEach { neighborEdge ->
                 val alternateWeight = current.weight + neighborEdge.weight
                 val weight = weights.getOrDefault(neighborEdge.vertexId, Double.MAX_VALUE)
                 if (alternateWeight < weight) {
