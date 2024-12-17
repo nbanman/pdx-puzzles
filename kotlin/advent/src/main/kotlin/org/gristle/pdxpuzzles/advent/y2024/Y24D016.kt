@@ -36,37 +36,43 @@ class Y24D016(input: String) : Day {
         val q = PriorityQueue<Graph.Vertex<State>>()
         q.add(start)
         val weights = mutableMapOf(start.id to start.weight)
-        val visited = mutableMapOf<Pair<State, Graph.Vertex<State>?>, Graph.Vertex<State>>()
+        val visited = mutableMapOf<State, Graph.Vertex<State>>()
         var bestPath = Double.MAX_VALUE
+        val extraSeats = mutableMapOf<State, MutableSet<Coord>>()
         while (true) {
-            val current = q.pollUntil { visited[it.id to it.parent] == null } ?: break
+            val current = q.pollUntil { visited[it.id] == null } ?: break
             if (current.weight > bestPath) break
-            visited[current.id to current.parent] = current
+            visited[current.id] = current
             if (current.id.pos == end) bestPath = current.weight
             for (neighborEdge in getEdges(current.id)) {
                 val alternateWeight = current.weight + neighborEdge.weight
                 val weight = weights.getOrDefault(neighborEdge.vertexId, Double.MAX_VALUE)
-                if (alternateWeight <= weight && alternateWeight <= bestPath) {
+                if (alternateWeight < weight && alternateWeight <= bestPath) {
                     weights[neighborEdge.vertexId] = alternateWeight
                     q.add(StdVertex(neighborEdge.vertexId, alternateWeight, current))
+                }
+                if (alternateWeight == weight) {
+                    extraSeats.getOrPut(neighborEdge.vertexId) { mutableSetOf() }
+                        .addAll(current.path().map { it.id.pos })
                 }
             }
         }
         return visited
             .values
             .filter { (id, weight) -> id.pos == end && weight <= bestPath }
-            .flatMap { vtx -> vtx.path().map { it.id.pos } }
-            .distinct()
+            .flatMap { vtx ->
+                vtx.path().flatMap { extraSeats.getOrDefault(it.id, emptyList()) + it.id.pos }
+            }.distinct()
             .size
     }
 }
 
 fun main() = Day.benchmarkDay(Y24D016::class)
 
-//    Class creation: 11ms
-//    Part 1: 105496 (47ms)
-//    Part 2: 524 (238ms)
-//    Total time: 297ms
+//    Class creation: 12ms
+//    Part 1: 105496 (48ms)
+//    Part 2: 524 (59ms)
+//    Total time: 120ms
 
 @Suppress("unused")
 private val test = listOf("""###############
