@@ -52,10 +52,10 @@ enum class Nsew {
 
     companion object {
         fun of(c: Char): Nsew = when (c) {
-            'R', 'E' -> EAST
-            'U', 'N' -> NORTH
-            'L', 'W' -> WEST
-            'D', 'S' -> SOUTH
+            'R', 'E', '>' -> EAST
+            'U', 'N', '^' -> NORTH
+            'L', 'W', '<' -> WEST
+            'D', 'S', 'v' -> SOUTH
             else -> throw IllegalArgumentException("Invalid input")
         }
 
