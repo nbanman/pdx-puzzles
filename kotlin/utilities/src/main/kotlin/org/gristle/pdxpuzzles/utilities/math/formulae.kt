@@ -31,6 +31,13 @@ fun Int.pow(n: Int): Long = if (n >= 0) {
     this.toFloat().pow(n).toLong()
 }
 
+fun Long.pow(n: Long): Long = if (n >= 0) {
+    (1..n).fold(1L) { acc, _ -> acc * this }
+} else {
+    this.toFloat().pow(n.toInt()).toLong()
+}
+
+
 fun Int.summation(): Int = (1..this).sum()
 
 fun Int.factorial(): Long = (1..this).fold(1L, Long::times)
