@@ -274,7 +274,7 @@ fn print_maze(robot: Pos, warehouse: &Warehouse, width: usize, height: usize) {
 fn default() {
     let input = get_input(24, 15).unwrap();
     let input = parse_input(&input);
-    // assert_eq!(1552463, part1(input.clone()));
+    assert_eq!(1552463, part1(input.clone()));
     assert_eq!(1554058, part2(input));
 }
 
