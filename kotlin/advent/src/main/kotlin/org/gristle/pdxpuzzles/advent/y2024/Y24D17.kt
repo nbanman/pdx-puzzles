@@ -23,10 +23,10 @@ class Y24D17(input: String) : Day {
         else -> -1
     }
 
-    fun solve(a: Long): String {
+    fun solve(a: Long): List<Int> {
         register[0] = a
         var cursor = 0
-        val out = mutableListOf<Long>()
+        val out = mutableListOf<Int>()
         while (cursor < program.size) {
             val opcode = program[cursor++]
             val operand = program[cursor++]
@@ -37,23 +37,32 @@ class Y24D17(input: String) : Day {
                 2 -> register[1] = comboValue(operand) % 8          // bst
                 3 -> if (register[0] != 0L) cursor = operand        // jnz
                 4 -> register[1] = register[1] xor register[2]      // bxc
-                5 -> out.add(comboValue(operand) % 8)               // out
+                5 -> out.add((comboValue(operand) % 8).toInt())     // out
                 6 -> register[1] = register[0] / 2L.pow(comboValue(operand))     // bdv
                 7 -> register[2] = register[0] / 2L.pow(comboValue(operand))     // cdv
             }
         }
-        return out.joinToString(",")
+        return out
     }
 
-    override fun part1(): String = solve(register[0])
-    override fun part2(): Long {
-        val programStr = program.joinToString(",")
-        return generateSequence(1L) { it + 1 }
-            .first { solve(it) == programStr }
+    override fun part1() = solve(register[0]).joinToString(",")
+    override fun part2():Long {
+        var counter = 1L
+        while (true) {
+            val ans = solve(counter)
+            val matching = ans == program.takeLast(ans.size)
+            if (matching) {
+                if (ans.size == program.size) break
+                counter *= 8
+            } else {
+                counter++
+            }
+        }
+        return counter
     }
 }
 
-fun main() = Day.runDay(Y24D17::class, test[6])
+fun main() = Day.runDay(Y24D17::class)
 // 4,6,1,3,0,1,3,1,7
 @Suppress("unused")
 private val test = listOf("""Register A: 729
