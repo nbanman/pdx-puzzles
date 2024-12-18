@@ -35,12 +35,20 @@ class Y24D18(input: String) : Day {
 
     override fun part1(): Int? = solve(1024)
 
-    override fun part2(): String = generateSequence(1025) { it + 1 }
-        .first { simulate -> solve(simulate) == null }
-        .let { second ->
-            val byte = bytes[second].last()
-            "${byte.x},${byte.y}"
+    override fun part2(): String {
+        var l = 1025
+        var r = bytes.lastIndex
+        while (l != r) {
+            val m = (l + r) / 2
+            if (solve(m) == null) {
+                r = m
+            } else {
+                l = m + 1
+            }
         }
+        val byte = bytes[r].last()
+        return "${byte.x},${byte.y}"
+    }
 }
 
 fun main() = Day.runDay(Y24D18::class)
