@@ -1,9 +1,9 @@
 package org.gristle.pdxpuzzles.advent.y2024
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
+import org.gristle.pdxpuzzles.advent.y2024.Y24D15.Entity
 import org.gristle.pdxpuzzles.utilities.enums.Nsew
 import org.gristle.pdxpuzzles.utilities.objects.Coord
-import org.gristle.pdxpuzzles.utilities.objects.minMaxRanges
 import org.gristle.pdxpuzzles.utilities.objects.toCoord
 import org.gristle.pdxpuzzles.utilities.parsing.blankSplit
 
@@ -51,15 +51,6 @@ class Y24D15(input: String) : Day {
 
     private val robot = input.indexOf('@').toCoord(width)
 
-    private fun Coord.findEmpty(dir: Nsew, warehouse: Map<Coord, Entity>): Coord? =
-        generateSequence(this.move(dir)) { it.move(dir) }
-            .takeWhile { pos ->
-                pos.x in 1 until width - 2 && pos.y in 1 until height - 1
-                        && warehouse[pos] != Entity.Wall
-            }.find { pos -> pos !in warehouse }
-
-    private fun Coord.gps(): Int = y * 100 + x
-
     override fun part1(): Int {
         val warehouse = warehouse.toMutableMap()
         var robot = robot
@@ -78,32 +69,45 @@ class Y24D15(input: String) : Day {
             .sum()
     }
 
-    private fun Coord.pushHz(dir: Nsew, dist: Int, warehouse: MutableMap<Coord, Entity>, isRobot: Boolean): Boolean {
-        val next = move(dir, dist)
-        return when (warehouse[next]) {
-            Entity.Wall -> false
-            null -> {
-                if (warehouse[this] != null) pushBoxHz(warehouse, dir)
-                true
-            }
-            Entity.Box -> throw IllegalStateException("Normal boxes should not be in map.")
-            else -> {
-                val moveable = next.pushHz(dir, 2, warehouse, false)
-                if (moveable && !isRobot) pushBoxHz(warehouse, dir)
-                moveable
+    private fun Coord.findEmpty(dir: Nsew, warehouse: Map<Coord, Entity>): Coord? =
+        generateSequence(this.move(dir)) { it.move(dir) }
+            .takeWhile { pos ->
+                pos.x in 1 until width - 2 && pos.y in 1 until height - 1
+                        && warehouse[pos] != Entity.Wall
+            }.find { pos -> pos !in warehouse }
+
+    private fun Coord.gps(): Int = y * 100 + x
+
+
+    override fun part2(): Int {
+        val warehouse = mutableMapOf<Coord, Entity>()
+        this.warehouse.entries.forEach { (oldPos, oldEntity) ->
+            val pos = oldPos.copy(x = oldPos.x * 2)
+            if (oldEntity == Entity.Box) {
+                warehouse[pos] = Entity.LeftBox
+                warehouse[pos.east()] = Entity.RightBox
+            } else {
+                warehouse[pos] = Entity.Wall
+                warehouse[pos.east()] = Entity.Wall
             }
         }
-    }
+        var robot = robot.copy(x = robot.x * 2)
 
-    private fun Coord.pushBoxHz(
-        warehouse: MutableMap<Coord, Entity>,
-        dir: Nsew,
-    ) {
-        val next = this.move(dir)
-        val nextNext = next.move(dir)
-        warehouse[next] = if (dir == Nsew.EAST) Entity.LeftBox else Entity.RightBox
-        warehouse[nextNext] = if (dir == Nsew.EAST) Entity.RightBox else Entity.LeftBox
-        warehouse.remove(this)
+        for (dir in directions) {
+            if (dir == Nsew.NORTH || dir == Nsew.SOUTH) {
+                if (robot.checkVt(dir, warehouse, true)) {
+                    robot.pushBoxVt(dir, warehouse, true)
+                    robot = robot.move(dir)
+                }
+            } else {
+                if (robot.pushHz(dir, 1, warehouse, true)) robot = robot.move(dir)
+            }
+        }
+
+        return warehouse
+            .filter { (_, entity) -> entity == Entity.LeftBox }
+            .map { (pos, _) -> pos.gps() }
+            .sum()
     }
 
     private fun Coord.checkVt(dir: Nsew, warehouse: MutableMap<Coord, Entity>, isRobot: Boolean): Boolean {
@@ -181,41 +185,37 @@ class Y24D15(input: String) : Day {
         }
     }
 
-    override fun part2(): Int {
-        val warehouse = mutableMapOf<Coord, Entity>()
-        this.warehouse.entries.forEach { (oldPos, oldEntity) ->
-            val pos = oldPos.copy(x = oldPos.x * 2)
-            if (oldEntity == Entity.Box) {
-                warehouse[pos] = Entity.LeftBox
-                warehouse[pos.east()] = Entity.RightBox
-            } else {
-                warehouse[pos] = Entity.Wall
-                warehouse[pos.east()] = Entity.Wall
+    private fun Coord.pushHz(dir: Nsew, dist: Int, warehouse: MutableMap<Coord, Entity>, isRobot: Boolean): Boolean {
+        val next = move(dir, dist)
+        return when (warehouse[next]) {
+            Entity.Wall -> false
+            null -> {
+                if (warehouse[this] != null) pushBoxHz(warehouse, dir)
+                true
+            }
+            Entity.Box -> throw IllegalStateException("Normal boxes should not be in map.")
+            else -> {
+                val moveable = next.pushHz(dir, 2, warehouse, false)
+                if (moveable && !isRobot) pushBoxHz(warehouse, dir)
+                moveable
             }
         }
-        var robot = robot.copy(x = robot.x * 2)
+    }
 
-        for (dir in directions) {
-            if (dir == Nsew.NORTH || dir == Nsew.SOUTH) {
-                if (robot.checkVt(dir, warehouse, true)) {
-                    robot.pushBoxVt(dir, warehouse, true)
-                    robot = robot.move(dir)
-                }
-            } else {
-                if (robot.pushHz(dir, 1, warehouse, true)) robot = robot.move(dir)
-            }
-        }
-
-
-
-        return warehouse
-            .filter { (_, entity) -> entity == Entity.LeftBox }
-            .map { (pos, _) -> pos.gps() }
-            .sum()
+    private fun Coord.pushBoxHz(
+        warehouse: MutableMap<Coord, Entity>,
+        dir: Nsew,
+    ) {
+        val next = this.move(dir)
+        val nextNext = next.move(dir)
+        warehouse[next] = if (dir == Nsew.EAST) Entity.LeftBox else Entity.RightBox
+        warehouse[nextNext] = if (dir == Nsew.EAST) Entity.RightBox else Entity.LeftBox
+        warehouse.remove(this)
     }
 }
 
-fun main() = Day.runDay(Y24D15::class) // 1552463
+
+fun main() = Day.runDay(Y24D15::class, test[2]) // 1552463
 
 //    Class creation: 10ms
 //    Part 1: 1552463 (34ms)
