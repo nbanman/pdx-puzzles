@@ -1,8 +1,8 @@
 package org.gristle.pdxpuzzles.advent.y2023
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
-import org.gristle.pdxpuzzles.utilities.graph.Graph
-import org.gristle.pdxpuzzles.utilities.graph.Graph.path
+import org.gristle.pdxpuzzles.utilities.algorithms.Graph
+import org.gristle.pdxpuzzles.utilities.algorithms.Graph.path
 
 class Y23D25(input: String) : Day {
 

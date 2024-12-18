@@ -1,7 +1,7 @@
 package org.gristle.pdxpuzzles.advent.y2015
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
-import org.gristle.pdxpuzzles.utilities.graph.Graph
+import org.gristle.pdxpuzzles.utilities.algorithms.Graph
 
 class Y15D09(input: String) : Day {
 

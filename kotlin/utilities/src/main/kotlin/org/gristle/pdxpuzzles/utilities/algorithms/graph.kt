@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package org.gristle.pdxpuzzles.utilities.graph
+package org.gristle.pdxpuzzles.utilities.algorithms
 
 import org.gristle.pdxpuzzles.utilities.iteration.pollUntil
 import java.util.*

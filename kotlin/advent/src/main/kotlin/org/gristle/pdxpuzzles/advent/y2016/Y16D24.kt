@@ -1,7 +1,7 @@
 package org.gristle.pdxpuzzles.advent.y2016
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
-import org.gristle.pdxpuzzles.utilities.graph.Graph
+import org.gristle.pdxpuzzles.utilities.algorithms.Graph
 import org.gristle.pdxpuzzles.utilities.objects.getEdgeMap
 import org.gristle.pdxpuzzles.utilities.objects.toGrid
 

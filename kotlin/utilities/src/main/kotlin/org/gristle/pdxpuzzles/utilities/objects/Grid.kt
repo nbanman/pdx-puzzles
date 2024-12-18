@@ -2,7 +2,7 @@
 
 package org.gristle.pdxpuzzles.utilities.objects
 
-import org.gristle.pdxpuzzles.utilities.graph.Graph
+import org.gristle.pdxpuzzles.utilities.algorithms.Graph
 import kotlin.math.min
 
 interface Grid<out E> : List<E> {

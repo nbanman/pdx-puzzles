@@ -2,8 +2,8 @@ package org.gristle.pdxpuzzles.advent.y2018
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.objects.Coord
-import org.gristle.pdxpuzzles.utilities.graph.Graph
-import org.gristle.pdxpuzzles.utilities.graph.Graph.steps
+import org.gristle.pdxpuzzles.utilities.algorithms.Graph
+import org.gristle.pdxpuzzles.utilities.algorithms.Graph.steps
 import org.gristle.pdxpuzzles.utilities.parsing.getIntList
 
 class Y18D22(input: String) : Day {

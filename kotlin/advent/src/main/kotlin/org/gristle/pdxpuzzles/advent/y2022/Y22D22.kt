@@ -2,7 +2,7 @@ package org.gristle.pdxpuzzles.advent.y2022
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.enums.Nsew
-import org.gristle.pdxpuzzles.utilities.graph.Graph
+import org.gristle.pdxpuzzles.utilities.algorithms.Graph
 import org.gristle.pdxpuzzles.utilities.objects.*
 import kotlin.math.sqrt
 

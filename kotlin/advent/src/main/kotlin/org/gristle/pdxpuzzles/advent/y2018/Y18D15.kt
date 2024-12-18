@@ -2,7 +2,7 @@ package org.gristle.pdxpuzzles.advent.y2018
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.objects.Coord
-import org.gristle.pdxpuzzles.utilities.graph.Graph
+import org.gristle.pdxpuzzles.utilities.algorithms.Graph
 
 class Y18D15(val input: String) : Day {
 
