@@ -7,8 +7,6 @@ import java.util.BitSet
 import kotlin.streams.toList
 
 class Y24D18(input: String) : Day {
-    data class State(val pos: Coord, val t: Int)
-
     private val bytes = input.getIntList().chunked(2)
         .runningFold(BitSet()) { acc, (x, y) ->
             BitSet().apply { set(y * 71 + x) }.apply { or(acc) }
