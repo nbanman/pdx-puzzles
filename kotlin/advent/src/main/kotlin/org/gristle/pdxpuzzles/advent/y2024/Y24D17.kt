@@ -63,7 +63,12 @@ class Y24D17(input: String) : Day {
 }
 
 fun main() = Day.runDay(Y24D17::class)
-// 4,6,1,3,0,1,3,1,7
+
+//    Class creation: 1ms
+//    Part 1: 5,1,3,4,3,7,2,1,7 (2ms)
+//    Part 2: 216584205979245 (5ms)
+//    Total time: 9ms
+
 @Suppress("unused")
 private val test = listOf("""Register A: 729
 Register B: 0
