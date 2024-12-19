@@ -17,9 +17,8 @@ class Y24D19(input: String) : Day {
         designs = stanzas[1]
     }
 
-    private val biggestChunk = towels.last().second.stripes()
-    private val cache = mutableMapOf<String, Boolean>()
-    private val countCache = mutableMapOf<String, Long>()
+    private val initialChunkSize = towels.last().second.stripes()
+    private val cache = mutableMapOf<String, Long>()
 
     private fun Int.stripes() = ceil((32 - this.countLeadingZeroBits()) / 3.0).toInt()
 
@@ -33,10 +32,9 @@ class Y24D19(input: String) : Day {
     }
     private fun String.toBitSet() = fold(0) { acc, c -> (acc shl 3) + c.toBits() }
 
-    private fun String.checkDesign(): Boolean = cache.getOrPut(this) {
-        if (isEmpty()) return@getOrPut true
-        var chunkString = take(biggestChunk)
-        var chunk = take(biggestChunk).toBitSet()
+    private fun String.checkDesign(): Boolean {
+        if (isEmpty()) return true
+        var chunk = take(initialChunkSize).toBitSet()
         var currentSize = chunk.stripes()
         val startIndex = towels
             .binarySearch { (_, bitset) -> bitset - chunk }
@@ -47,22 +45,20 @@ class Y24D19(input: String) : Day {
             val delta = currentSize - size
             if (delta > 0) {
                 currentSize -= delta
-                chunkString = chunkString.dropLast(delta)
                 chunk = chunk shr (delta * 3)
             }
             if (towel == chunk) {
-                if (drop(size).checkDesign()) return@getOrPut true
+                if (drop(size).checkDesign()) return true
             }
         }
-        false
+        return false
     }
 
-    private fun String.countTheWays(): Long = countCache.getOrPut(this) {
+    private fun String.countTheWays(): Long = cache.getOrPut(this) {
         if (isEmpty()) return@getOrPut 1
-        if (cache[this] == false) return@getOrPut 0
         var count = 0L
-        var chunkString = take(biggestChunk)
-        var chunk = take(biggestChunk).toBitSet()
+        var chunkString = take(initialChunkSize)
+        var chunk = take(initialChunkSize).toBitSet()
         var currentSize = chunk.stripes()
         val startIndex = towels
             .binarySearch { (_, bitset) -> bitset - chunk }
@@ -84,10 +80,7 @@ class Y24D19(input: String) : Day {
     }
 
     override fun part1(): Int = designs.count { it.checkDesign() }
-
-    override fun part2(): Long = designs
-        .filter { cache[it] == true }
-        .sumOf { design -> design.countTheWays() }
+    override fun part2(): Long = designs.sumOf { design -> design.countTheWays() }
 }
 
 fun main() = Day.runDay(Y24D19::class)
