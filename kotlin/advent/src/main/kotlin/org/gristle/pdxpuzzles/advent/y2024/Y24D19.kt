@@ -7,7 +7,7 @@ class Y24D19(input: String) : Day {
     private val cache = mutableMapOf("" to 1L)
     private val stanzas = input.blankSplit().map { it.split(", ", "\n") }
     private fun String.countTheWays(): Long = cache.getOrPut(this) {
-        stanzas[0].sumOf { towel -> if (!startsWith(towel)) 0 else drop(towel.length).countTheWays() }
+        stanzas[0].sumOf { towel -> if (startsWith(towel)) drop(towel.length).countTheWays() else 0 }
     }
     override fun part1(): Int = stanzas[1].count { design -> design.countTheWays() > 0 }
     override fun part2(): Long = stanzas[1].sumOf { design -> design.countTheWays() }
