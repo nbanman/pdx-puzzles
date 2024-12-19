@@ -4,24 +4,13 @@ import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.parsing.blankSplit
 
 class Y24D19(input: String) : Day {
-    private val cache = mutableMapOf<String, Long>()
-    
-    private val towels: List<String>
-    private val designs: List<String>
-
-    init {
-        val stanzas = input.blankSplit().map { it.split(", ", "\n") }
-        towels = stanzas[0]
-        designs = stanzas[1]
-    }
-    
+    private val cache = mutableMapOf("" to 1L)
+    private val stanzas = input.blankSplit().map { it.split(", ", "\n") }
     private fun String.countTheWays(): Long = cache.getOrPut(this) {
-        if (isEmpty()) return@getOrPut 1
-        towels.sumOf { towel -> if (!startsWith(towel)) 0 else drop(towel.length).countTheWays() }
+        stanzas[0].sumOf { towel -> if (!startsWith(towel)) 0 else drop(towel.length).countTheWays() }
     }
-
-    override fun part1(): Int = designs.count { design -> design.countTheWays() > 0 }
-    override fun part2(): Long = designs.sumOf { design -> design.countTheWays() }
+    override fun part1(): Int = stanzas[1].count { design -> design.countTheWays() > 0 }
+    override fun part2(): Long = stanzas[1].sumOf { design -> design.countTheWays() }
 }
 
 fun main() = Day.runDay(Y24D19::class)
