@@ -20,21 +20,16 @@ class Y24D19(input: String) : Day {
         towels.sumOf { towel -> if (!startsWith(towel)) 0 else drop(towel.length).countTheWays() }
     }
 
-    private fun String.isPossible(): Boolean {
-        if (isEmpty()) return true
-        return towels.any { towel -> startsWith(towel) && drop(towel.length).isPossible() }
-    }
-
-    override fun part1(): Int = designs.count { design -> design.isPossible() }
+    override fun part1(): Int = designs.count { design -> design.countTheWays() > 0 }
     override fun part2(): Long = designs.sumOf { design -> design.countTheWays() }
 }
 
 fun main() = Day.runDay(Y24D19::class)
 
-//    Class creation: 7ms
-//    Part 1: 238 (21ms)
-//    Part 2: 635018909726691 (59ms)
-//    Total time: 88ms
+//    Class creation: 5ms
+//    Part 1: 238 (62ms)
+//    Part 2: 635018909726691 (2ms)
+//    Total time: 70ms
 
 @Suppress("unused")
 private val test = listOf("""r, wr, b, g, bwu, rb, gb, br
