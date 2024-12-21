@@ -5,6 +5,8 @@ import org.gristle.pdxpuzzles.utilities.iteration.minMax
 import org.gristle.pdxpuzzles.utilities.objects.Coord
 import org.gristle.pdxpuzzles.utilities.objects.toCoord
 import java.util.ArrayDeque
+import kotlin.math.absoluteValue
+import kotlin.math.max
 import kotlin.math.min
 
 class Y24D20(private val racetrack: String) : Day {
@@ -67,29 +69,27 @@ class Y24D20(private val racetrack: String) : Day {
         if (minSteps > threshold) return 0
 
         var count = 0
-        val savings = mutableListOf<Int>()
         val allowance = (threshold - minSteps) / 2
         val (north, south) = minMax(posCoord.y, endCoord.y)
-        val yRange = (north - min(20, allowance)).coerceAtLeast(1)..
-                (south + min(20, allowance)).coerceAtMost(height - 2)
+        val yMin = min(north - allowance, posCoord.y - 20).coerceAtLeast(1)
+        val yMax = min(south + allowance, posCoord.y + 20).coerceAtMost(height - 2)
+        val yRange = yMin..yMax
         for (y in yRange) {
-            val xMin = min(20, allowance)
-            val xAllowance = when {
-                y < north -> xMin - (north - y)
-                y > south -> xMin - (y - south)
-                else -> xMin
-            }
             val (west, east) = minMax(posCoord.x, endCoord.x)
-            val xRange = (west - xAllowance).coerceAtLeast(1)..
-                    (east + xAllowance).coerceAtMost(width - 3)
+            val xAllowance = when {
+                y < north -> allowance - (north - y)
+                y > south -> allowance - (y - south)
+                else -> allowance
+            }
+            val totalAllowed = 20 - (posCoord.y - y).absoluteValue
+            val xMin = max(posCoord.x - totalAllowed, west - xAllowance).coerceAtLeast(1)
+            val xMax = min(posCoord.x + totalAllowed, east + xAllowance).coerceAtMost(width - 3)
+            val xRange = xMin..xMax
             for (x in xRange) {
                 val rePos = y * width + x
                 if (racetrack[rePos] == '#') continue
                 val cheatSteps = steps + posCoord.manhattanDistance(Coord(x, y)) + fromEnd[rePos]
-                if (cheatSteps <= threshold && posCoord.manhattanDistance(Coord(x, y)) <= 20) {
-                    count++
-                    savings.add(honestDistance - cheatSteps)
-                }
+                if (cheatSteps <= threshold) count++
             }
         }
         return count
@@ -104,12 +104,12 @@ class Y24D20(private val racetrack: String) : Day {
     }
 }
 
-fun main() = Day.benchmarkDay(Y24D20::class)
+fun main() = Day.runDay(Y24D20::class)
 
 //    Class creation: 9ms
 //    Part 1: 1406 (4ms)
-//    Part 2: 1006101 (243ms)
-//    Total time: 257ms
+//    Part 2: 1006101 (90ms)
+//    Total time: 104ms
 
 @Suppress("unused")
 private val test = listOf("""###############
