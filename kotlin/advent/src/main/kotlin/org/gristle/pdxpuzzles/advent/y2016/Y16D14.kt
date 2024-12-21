@@ -15,7 +15,7 @@ class Y16D14(private val salt: String) : Day {
     private val threeRx = Regex("""([0-9a-f])\1{2,}""")
     private val fiveRx = Regex("""([0-9a-f])\1{4,}""")
 
-    @OptIn(FlowPreview::class)
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     private fun solve(routines: Int = 1, hashing: (digest: MessageDigest, String) -> String): Int {
 
         // for each hex value 0-f, store index of last time 5-string appeared
@@ -59,7 +59,7 @@ class Y16D14(private val salt: String) : Day {
         // each coroutine creates its own MessageDigest instance, it then uses it 2017 times so the init cost is 
         // amortized.
         val hashGenerator: Flow<String> = if (routines == 1) {
-            val digest = MessageDigest.getInstance("MD05")
+            val digest = MessageDigest.getInstance("MD5")
             flowGenerator.map { seed -> hashing(digest, (salt + seed)) }
         } else {
             flowGenerator
@@ -68,7 +68,7 @@ class Y16D14(private val salt: String) : Day {
                         (n * routines until n * routines + routines)
                             .map { seed ->
                                 async {
-                                    val digest = MessageDigest.getInstance("MD05")
+                                    val digest = MessageDigest.getInstance("MD5")
                                     hashing(digest, (salt + seed))
                                 }
                             }.awaitAll()
