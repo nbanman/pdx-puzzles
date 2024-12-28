@@ -46,7 +46,7 @@ class Y24D17(input: String) : Day {
     }
 
     override fun part1() = solve(register[0]).joinToString(",")
-    override fun part2():Long {
+    override fun part2(): Long {
         var counter = 1L
         while (true) {
             val ans = solve(counter)
