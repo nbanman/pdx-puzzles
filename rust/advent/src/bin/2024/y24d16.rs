@@ -1,8 +1,8 @@
-use std::{cmp::Reverse, collections::{BinaryHeap, HashMap}};
+use std::{cmp::Reverse, collections::{BinaryHeap, HashMap}, usize};
 
 use advent::utilities::get_input::get_input;
 use rustc_hash::{FxBuildHasher, FxHashMap};
-use utilities::{enums::cardinals::Cardinal, structs::stopwatch::{ReportDuration, Stopwatch}};
+use utilities::{enums::cardinals::Cardinal, structs::{indexer::Indexer, stopwatch::{ReportDuration, Stopwatch}}};
 
 type Input<'a> = (Maze<'a>, Cache);
 type Cache = HashMap<State, Vec<(usize, State)>, FxBuildHasher>;
@@ -79,8 +79,11 @@ fn get_edges(state: State, maze: Maze, cache: &mut Cache) -> Vec<(usize, State)>
 fn solve(maze: Maze, cache: &mut Cache, part2: bool) -> Output {
     let mut q = BinaryHeap::new();
     q.push(Reverse((0, State::new(maze.start, Cardinal::East))));
-    let mut weights = ;
-    let mut visited = 
+    let mut indexer = Indexer::new();
+    let mut weights = vec![usize::MAX; maze.maze.len()];
+    let mut visited: Vec<Option<State>> = vec![None; maze.maze.len() * 4];
+    let mut best_path = usize::MAX;
+    let mut extra_seats = 
     3
 }
 
