@@ -1,4 +1,4 @@
-use std::collections::{BinaryHeap, HashMap};
+use std::{cmp::Reverse, collections::{BinaryHeap, HashMap}};
 
 use advent::utilities::get_input::get_input;
 use rustc_hash::{FxBuildHasher, FxHashMap};
@@ -19,7 +19,7 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 struct State(usize);
 
 impl State {
@@ -77,7 +77,10 @@ fn get_edges(state: State, maze: Maze, cache: &mut Cache) -> Vec<(usize, State)>
 }
 
 fn solve(maze: Maze, cache: &mut Cache, part2: bool) -> Output {
-    let q = BinaryHeap::new();
+    let mut q = BinaryHeap::new();
+    q.push(Reverse((0, State::new(maze.start, Cardinal::East))));
+    let mut weights = ;
+    let mut visited = 
     3
 }
 
