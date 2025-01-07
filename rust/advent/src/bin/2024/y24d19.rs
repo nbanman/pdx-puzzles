@@ -33,7 +33,6 @@ fn variations(design: &str, towels: &[&str], cache: &mut Cache) -> Output {
     if cache.contains_key(design) { return cache[design]; }
     let vars = towels.iter() 
         .map(|&towel| {
-            // println!("towel: {towel}, design: {design}, starts with: {}", design.starts_with(towel));
             if design.starts_with(towel) {
                 variations(&design[towel.len()..], towels, cache)
             } else {
