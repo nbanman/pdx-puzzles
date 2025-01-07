@@ -8,6 +8,7 @@ use super::{adjacent_metadata::AdjacentMetadata, indexes_to_grid::IndexesToGrid,
 
 type Pos = Coord<usize, 2>;
 
+#[derive(Debug, Clone)]
 pub struct StrGrid<'a> {
     pub s: &'a [u8],
     pub width: usize,
@@ -27,7 +28,7 @@ impl<'a> StrGrid<'a> {
             .filter(|(_, &c)| c == b'\n')
             .map(|(idx, _)| idx)
             .collect();
-        let width = *breaks.first().ok_or(StrGridError::NoLineBreak)?;
+        let width = *breaks.first().ok_or(StrGridError::NoLineBreak)? + 1;
         if breaks.iter().tuple_windows()
             .map(|(a, b)| b - a)
             .collect::<HashSet<_>>()
@@ -35,16 +36,16 @@ impl<'a> StrGrid<'a> {
                 return Err(StrGridError::UnevenWidth);
             }
         let offset = if s[s.len() - 1] == b'\n' { 0 } else { 1 };
-        let height = (s.len() + offset) / (width + 1);
+        let height = (s.len() + offset) / width;
         Ok(Self { s, width, height })
     }
 
     pub fn idx_to_coord(&self, idx: &usize) -> Pos {
-        Pos::new2d(idx % (self.width + 1), idx / (self.width + 1))
+        Pos::new2d(idx % self.width, idx / self.width)
     }
     
     pub fn coord_to_idx(&self, coord: &Pos) -> usize {
-        coord.y() * (self.width + 1) + coord.x()
+        coord.y() * self.width + coord.x()
     }
     
     pub fn get(&self, idx: impl IndexesToGrid) -> Option<u8> {
@@ -91,9 +92,9 @@ impl<'a> StrGrid<'a> {
         Cardinal::entries().into_iter()
             .filter_map(move |dir| {
                 let a_idx = match dir {
-                    Cardinal::North => idx_usize.checked_sub(self.width + 1),
+                    Cardinal::North => idx_usize.checked_sub(self.width),
                     Cardinal::East => Some(idx_usize + 1),
-                    Cardinal::South => Some(idx_usize + self.width + 1),
+                    Cardinal::South => Some(idx_usize + self.width),
                     Cardinal::West => idx_usize.checked_sub(1),
                 }?;
                 let a_b = self.get(a_idx)?;
