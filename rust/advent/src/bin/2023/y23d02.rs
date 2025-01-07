@@ -81,5 +81,5 @@ fn default() {
     let input = get_input(23, 2).unwrap();
     let input = parse_input(&input);
     assert_eq!(2377, part1(&input));
-    assert_eq!(2286, part2(&input));
+    assert_eq!(71220, part2(&input));
 }
