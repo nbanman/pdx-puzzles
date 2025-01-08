@@ -1,4 +1,4 @@
-use std::{collections::HashSet, usize};
+use std::collections::HashSet;
 
 use itertools::Itertools;
 
@@ -98,7 +98,7 @@ impl<'a> StrGrid<'a> {
                     Cardinal::West => idx_usize.checked_sub(1),
                 }?;
                 let a_b = self.get(a_idx)?;
-                Some(AdjacentMetadata { pos: idx.to_self(a_idx, &self), dir, b: a_b  })
+                Some(AdjacentMetadata { pos: idx.to_self(a_idx, self), dir, b: a_b  })
             })
     } 
 
@@ -115,7 +115,7 @@ impl<'a> StrGrid<'a> {
             Cardinal::West => idx_usize.checked_sub(1),
         }?;
         let a_b = self.get(a_idx)?;
-        Some(AdjacentMetadata { pos: idx.to_self(a_idx, &self), dir, b: a_b  })
+        Some(AdjacentMetadata { pos: idx.to_self(a_idx, self), dir, b: a_b  })
     }
 
 }

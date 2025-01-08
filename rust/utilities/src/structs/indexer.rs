@@ -49,6 +49,10 @@ impl <T: Hash + Eq> Indexer<T> {
     pub fn len(&self) -> usize {
         self.id
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.id == 0
+    }
 }
 
 #[test]
