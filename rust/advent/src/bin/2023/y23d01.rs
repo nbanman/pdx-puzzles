@@ -20,13 +20,13 @@ fn calibrate(input: Input) -> usize {
         .map(|line| {
             let first = line
                 .chars()
-                .find(|c| c.is_digit(10))
+                .find(|c| c.is_ascii_digit())
                 .unwrap()
                 .to_digit(10)
                 .unwrap() as usize;
             let second = line
                 .chars()
-                .rfind(|c| c.is_digit(10))
+                .rfind(|c| c.is_ascii_digit())
                 .unwrap()
                 .to_digit(10)
                 .unwrap() as usize;
@@ -56,7 +56,7 @@ fn part2(input: Input) -> Output {
     let replaced_input = replacements
         .iter()
         .fold(input.to_string(), |acc, [original, replacement]| {
-            acc.replace(original, &replacement)
+            acc.replace(original, replacement)
         });
 
     calibrate(&replaced_input)

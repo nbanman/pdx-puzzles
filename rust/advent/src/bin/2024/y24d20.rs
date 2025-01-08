@@ -148,14 +148,14 @@ fn part1(input: &Input) -> Output {
 fn part2(input: &Input) -> Output {
     input.from_start.iter().enumerate()
         .map(|(pos, &steps)| {
-            let test = count_valid(
+            
+            // println!("{test}: {pos}, {steps}");
+            count_valid(
                 input,
                 pos, 
                 Pos::from_index(input.end, input.racetrack.width).unwrap(), 
                 steps
-            );
-            // println!("{test}: {pos}, {steps}");
-            test
+            )
         })
         .sum()
 }

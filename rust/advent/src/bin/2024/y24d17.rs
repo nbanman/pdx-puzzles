@@ -42,10 +42,10 @@ fn solve(a: usize, b: usize, c: usize, program: &[usize]) -> Vec<usize> {
 
         match opcode {
             0 => a /= 2usize.pow(combo_value(operand, a, b, c).try_into().unwrap()),
-            1 => b = b ^ operand,
+            1 => b ^= operand,
             2 => b = combo_value(operand, a, b, c) % 8,
             3 => if a != 0 { cursor = operand },
-            4 => b = b ^ c,
+            4 => b ^= c,
             5 => out.push(combo_value(operand, a, b, c) % 8),
             6 => b = a / 2usize.pow(combo_value(operand, a, b, c).try_into().unwrap()),
             7 => c = a / 2usize.pow(combo_value(operand, a, b, c).try_into().unwrap()),
@@ -66,7 +66,7 @@ fn part2(input: Input) -> usize {
     let mut counter = 1;
     loop {
         let answer = solve(counter, b, c, &program);
-        let matching = &answer == &program[program.len() - answer.len()..];
+        let matching = answer == program[program.len() - answer.len()..];
         if matching {
             if answer.len() == program.len() { break; }
             counter *= 8;

@@ -69,17 +69,17 @@ fn test_validity(equation: &[usize], operations: &[Operation]) -> bool {
 }
 
 fn parse_input(input: &str) -> Input {
-    input.lines().map(|line| get_numbers(line)).collect()
+    input.lines().map(get_numbers).collect()
 }
 
 fn part1(input: &str) -> Output {
     let equations = parse_input(input);
-    solve(equations, &vec![Operation::Divide, Operation::Sub])
+    solve(equations, &[Operation::Divide, Operation::Sub])
 }
 
 fn part2(input: &str) -> Output {
     let equations = parse_input(input);
-    solve(equations, &vec![Operation::Divide, Operation::Slough, Operation::Sub])
+    solve(equations, &[Operation::Divide, Operation::Slough, Operation::Sub])
 }
 
 #[test]

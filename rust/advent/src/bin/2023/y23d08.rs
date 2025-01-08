@@ -53,7 +53,7 @@ fn traverse<F>(
         })
         .enumerate()
         .find(|(_, node)| {
-            end_condition(&node)
+            end_condition(node)
         })
         .unwrap()
         .0 + 1
@@ -62,7 +62,7 @@ fn traverse<F>(
 fn part1(input: &Input) -> Output {
     let (directions, network) = input;
     let end_condition = |end: &str| end == "ZZZ";
-    traverse(directions, &network, "AAA", end_condition)
+    traverse(directions, network, "AAA", end_condition)
 }
 
 fn part2(input: &Input) -> Output {
@@ -70,7 +70,7 @@ fn part2(input: &Input) -> Output {
     let end_condition = |end: &str| end.ends_with('Z');
     network.keys()
         .filter(|node| node.ends_with('A'))
-        .map(|node| traverse(directions, &network, node, end_condition))
+        .map(|node| traverse(directions, network, node, end_condition))
         .reduce(|acc, cycle_length| lcm(acc as i64, cycle_length as i64) as usize)
         .unwrap()
 }

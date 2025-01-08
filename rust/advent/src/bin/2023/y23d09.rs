@@ -29,13 +29,13 @@ fn find_next(pattern: Vec<i64>) -> i64 {
         Some(it.iter().tuple_windows().map(|(a, b)| b - a).collect())
     })
     .take_while(|next| next.iter().any(|it| it != &0) )
-    .map(|it| it.last().unwrap().clone())
+    .map(|it| *it.last().unwrap())
     .sum()
 }
 
 fn part1(input: Input) -> Output {
     patterns(input)
-        .map(|pattern| find_next(pattern))
+        .map(find_next)
         .sum()
 }
 

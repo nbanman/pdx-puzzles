@@ -41,7 +41,7 @@ fn part1(input: Input) -> Output {
                 break;
             }
         }
-        while let None = fragmented[right] { right -= 1; }
+        while fragmented[right].is_none() { right -= 1; }
         checksum += left * fragmented[right].unwrap();
         left += 1;
         right -= 1;

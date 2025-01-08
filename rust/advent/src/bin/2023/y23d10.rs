@@ -47,16 +47,16 @@ fn parse_input(input: &str) -> Input {
         (new_pos, new_dir)
     };
 
-    let pipe = successors(Some(move_along_pipe(start_pos, start_dir)), |(next_pos, next_dir)| {
+    
+
+    successors(Some(move_along_pipe(start_pos, start_dir)), |(next_pos, next_dir)| {
         Some(move_along_pipe(next_pos.pos, *next_dir))
     })
         .take_while_inclusive(|(next_pos, _)| {
             next_pos.b != b'S'
         })
         .map(|(_, dir)| dir)
-        .collect();
-
-    pipe
+        .collect()
 }
 
 fn part1(pipe: &Input) -> Output {
@@ -74,7 +74,7 @@ fn part2(pipe: &Input) -> Output {
             }
         })
         .0;
-    (area.abs() as usize) - (pipe.len() / 2) + 1
+    (area.unsigned_abs() as usize) - (pipe.len() / 2) + 1
 }
 
 #[test]

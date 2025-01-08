@@ -22,15 +22,15 @@ fn main() {
 fn parse_input(input: &str) -> Input {
     let (rules_build, updates) = input.split("\n\n")
         .map(|stanza| {
-            stanza.lines().map(|line| get_numbers::<usize>(line)).collect::<Vec<_>>() 
+            stanza.lines().map(get_numbers::<usize>).collect::<Vec<_>>() 
         })
         .collect_tuple()
         .unwrap();
     let mut rules: Rules = Rules::new();
     for rule in rules_build {
         let [l, r] = rule[..2] else { panic!("Invalid rule") };
-        rules.entry(r).or_insert(HashSet::new()).insert(l);
-        rules.entry(l).or_insert(HashSet::new());
+        rules.entry(r).or_default().insert(l);
+        rules.entry(l).or_default();
     }
     (updates, rules)
 }

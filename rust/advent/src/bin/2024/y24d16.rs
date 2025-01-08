@@ -69,7 +69,7 @@ fn get_paths<'a>(input: Input) -> (Vec<Option<Path>>, usize) {
                 .map(|path| path.weight)
                 .unwrap_or(usize::MAX);
             if alternate_weight < existing_weight && alternate_weight <= best_path {
-                if paths[neighbor.0] == None {
+                if paths[neighbor.0].is_none() {
                     paths[neighbor.0] = Some(Path {
                         weight: alternate_weight,
                         parent: Some(current.0),
@@ -77,8 +77,8 @@ fn get_paths<'a>(input: Input) -> (Vec<Option<Path>>, usize) {
                     });
                 } else {
                     let path = paths[neighbor.0].as_mut().unwrap().borrow_mut();
-                    (*path).weight = alternate_weight;
-                    (*path).parent = Some(current.0);
+                    path.weight = alternate_weight;
+                    path.parent = Some(current.0);
                 }
 
                 q.push(Reverse((alternate_weight, neighbor)));
@@ -129,7 +129,7 @@ fn part2(paths: &Vec<Option<Path>>, end: usize) -> Output {
     seats.insert(end);
     for entry in Cardinal::entries() {
         let index = entry.ordinal() + (end << 2);
-        if paths[index] != None {
+        if paths[index].is_some() {
             get_seats(index, paths, &mut seats); 
         }
     }

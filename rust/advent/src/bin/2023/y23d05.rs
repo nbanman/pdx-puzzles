@@ -66,7 +66,7 @@ fn solve(conversions: &[Vec<Listing>], seed_ranges: Vec<(i64, i64)>) -> Output {
                         let mut sub_ranges: Vec<(i64, i64)> = Vec::new();
                         let (range_first, range_last) = range;
                         let last = listings.iter().fold(*range_first, |next, listing| {
-                            if range_last >= &listing.source_start && &next <= &listing.source_end() {
+                            if range_last >= &listing.source_start && next <= listing.source_end() {
                                 if next < listing.source_start {
                                     sub_ranges.push((next.to_owned(), listing.source_start - 1));
                                 }
@@ -95,7 +95,7 @@ fn solve(conversions: &[Vec<Listing>], seed_ranges: Vec<(i64, i64)>) -> Output {
 fn part1(input: &Input) -> Output {
     let (seeds, conversions) = input;
     let seed_ranges: Vec<(i64, i64)> = seeds.iter().map(|seed| (*seed, *seed)).collect();
-    solve(&conversions, seed_ranges)
+    solve(conversions, seed_ranges)
 }
 
 fn part2(input: &Input) -> Output {
@@ -109,7 +109,7 @@ fn part2(input: &Input) -> Output {
             }
         })
         .collect();
-    solve(&conversions, seed_ranges)
+    solve(conversions, seed_ranges)
 }
 
 #[test]

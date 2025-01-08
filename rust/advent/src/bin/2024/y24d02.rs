@@ -66,11 +66,11 @@ where
 }
 
 fn part1(levels: &Input) -> Output {
-    solve(levels, |level| is_safe(level))
+    solve(levels, is_safe)
 }
 
 fn part2(levels: &Input) -> Output {
-    solve(levels, |level| is_somewhat_safe(level))
+    solve(levels, is_somewhat_safe)
 }
 
 #[test]
@@ -90,7 +90,7 @@ fn examples() {
 8 6 4 4 1
 1 3 6 7 9
 ", ];
-    let input = parse_input(&inputs[0]);
+    let input = parse_input(inputs[0]);
     assert_eq!(2, part1(&input));
     assert_eq!(4, part2(&input));
 }

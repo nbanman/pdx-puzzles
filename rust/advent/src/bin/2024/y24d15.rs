@@ -116,10 +116,8 @@ fn part2(input: Input) -> Output {
                 push_box_vt(robot, dir, &mut warehouse, true);
                 robot = robot.move_direction(dir, 1).unwrap();
             }
-        } else {
-            if push_hz(robot, dir, 1, &mut warehouse, true) {
-                robot = robot.move_direction(dir, 1).unwrap();
-            }
+        } else if push_hz(robot, dir, 1, &mut warehouse, true) {
+            robot = robot.move_direction(dir, 1).unwrap();
         }
         // println!("{:?}", dir);
         // print_maze(robot, &warehouse, bounds.x(), bounds.y());

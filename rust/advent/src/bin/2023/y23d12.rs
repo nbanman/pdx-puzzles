@@ -67,15 +67,11 @@ impl SpringRow {
                         // if the placement has no part of the string after it, valid b/c nothing else to consider
                         // if the character following the placement is '#', invalid b/c that extra '#' would overfulfill
                         // otherwise valid
-                        if let Some(_) = &block[*index..index + fulfillment].find('.') {
+                        if block[*index..index + fulfillment].find('.').is_some() {
                             false
                         } else if index + fulfillment == block.len() {
                             true
-                        } else if block.as_bytes()[index + fulfillment] == '#' as u8 {
-                            false
-                        } else {
-                            true
-                        }
+                        } else { block.as_bytes()[index + fulfillment] != b'#' }
                     })
                     .map(|index| {
                         let new_state = State {
@@ -115,13 +111,13 @@ fn parse_input(input: &str) -> Input {
 fn solve(spring_rows: Vec<SpringRow>) -> usize {
     spring_rows.into_iter()
         .map(|mut spring_row| {
-            let result = spring_row.arrangements(
+            
+            spring_row.arrangements(
                 State {
                     conditions_index: 0,
                     damage_index: 0,
                 }
-            );
-            result
+            )
         }).sum()
 }
 
@@ -142,7 +138,7 @@ fn part1(spring_reports: &Input) -> Output {
 
 
 fn part2(spring_reports: &Input) -> Output {
-    let spring_rows: Vec<SpringRow> = spring_reports.into_iter()
+    let spring_rows: Vec<SpringRow> = spring_reports.iter()
         .map(|(conditions, damage_report)| {
             let expanded_conditions = iter::repeat(conditions).take(5)
                 .join("?");

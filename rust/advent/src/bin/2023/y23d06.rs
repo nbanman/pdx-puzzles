@@ -23,7 +23,7 @@ fn solve<F>(input: &str, parse_line: F) -> i64
         .map(parse_line)
         .collect();
 
-    let times = races.get(0).unwrap();
+    let times = races.first().unwrap();
     let distances = races.get(1).unwrap();
     let races = times.iter().zip(distances.iter());
     races.map(|(time, distance)| ways_to_win(*time, *distance))

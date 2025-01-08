@@ -68,7 +68,7 @@ fn part2(bytes: &Input) -> String {
     let mut r = bytes.len() - 1;
     while l != r {
         let m = (l + r) / 2;
-        if solve(bytes, m) == None {
+        if solve(bytes, m).is_none() {
             r = m;
         } else {
             l = m + 1;

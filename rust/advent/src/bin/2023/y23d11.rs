@@ -29,16 +29,16 @@ fn parse_input(input: &str) -> Image {
 
     // for each axis, get indexed iterables of pairs. The first being the index where galaxies reside, the
     // second being the number of galaxies. We separate the axes to avoid repeat calculation.
-    let x_galaxies: Vec<(usize, usize)> = (0..width).into_iter()
+    let x_galaxies: Vec<(usize, usize)> = (0..width)
         .map(|x| {
             let count = (0..height).map(|y| data[x + y * width])
-                .filter(|c| *c == '#' as u8)
+                .filter(|c| *c == b'#')
                 .count();
             (x, count)
         })
         .filter(|(_, count)| *count > 0)
         .collect();
-    let y_galaxies: Vec<(usize, usize)> = (0..height).into_iter()
+    let y_galaxies: Vec<(usize, usize)> = (0..height)
         .map(|y| {
             let count = data[y * width..y * width + width].iter()
                 .filter(|&&c| c == b'#')
@@ -49,14 +49,14 @@ fn parse_input(input: &str) -> Image {
         .collect();
 
     // for each axis, track the indices representing expansion fields
-    let x_expansion: Vec<usize> = (0..width - 1).into_iter()
+    let x_expansion: Vec<usize> = (0..width - 1)
         .filter(|x| {
-            (0..height).into_iter().all(|y| data[*x + y * width] == b'.')
+            (0..height).all(|y| data[*x + y * width] == b'.')
         })
         .collect();
-    let y_expansion: Vec<usize> = (0..height).into_iter()
+    let y_expansion: Vec<usize> = (0..height)
         .filter(|y| {
-            (0..width - 1).into_iter().all(|x| data[x + *y * width] == b'.')
+            (0..width - 1).all(|x| data[x + *y * width] == b'.')
         })
         .collect();
 
@@ -101,11 +101,11 @@ fn distance(
 }
 
 fn part1(image: &Image) -> Output {
-    solve(&image, 2)
+    solve(image, 2)
 }
 
 fn part2(image: &Image) -> Output {
-    solve(&image, 1_000_000)
+    solve(image, 1_000_000)
 }
 
 #[test]

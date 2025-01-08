@@ -31,7 +31,7 @@ fn part1(input: Input) -> Output {
     let (mut a, mut b) = input;
     a.sort_unstable();
     b.sort_unstable();
-    a.into_iter().zip(b.into_iter())
+    a.into_iter().zip(b)
         .map(|(a, b)| a.abs_diff(b))
         .sum()
 }
@@ -64,7 +64,7 @@ fn examples() {
 3   9
 3   3
 ", ];
-    let input = parse_input(&inputs[0]);
+    let input = parse_input(inputs[0]);
     assert_eq!(11, part1(input.clone()));
     assert_eq!(31, part2(input));
 }

@@ -26,7 +26,7 @@ fn part1(input: Input) -> Output {
 fn part2(input: Input) -> Output {
     let rx = Regex::new(r"(?s)don't\(\).*?(?:do\(\)|$)|mul\((\d{1,3}),(\d{1,3})\)").unwrap();
     rx.captures_iter(input)
-        .filter(|cap| !cap.get(1).is_none())
+        .filter(|cap| cap.get(1).is_some())
         .map(|cap| {
             cap[1].parse::<usize>().unwrap() * cap[2].parse::<usize>().unwrap()
         })

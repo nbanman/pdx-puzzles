@@ -114,6 +114,6 @@ fn examples() {
 ............
 ............
 ", ];
-    assert_eq!(14, part1(&inputs[0]));
+    assert_eq!(14, part1(inputs[0]));
     // assert_eq!(34, part2(&input[0]));
 }
