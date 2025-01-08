@@ -148,8 +148,6 @@ fn part1(input: &Input) -> Output {
 fn part2(input: &Input) -> Output {
     input.from_start.iter().enumerate()
         .map(|(pos, &steps)| {
-            
-            // println!("{test}: {pos}, {steps}");
             count_valid(
                 input,
                 pos, 
