@@ -87,7 +87,7 @@ fn part2(lab: &str) -> Output {
             successors(Some(*current), move |state| {
                 move_guard(lab, width, state, Some(obstacle))
             })
-                .find(|state| {
+                .any(|state| {
                     if state.turned && state.dir == Cardinal::North {
                         if visited[state.pos] {
                             true
@@ -99,7 +99,6 @@ fn part2(lab: &str) -> Output {
                         false
                     }
                 })
-                .is_some()
         })
         .count()
 }

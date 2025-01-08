@@ -72,7 +72,7 @@ impl Region {
 }
 
 fn get_corners(
-    corners: &Vec<Cardinal>, 
+    corners: &[Cardinal], 
     adjacent: &FxHashMap<Cardinal , (Pos, bool)>, 
     current: Pos, 
     arrangement: &StrGrid<'_>,

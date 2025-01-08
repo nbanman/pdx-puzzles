@@ -37,7 +37,7 @@ struct Path {
     alternate_paths: Vec<usize>
 }
 
-fn get_paths<'a>(input: Input) -> (Vec<Option<Path>>, usize) {
+fn get_paths(input: Input) -> (Vec<Option<Path>>, usize) {
     let maze = input.as_bytes();
     let width = input.find('\n').unwrap() + 1;
     let start = input.find('S').unwrap();
@@ -113,7 +113,7 @@ fn get_edges(state: State, maze: &[u8], width: usize) -> Vec<(usize, State)> {
     edges
 }
 
-fn part1(paths: &Vec<Option<Path>>, end: usize) -> Output {
+fn part1(paths: &[Option<Path>], end: usize) -> Output {
     Cardinal::entries().into_iter()
         .filter_map(|entry| {
             let index = entry.ordinal() + (end << 2);

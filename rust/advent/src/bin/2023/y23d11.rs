@@ -75,8 +75,8 @@ fn solve(image: &Image, expansion_factor: usize) -> usize {
 // Lastly, the distance is multiplied by #galaxies in the first index multiplied by #galaxies in the second index.
 fn distance(
     expansion_factor: usize,
-    galaxies: &Vec<(usize, usize)>,
-    expansions: &Vec<usize>,
+    galaxies: &[(usize, usize)],
+    expansions: &[usize],
 ) -> usize {
     galaxies.iter().enumerate()
         .map(|(i, (a_pos, a_count))| {
