@@ -101,6 +101,21 @@ impl<'a> StrGrid<'a> {
                 Some(AdjacentMetadata { pos: idx.to_self(a_idx, &self), dir, b: a_b  })
             })
     } 
-}
 
- 
+    pub fn move_direction<T>(&'a self, idx: T, dir: Cardinal) 
+        -> Option<AdjacentMetadata<T>>
+    where 
+        T: IndexesToGrid + 'a
+    {
+        let idx_usize = idx.as_grid_idx(self);
+        let a_idx = match dir {
+            Cardinal::North => idx_usize.checked_sub(self.width),
+            Cardinal::East => Some(idx_usize + 1),
+            Cardinal::South => Some(idx_usize + self.width),
+            Cardinal::West => idx_usize.checked_sub(1),
+        }?;
+        let a_b = self.get(a_idx)?;
+        Some(AdjacentMetadata { pos: idx.to_self(a_idx, &self), dir, b: a_b  })
+    }
+
+}
