@@ -101,3 +101,8 @@ fn default() {
     assert_eq!(106990, part1(&input));
     assert_eq!(100531, part2(&input));
 }
+
+    // Input parsed (41μs)
+    // 1. 106990 (65μs)
+    // 2. 100531 (45ms)
+    // Total: 45ms
