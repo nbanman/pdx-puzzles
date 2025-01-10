@@ -100,7 +100,7 @@ private fun String.mapToId(emptySpace: Char): List<Long> = buildList {
 }
 
 @JvmName("ocrBoolean")
-fun Grid<Boolean>.ocr() = rep().ocr('⚫')
+fun Grid<Boolean>.ocr() = rep().ocr('.')
 
 @JvmName("ocrChar")
 fun Grid<Char>.ocr() = representation { it }.ocr()
