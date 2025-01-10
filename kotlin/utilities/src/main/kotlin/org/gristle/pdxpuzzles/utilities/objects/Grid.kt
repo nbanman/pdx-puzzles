@@ -601,7 +601,7 @@ inline fun <E, R> Grid<E>.mapToMutableGridIndexed(transform: (index: Int, E) -> 
 }
 
 @JvmName("BooleanRep")
-fun Grid<Boolean>.rep() = representation { if (it) '*' else '.' }
+fun Grid<Boolean>.rep() = representation { if (it) '#' else '.' }
 
 fun Grid<Char>.rep() = representation { it }
 
