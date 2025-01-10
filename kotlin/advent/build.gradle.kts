@@ -13,9 +13,14 @@ dependencies {
     implementation(kotlin("reflect"))
     // Apply the kotlinx bundle of dependencies from the version catalog (`gradle/libs.versions.toml`).
     implementation(libs.bundles.kotlinxEcosystem)
+    testImplementation(kotlin("test"))
 }
 
 group = "org.gristle.puzzle-utilities.advent"
+
+tasks.test {
+    maxHeapSize = "2g"  // Adjust as needed (e.g., "1g", "4g")
+}
 
 //application {
 //    // Define the Fully Qualified Name for the application main class
