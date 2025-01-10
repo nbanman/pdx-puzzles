@@ -67,6 +67,30 @@ name = "advent-y23d13"
 path = "src/bin/2023/y23d13.rs"
 
 [[bin]]
+name = "advent-y23d14"
+path = "src/bin/2023/y23d14.rs"
+
+[[bin]]
+name = "advent-y23d15"
+path = "src/bin/2023/y23d15.rs"
+
+[[bin]]
+name = "advent-y23d16"
+path = "src/bin/2023/y23d16.rs"
+
+[[bin]]
+name = "advent-y23d17"
+path = "src/bin/2023/y23d17.rs"
+
+[[bin]]
+name = "advent-y23d18"
+path = "src/bin/2023/y23d18.rs"
+
+[[bin]]
+name = "advent-y23d19"
+path = "src/bin/2023/y23d19.rs"
+
+[[bin]]
 name = "advent-y24d01"
 path = "src/bin/2024/y24d01.rs"
 
