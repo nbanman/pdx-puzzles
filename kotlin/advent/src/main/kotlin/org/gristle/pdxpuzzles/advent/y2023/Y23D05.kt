@@ -5,7 +5,7 @@ import org.gristle.pdxpuzzles.utilities.parsing.blankSplit
 import org.gristle.pdxpuzzles.utilities.parsing.getLongList
 import kotlin.math.min
 
-class Y23D5(input: String) : Day {
+class Y23D05(input: String) : Day {
 
     data class Listing(val sourceStart: Long, val offset: Long, val length: Long) {
         val sourceEnd = sourceStart + length - 1
@@ -64,7 +64,7 @@ class Y23D5(input: String) : Day {
     override fun part2() = solve(seeds.chunked(2) { (start, length) -> start until start + length })
 }
 
-fun main() = Day.runDay(Y23D5::class)
+fun main() = Day.runDay(Y23D05::class)
 
 //    Class creation: 11ms
 //    Part 1: 379811651 (4ms)

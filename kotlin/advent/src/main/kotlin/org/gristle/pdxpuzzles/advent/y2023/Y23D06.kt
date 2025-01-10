@@ -6,7 +6,7 @@ import org.gristle.pdxpuzzles.utilities.parsing.getLongList
 import kotlin.math.ceil
 import kotlin.math.floor
 
-class Y23D6(private val input: String) : Day {
+class Y23D06(private val input: String) : Day {
 
     override fun part1() = solve { it.getLongList() }
 
@@ -35,7 +35,7 @@ class Y23D6(private val input: String) : Day {
     }
 }
 
-fun main() = Day.runDay(Y23D6::class)
+fun main() = Day.runDay(Y23D06::class)
 
 //    Class creation: 2ms
 //    Part 1: 2374848 (2ms)

@@ -2,7 +2,7 @@ package org.gristle.pdxpuzzles.advent.y2023
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
 
-class Y23D2(input: String) : Day {
+class Y23D02(input: String) : Day {
     // Both parts only care about the maximum of each color cube each bag is shown to hold. Each line is a game,
     // so make a list of games, one per line, represented by a map holding the maximum number of cubes reported for
     // each color.
@@ -37,7 +37,7 @@ class Y23D2(input: String) : Day {
     }
 }
 
-fun main() = Day.runDay(Y23D2::class)
+fun main() = Day.runDay(Y23D02::class)
 
 //    Class creation: 29ms
 //    Part 1: 2377 (3ms)

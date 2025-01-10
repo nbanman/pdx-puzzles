@@ -2,7 +2,7 @@ package org.gristle.pdxpuzzles.advent.y2023
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
 
-class Y23D9(input: String) : Day {
+class Y23D09(input: String) : Day {
 
     private val patterns = input.lines().map { line -> line.split(' ').map(String::toInt) }
 
@@ -15,7 +15,7 @@ class Y23D9(input: String) : Day {
     override fun part2() = patterns.sumOf { pattern -> findNext(pattern.reversed()) }
 }
 
-fun main() = Day.runDay(Y23D9::class)
+fun main() = Day.runDay(Y23D09::class)
 
 //    Class creation: 17ms
 //    Part 1: 1974913025 (6ms)

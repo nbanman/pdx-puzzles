@@ -4,7 +4,7 @@ import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.math.lcm
 import org.gristle.pdxpuzzles.utilities.parsing.blankSplit
 
-class Y23D8(input: String) : Day {
+class Y23D08(input: String) : Day {
 
     private val directions: Sequence<Char>
     private val network: Map<String, Pair<String, String>>
@@ -40,7 +40,7 @@ class Y23D8(input: String) : Day {
         .lcm()
 }
 
-fun main() = Day.runDay(Y23D8::class)
+fun main() = Day.runDay(Y23D08::class)
 
 //    Class creation: 16ms
 //    Part 1: 19241 (13ms)

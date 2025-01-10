@@ -2,7 +2,7 @@ package org.gristle.pdxpuzzles.advent.y2023
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
 
-class Y23D7(input: String) : Day {
+class Y23D07(input: String) : Day {
     private val hands = input.lines().map { line ->
         val (cards, bid) = line.split(' ')
         Hand(cards, bid.toInt())
@@ -56,7 +56,7 @@ class Y23D7(input: String) : Day {
     override fun part2() = solve(hands, true)
 }
 
-fun main() = Day.runDay(Y23D7::class)
+fun main() = Day.runDay(Y23D07::class)
 
 //    Class creation: 14ms
 //    Part 1: 253866470 (10ms)

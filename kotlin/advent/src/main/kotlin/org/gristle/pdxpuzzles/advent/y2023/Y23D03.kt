@@ -2,7 +2,7 @@ package org.gristle.pdxpuzzles.advent.y2023
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
 
-class Y23D3(private val schematic: String) : Day {
+class Y23D03(private val schematic: String) : Day {
     // we use the input schematic directly, using indexes. To move up and down the y axis, we need the width.
     private val width = schematic.indexOf('\n') + 1
 
@@ -56,7 +56,7 @@ class Y23D3(private val schematic: String) : Day {
         .sumOf { it.reduce(Int::times) } // multiply gear ratios and sum them
 }
 
-fun main() = Day.runDay(Y23D3::class)
+fun main() = Day.runDay(Y23D03::class)
 
 //    Class creation: 3ms
 //    Part 1: 525911 (21ms)

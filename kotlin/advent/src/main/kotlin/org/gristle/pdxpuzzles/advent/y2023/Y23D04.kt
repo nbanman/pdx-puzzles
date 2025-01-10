@@ -3,7 +3,7 @@ package org.gristle.pdxpuzzles.advent.y2023
 import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.parsing.getInts
 
-class Y23D4(input: String) : Day {
+class Y23D04(input: String) : Day {
     // represents each card as the number of winning numbers, that is, the number of numbers on the right that match a
     // number on the left.
     private val cards: List<Int> = input
@@ -39,7 +39,7 @@ class Y23D4(input: String) : Day {
     }
 }
 
-fun main() = Day.runDay(Y23D4::class)
+fun main() = Day.runDay(Y23D04::class)
 
 //    Class creation: 24ms
 //    Part 1: 23750 (0ms)
