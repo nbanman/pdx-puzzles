@@ -13,7 +13,7 @@ class Y23D20(input: String) : Day {
         val name: String
         val downstream: List<String>
         
-        fun onReceive(signal: Signal, round: Int)
+        fun onReceive(signal: Signal)
         
         fun reset()
         
@@ -33,7 +33,7 @@ class Y23D20(input: String) : Day {
             downstream.forEach { Module.upstreamCount[it] = (Module.upstreamCount[it] ?: 0) + 1 }
         }
 
-        override fun onReceive(signal: Signal, round: Int) {
+        override fun onReceive(signal: Signal) {
             val output = Signal(name, downstream, Pulse.LOW)
             Module.dispatchQueue.add(output)
         }
@@ -49,7 +49,7 @@ class Y23D20(input: String) : Day {
             downstream.forEach { Module.upstreamCount[it] = (Module.upstreamCount[it] ?: 0) + 1 }
         }
 
-        override fun onReceive(signal: Signal, round: Int) {
+        override fun onReceive(signal: Signal) {
             val output = Signal(name, downstream, signal.pulse)
             Module.dispatchQueue.add(output)
         }
@@ -65,7 +65,7 @@ class Y23D20(input: String) : Day {
 
         private var on = false
 
-        override fun onReceive(signal: Signal, round: Int) {
+        override fun onReceive(signal: Signal) {
             if (signal.pulse == Pulse.LOW) {
                 on = !on
                 val pulse = if (on) Pulse.HIGH else Pulse.LOW
@@ -87,11 +87,9 @@ class Y23D20(input: String) : Day {
 
         private val upstreamPulses = mutableMapOf<String, Pulse>()
         
-        private val upstreamCount: Int by lazy { Module.upstreamCount.getValue(name) }
-        
-        override fun onReceive(signal: Signal, round: Int) {
+        override fun onReceive(signal: Signal) {
             upstreamPulses[signal.sender] = signal.pulse
-            val pulse = if (upstreamCount == upstreamPulses.size &&
+            val pulse = if (Module.upstreamCount[name] == upstreamPulses.size &&
                 upstreamPulses.values.all { it == Pulse.HIGH }) Pulse.LOW else Pulse.HIGH
             val output = Signal(name, downstream, pulse)
             Module.dispatchQueue.add(output)
@@ -103,8 +101,8 @@ class Y23D20(input: String) : Day {
     }
     
     data class Signal(val sender: String, val recipients: List<String>, val pulse: Pulse) {
-        fun send(round: Int) {
-            recipients.forEach { name -> Module.lookup[name]?.onReceive(this, round) }
+        fun send() {
+            recipients.forEach { name -> Module.lookup[name]?.onReceive(this) }
         }
     }
 
@@ -124,11 +122,11 @@ class Y23D20(input: String) : Day {
     
     // Simulates one round by pushing the button, then processing signals until none are sent.
     // Returns the number of high and low pulses sent, which is used for Part 1. Part 2 relies on side effects.
-    private fun pressButton(round: Int): Pair<Int, Int> {
-        Button.onReceive(Signal(Button.name, listOf("broadcaster"), Pulse.LOW), 0)
+    private fun pressButton(): Pair<Int, Int> {
+        Button.onReceive(Signal(Button.name, listOf("broadcaster"), Pulse.LOW))
         return generateSequence { Module.dispatchQueue.removeFirstOrNull() }
             .fold(0 to 0) { (high, low), signal ->
-                signal.send(round)
+                signal.send()
                 if (signal.pulse == Pulse.HIGH) {
                     high + signal.recipients.size to low
                 } else {
@@ -140,7 +138,7 @@ class Y23D20(input: String) : Day {
     // Runs sequence 1000 times, sums up the high and low pulses sent, and multiplies the two together.
     override fun part1(): Int {
         Module.lookup.values.forEach { it.reset() }
-        return generateSequence(1, Int::inc).map { pressButton(it) }
+        return generateSequence(1, Int::inc).map { pressButton() }
             .take(1000)
             .fold(0 to 0) { (sumHigh, sumLow), (high, low) ->
                 sumHigh + high to sumLow + low
