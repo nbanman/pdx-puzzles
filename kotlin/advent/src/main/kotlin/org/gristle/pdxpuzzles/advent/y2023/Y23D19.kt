@@ -37,7 +37,7 @@ class Y23D19(input: String) : Day {
                                 'm' -> 1
                                 'a' -> 2
                                 's' -> 3
-                                else -> 0
+                                else -> throw IllegalArgumentException("??")
                             }
                             val comparison = ruleStr[1].toString()
                             val amount = ruleStr.dropWhile { !it.isDigit() }.takeWhile { it.isDigit() }.toInt()
@@ -56,9 +56,7 @@ class Y23D19(input: String) : Day {
     // ends up being accepted "A" or rejected "R." Sum the XMAS values for each accepted part and sum the total.
     override fun part1() = parts
         .filter { xmas ->
-            generateSequence("in") { sort(it, xmas) }
-                .first { it == "A" || it == "R" }
-                .let { it == "A"}
+            sort("in", xmas) == "A"
         }.sumOf { it.sum() }
 
     private fun sort(name: String, part: List<Int>): String {
