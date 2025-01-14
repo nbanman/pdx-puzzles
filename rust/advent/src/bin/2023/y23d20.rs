@@ -1,21 +1,15 @@
-use std::{collections::{HashMap, VecDeque}, iter::successors};
+use std::{collections::{HashMap, HashSet, VecDeque}, iter::successors};
 
 use advent::utilities::get_input::get_input;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
+type Input<'a> = (Lookup<'a>, UpstreamCount<'a>, DispatchQueue<'a>);
 type Output = usize;
 type Downstream<'a> = Vec<&'a str>;
 type Lookup<'a> = HashMap<&'a str, Module<'a>>;
 type UpstreamCount<'a> = HashMap<&'a str, usize>;
 type DispatchQueue<'a> = VecDeque<Signal<'a>>;
 type UpstreamPulses<'a> = HashMap<&'a str, Pulse>;
-
-#[derive(Clone, Debug)]
-struct Modules<'a> {
-    lookup: Lookup<'a>,
-    upstream_count: UpstreamCount<'a>,
-    dispatch_queue: DispatchQueue<'a>,
-}
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Pulse {
@@ -47,15 +41,15 @@ impl<'a> Signal<'a> {
 
 #[derive(Clone, Debug)]
 enum Module<'a> {
-    Button,
-    Broadcaster { downstream: Vec<&'a str> },
+    Button { downstream: Downstream<'a> },
+    Broadcaster { downstream: Downstream<'a> },
     FlipFlop { name: &'a str, downstream: Downstream<'a>, on: bool },
     Conjunction { name: &'a str, downstream: Vec<&'a str>, upstream_pulses: UpstreamPulses<'a> },
 }
 
 impl<'a> Module<'a> {
     fn register_button(lookup: &mut Lookup<'a>, upstream_count: &mut UpstreamCount<'a>) {
-        let new = Self::Button;
+        let new = Self::Button { downstream: vec!["broadcaster"] } ;
         lookup.insert("button", new);
         upstream_count.entry("broadcaster").and_modify(|e| *e += 1).or_insert(1);
     }
@@ -101,17 +95,18 @@ impl<'a> Module<'a> {
     fn on_receive(
         &mut self, 
         signal: Signal<'a>, 
-        modules: &mut Modules<'a>,
+        dispatch_queue: &mut DispatchQueue<'a>,
+        upstream_count: &mut UpstreamCount<'a>,
     ) {
         match self {
-            Module::Button => {
+            Module::Button { downstream} => {
                 let output = Signal { 
                     sender: "button", 
-                    recipients: ["broadcaster"].into_iter().collect(), 
+                    recipients: downstream.clone(), 
                     pulse: Pulse::Low, 
                 };
         
-                modules.dispatch_queue.push_back(output);
+                dispatch_queue.push_back(output);
             },
             Module::Broadcaster { downstream } => {
                 let output = Signal { 
@@ -120,7 +115,7 @@ impl<'a> Module<'a> {
                     pulse: signal.pulse, 
                 };
         
-                modules.dispatch_queue.push_back(output);
+                dispatch_queue.push_back(output);
             },
             Module::FlipFlop { name, downstream, on } => {
                 if signal.pulse == Pulse::Low {
@@ -131,12 +126,12 @@ impl<'a> Module<'a> {
                         recipients: downstream.clone(), 
                         pulse, 
                     };
-                    modules.dispatch_queue.push_back(output);
+                    dispatch_queue.push_back(output);
                 }
             },
             Module::Conjunction { name, downstream, upstream_pulses } => {
                 upstream_pulses.insert(signal.sender, signal.pulse);
-                let pulse = if modules.upstream_count[name] == upstream_pulses.len() 
+                let pulse = if upstream_count[name] == upstream_pulses.len() 
                     && upstream_pulses.values().all(|&it| it == Pulse::High) 
                 {
                     Pulse::Low
@@ -144,20 +139,29 @@ impl<'a> Module<'a> {
                     Pulse::High
                 };
                 let output = Signal { sender: name, recipients: downstream.clone(), pulse };
-                modules.dispatch_queue.push_back(output);
+                dispatch_queue.push_back(output);
             },
         }
     }
 
     fn reset(&mut self) {
         match self {
-            Module::FlipFlop { name, downstream, on } => {
+            Module::FlipFlop { name: _, downstream: _, on } => {
                 *on = false;
             },
-            Module::Conjunction { name, downstream, upstream_pulses } => {
+            Module::Conjunction { name: _, downstream: _, upstream_pulses } => {
                 upstream_pulses.clear();
             },
             _ => { },
+        }
+    }
+    
+    fn downstream(&self) -> &Vec<&str> {
+        match self {
+            Module::Button { downstream }=> downstream,
+            Module::Broadcaster { downstream } => downstream,
+            Module::FlipFlop { name: _, downstream, on: _ } => downstream,
+            Module::Conjunction { name: _, downstream, upstream_pulses: _ } => downstream,
         }
     }
 
@@ -174,7 +178,7 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse_input(input: &str) -> Modules {
+fn parse_input(input: &str) -> Input {
     let mut lookup = Lookup::new();
     let mut upstream_count = UpstreamCount::new();
     let dispatch_queue = DispatchQueue::new();
@@ -191,34 +195,75 @@ fn parse_input(input: &str) -> Modules {
             _ => Module::register_broadcaster(downstream, &mut lookup, &mut upstream_count),
         }
     }
-    Modules { lookup, upstream_count, dispatch_queue }
+    (lookup, upstream_count, dispatch_queue)
 }
 
-fn press_button(modules: &mut Modules) -> (usize, usize) {
+fn press_button<'a>(
+    lookup: &mut Lookup<'a>,
+    dispatch_queue: &mut DispatchQueue<'a>,
+    upstream_count: &mut UpstreamCount<'a>,
+) -> (usize, usize) {
     let recipients = ["broadcaster"].into_iter().collect();
     let signal = Signal { sender: "button", recipients, pulse: Pulse::Low };
-    modules.lookup["button"].on_receive(signal, modules);
-       
-    ()
+    lookup.get_mut("button").unwrap().on_receive(signal, dispatch_queue, upstream_count);
+    let mut high = 0;
+    let mut low = 0;
+    while let Some(signal) = dispatch_queue.pop_front() {
+        signal.send(
+            lookup, 
+            dispatch_queue, 
+            upstream_count,
+        );
+        
+        if signal.pulse == Pulse::High {
+            high += signal.recipients.len();
+        } else {
+            low += signal.recipients.len();
+        }
+    }
+    (high, low)
 }
 
-fn part1(modules: Modules) -> Output {
+fn part1(modules: Input) -> Output {
+    let (mut lookup, mut upstream_count, mut dispatch_queue) = modules;
     let (high, low) = (0..1000)
-        .map(|_| press_button())
+        .map(|_| press_button(&mut lookup, &mut dispatch_queue, &mut upstream_count))
         .fold((0, 0), |(sum_high, sum_low), (high, low)| {
             (sum_high + high, sum_low + low)
         });
     high * low
 }
 
-fn part2(modules: Modules) -> Output {
-    250628960065793
+fn part2(modules: Input) -> Output {
+    let (mut lookup, mut upstream_count, mut dispatch_queue) = modules;
+    let flip_flops: HashSet<&str> = lookup.values()
+        .filter_map(|module| {
+            if let &Module::FlipFlop { name, downstream, on: _ } = module {
+                Some(name)
+            } else {
+                None
+            }
+        })
+        .collect();
+    let binary_counter_results = lookup["broadcaster"].downstream()
+        .iter()
+        .map(|&name| {
+            let start = lookup[name];
+            let &conjunction = start.downstream().iter()
+                .find(|&&v| matches!(lookup[v], Module::Conjunction { name, downstream, upstream_pulses }))
+                .unwrap();
+            successors(Some(start), |module| {
+                module.downstream().iter().find(|&&v| flip_flops.contains(v))
+            })
+                .map(|it| )
+        })
+
 }
 
 #[test]
 fn default() {
     let input = get_input(23, 20).unwrap();
     let input = parse_input(&input);
-    assert_eq!(938065580, part1(&input));
-    assert_eq!(250628960065793, part2(&input));
+    assert_eq!(938065580, part1(input.clone()));
+    assert_eq!(250628960065793, part2(input));
 }
