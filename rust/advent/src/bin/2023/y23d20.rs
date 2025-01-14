@@ -1,7 +1,7 @@
 use std::{collections::{HashMap, HashSet, VecDeque}, iter::successors};
 
 use advent::utilities::get_input::get_input;
-use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
+use utilities::{math::formulae::lcm, structs::stopwatch::{ReportDuration, Stopwatch}};
 
 type Input<'a> = (Lookup<'a>, UpstreamCount<'a>, DispatchQueue<'a>);
 type Output = usize;
@@ -143,18 +143,6 @@ impl<'a> Module<'a> {
             },
         }
     }
-
-    fn reset(&mut self) {
-        match self {
-            Module::FlipFlop { name: _, downstream: _, on } => {
-                *on = false;
-            },
-            Module::Conjunction { name: _, downstream: _, upstream_pulses } => {
-                upstream_pulses.clear();
-            },
-            _ => { },
-        }
-    }
     
     fn downstream(&self) -> &Vec<&str> {
         match self {
@@ -235,29 +223,34 @@ fn part1(modules: Input) -> Output {
 }
 
 fn part2(modules: Input) -> Output {
-    let (mut lookup, mut upstream_count, mut dispatch_queue) = modules;
+    let (lookup, _, _) = modules;
     let flip_flops: HashSet<&str> = lookup.values()
         .filter_map(|module| {
-            if let &Module::FlipFlop { name, downstream, on: _ } = module {
-                Some(name)
+            if let Module::FlipFlop { name, downstream: _, on: _ } = module {
+                Some(*name)
             } else {
                 None
             }
         })
         .collect();
-    let binary_counter_results = lookup["broadcaster"].downstream()
+    lookup["broadcaster"].downstream()
         .iter()
         .map(|&name| {
-            let start = lookup[name];
-            let &conjunction = start.downstream().iter()
-                .find(|&&v| matches!(lookup[v], Module::Conjunction { name, downstream, upstream_pulses }))
+            let start = &lookup[name];
+            let conjunction = start.downstream().iter()
+                .find(|&&v| matches!(lookup[v], Module::Conjunction { name: _, downstream: _, upstream_pulses: _ }))
                 .unwrap();
             successors(Some(start), |module| {
-                module.downstream().iter().find(|&&v| flip_flops.contains(v))
+                module.downstream().iter()
+                    .find(|&&v| flip_flops.contains(v))
+                    .map(|&x| &lookup[x])
             })
-                .map(|it| )
+                .map(|module| if module.downstream().contains(conjunction) { 1 } else { 0 })
+                .enumerate()
+                .fold(0usize, |acc, (index, i)| acc + (i << index))
         })
-
+        .reduce(|acc, i| lcm(acc, i))
+        .unwrap()
 }
 
 #[test]
@@ -267,3 +260,8 @@ fn default() {
     assert_eq!(938065580, part1(input.clone()));
     assert_eq!(250628960065793, part2(input));
 }
+
+// Input parsed (40μs)
+// 1. 938065580 (3ms)
+// 2. 250628960065793 (13μs)
+// Total: 3ms
