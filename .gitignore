@@ -2,3 +2,5 @@
 template.kt
 .DS_Store
 template.txt
+.idea/*
+.idea/vcs.xml
