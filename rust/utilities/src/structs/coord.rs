@@ -65,6 +65,10 @@ impl<T: Coordinate, const N: usize>  Coord<T, N> {
             .to_usize()
             .unwrap()
     }
+
+    pub fn get(&self, index: usize) -> Option<T> {
+        self.0.get(index).cloned()
+    }
 }
 
 impl<T: Coordinate, const N: usize> Add for Coord<T, N> {
