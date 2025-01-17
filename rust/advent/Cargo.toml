@@ -15,6 +15,106 @@ ordered-float = { workspace = true }
 bit-set = "0.8.0"
 
 [[bin]]
+name = "advent-y22d01"
+path = "src/bin/2022/y22d01.rs"
+
+[[bin]]
+name = "advent-y22d02"
+path = "src/bin/2022/y22d02.rs"
+
+[[bin]]
+name = "advent-y22d03"
+path = "src/bin/2022/y22d03.rs"
+
+[[bin]]
+name = "advent-y22d04"
+path = "src/bin/2022/y22d04.rs"
+
+[[bin]]
+name = "advent-y22d05"
+path = "src/bin/2022/y22d05.rs"
+
+[[bin]]
+name = "advent-y22d06"
+path = "src/bin/2022/y22d06.rs"
+
+[[bin]]
+name = "advent-y22d07"
+path = "src/bin/2022/y22d07.rs"
+
+[[bin]]
+name = "advent-y22d08"
+path = "src/bin/2022/y22d08.rs"
+
+[[bin]]
+name = "advent-y22d09"
+path = "src/bin/2022/y22d09.rs"
+
+[[bin]]
+name = "advent-y22d10"
+path = "src/bin/2022/y22d10.rs"
+
+[[bin]]
+name = "advent-y22d11"
+path = "src/bin/2022/y22d11.rs"
+
+[[bin]]
+name = "advent-y22d12"
+path = "src/bin/2022/y22d12.rs"
+
+[[bin]]
+name = "advent-y22d13"
+path = "src/bin/2022/y22d13.rs"
+
+[[bin]]
+name = "advent-y22d14"
+path = "src/bin/2022/y22d14.rs"
+
+[[bin]]
+name = "advent-y22d15"
+path = "src/bin/2022/y22d15.rs"
+
+[[bin]]
+name = "advent-y22d16"
+path = "src/bin/2022/y22d16.rs"
+
+[[bin]]
+name = "advent-y22d17"
+path = "src/bin/2022/y22d17.rs"
+
+[[bin]]
+name = "advent-y22d18"
+path = "src/bin/2022/y22d18.rs"
+
+[[bin]]
+name = "advent-y22d19"
+path = "src/bin/2022/y22d19.rs"
+
+[[bin]]
+name = "advent-y22d20"
+path = "src/bin/2022/y22d20.rs"
+
+[[bin]]
+name = "advent-y22d21"
+path = "src/bin/2022/y22d21.rs"
+
+[[bin]]
+name = "advent-y22d22"
+path = "src/bin/2022/y22d22.rs"
+
+[[bin]]
+name = "advent-y22d23"
+path = "src/bin/2022/y22d23.rs"
+
+[[bin]]
+name = "advent-y22d24"
+path = "src/bin/2022/y22d24.rs"
+
+[[bin]]
+name = "advent-y22d25"
+path = "src/bin/2022/y22d25.rs"
+
+[[bin]]
 name = "advent-y23d01"
 path = "src/bin/2023/y23d01.rs"
 
