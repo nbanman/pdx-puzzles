@@ -110,3 +110,7 @@ fn default() {
     let input = get_input(23, 25).unwrap();
     assert_eq!(569904, part1(&input));
 }
+
+// Input parsed (17μs)
+// 1. 569904 (1ms)
+// Total: 1ms
