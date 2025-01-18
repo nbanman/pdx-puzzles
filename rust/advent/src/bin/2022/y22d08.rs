@@ -1,7 +1,8 @@
 use std::iter::successors;
 
 use advent::utilities::get_input::get_input;
-use utilities::{enums::cardinals::Cardinal, structs::{stopwatch::{ReportDuration, Stopwatch}, strgrid::str_grid::StrGrid}};
+use itertools::Itertools;
+use utilities::{enums::cardinals::Cardinal, structs::{stopwatch::{ReportDuration, Stopwatch}, strgrid::{adjacent_metadata::AdjacentMetadata, str_grid::StrGrid}}};
 
 type Trees<'a> = StrGrid<'a>;
 type Int = usize;
@@ -21,54 +22,73 @@ fn parse_input(input: &str) -> Trees {
     StrGrid::new(input).unwrap()
 }
 
-fn out_of_forest(tree: Int, trees: &Trees) -> bool {
-    trees.get(tree).is_none()
-}
-
-fn rays<'a>(tree: Int, trees: &'a Trees) -> Vec<impl Iterator<Item = Int> + 'a> {
+fn rays<'a>(tree: Int, trees: &'a Trees) -> Vec<impl Iterator<Item = AdjacentMetadata<Int>> + 'a> {
     Cardinal::entries().into_iter()
         .map(|dir| {
             successors(
-                move_one(trees, tree, dir), move |&next| move_one(trees, next, dir)
+                trees.move_direction(tree, dir), move |next| trees.move_direction(next.pos, dir)
             )
         })
         .collect()
 }
 
-fn move_one(trees: &Trees, tree: Int, dir: Cardinal) -> Option<Int> {
-    trees.move_direction(tree, dir)
-        .map(|tree| tree.pos)
-}
-
-fn terminating(pos: Int, tree: Int, trees: &Trees) -> bool {
-    if out_of_forest(pos, trees) {
-        true
-    } else {
-        trees.get(pos).unwrap() >= trees.get(tree).unwrap()
-    }
-}
-
-fn is_visible(tree: Int, trees: &Trees) -> bool {
+fn is_visible(tree: Int, height: u8, trees: &Trees) -> bool {
     rays(tree, trees).into_iter()
-        .any(|ray| {
-            let terminal = 
+        .any(|mut ray| {
+            ray.all(|pos| height > pos.b)
         })
 }
 
-
+fn scenic_score(tree: Int, height: u8, trees: &Trees) -> Int {
+    rays(tree, trees).into_iter()
+        .map(|ray| {
+            ray.enumerate()
+                .find_or_last(|(_, it)| trees.get(it.pos).unwrap() >= height)
+                .map(|(index, _)| index + 1)
+                .unwrap_or_default()
+        })
+        .reduce(std::ops::Mul::mul)
+        .unwrap()
+}
 
 fn part1(trees: &Trees) -> Int {
-    todo!()
+    trees.s.iter().enumerate()
+        .filter(|&(tree, &height)| {
+            height != b'\n' && is_visible(tree, height, trees)
+        })
+        .count()
 }
 
 fn part2(trees: &Trees) -> Int {
-    3
+    trees.s.iter().enumerate()
+        .filter(|&(_, &height)| height != b'\n')
+        .map(|(tree, &height)| scenic_score(tree, height, trees))
+        .max()
+        .unwrap()
 }
 
 #[test]
 fn default() {
-    let binding = get_input(22, 8).unwrap();
-    let input = binding.as_bytes();
-    assert_eq!(1845, part1(input));
-    // assert_eq!(230112, part2(&input));
+    let input = get_input(22, 8).unwrap();
+    let input = parse_input(&input);
+    assert_eq!(1708, part1(&input));
+    assert_eq!(504000, part2(&input));
 }
+
+#[test]
+fn example() {
+    let input = parse_input(
+        "30373
+25512
+65332
+33549
+35390",
+    );
+    assert_eq!(part1(&input), 21);
+    assert_eq!(part2(&input), 8);
+}
+
+// Input parsed (22μs)
+// 1. 1708 (485μs)
+// 2. 504000 (882μs)
+// Total: 1ms
