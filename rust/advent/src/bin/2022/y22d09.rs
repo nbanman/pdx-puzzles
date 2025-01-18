@@ -1,6 +1,5 @@
-use std::collections::HashSet;
-
 use advent::utilities::get_input::get_input;
+use rustc_hash::FxHashSet;
 use utilities::{enums::cardinals::Cardinal, structs::{coord::Coord2, stopwatch::{ReportDuration, Stopwatch}}};
 
 type Pos = Coord2;
@@ -60,7 +59,7 @@ fn solve(first_knot: Input, knots: usize) -> usize {
             rope
         })
         .into_iter()
-        .collect::<HashSet<_>>()
+        .collect::<FxHashSet<_>>()
         .len()
 }
 
@@ -80,7 +79,7 @@ fn default() {
     assert_eq!(2578, part2(&input));
 }
 
-// Input parsed (246μs)
-// 1. 6175 (428μs)
-// 2. 2578 (271μs)
-// Total: 949μs
+// Input parsed (234μs)
+// 1. 6175 (300μs)
+// 2. 2578 (242μs)
+// Total: 780μs
