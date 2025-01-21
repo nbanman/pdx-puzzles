@@ -12,6 +12,7 @@ checksum = "512761e0bb2578dd7380c6baaa0f4ce03e84f95e960231d1dec8bf4d7d6e2627"
 name = "advent"
 version = "0.1.0"
 dependencies = [
+ "advent-ocr",
  "bit-set",
  "indexmap",
  "itertools",
@@ -22,6 +23,12 @@ dependencies = [
  "ureq",
  "utilities",
 ]
+
+[[package]]
+name = "advent-ocr"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "177e16083ce0d79d306bb0827e2ba8310950822ff0fda25d2255d1789eb5720a"
 
 [[package]]
 name = "aho-corasick"
