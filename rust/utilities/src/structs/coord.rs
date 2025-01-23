@@ -13,7 +13,7 @@ where
     {}
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct Coord<T: Coordinate, const N: usize>([T; N]);
+pub struct Coord<T: Coordinate, const N: usize>(pub [T; N]);
 
 pub type Coord2 = Coord<i64, 2>;
 pub type Coord3 = Coord<i64, 3>;
@@ -75,6 +75,18 @@ impl<T: Coordinate, const N: usize> Add for Coord<T, N> {
     type Output = Self;
     
     fn add(self, rhs: Self) -> Self::Output {
+        let mut sum = self.0;
+        for idx in 0usize..N {
+            sum[idx] = sum[idx] + rhs.0[idx];
+        }
+        Self(sum)
+    }
+}
+
+impl<T: Coordinate, const N: usize> Add<&Coord<T, N>> for Coord<T, N> {
+    type Output = Self;
+    
+    fn add(self, rhs: &Self) -> Self::Output {
         let mut sum = self.0;
         for idx in 0usize..N {
             sum[idx] = sum[idx] + rhs.0[idx];
@@ -352,6 +364,7 @@ impl<T: Coordinate> Coord<T, 2> {
     pub fn destructured(&self) -> (T, T) {
         (self.0[0], self.0[1])
     }
+
 }
 
 impl<T: Coordinate> From<(T, T)> for Coord<T, 2> {
