@@ -14,6 +14,7 @@ rustc-hash = { workspace = true }
 ordered-float = { workspace = true }
 advent-ocr = { workspace = true }
 bit-set = "0.8.0"
+bit-vec = "0.8.0"
 
 [[bin]]
 name = "advent-y22d01"

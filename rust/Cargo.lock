@@ -14,6 +14,7 @@ version = "0.1.0"
 dependencies = [
  "advent-ocr",
  "bit-set",
+ "bit-vec",
  "indexmap",
  "itertools",
  "lazy-regex",
