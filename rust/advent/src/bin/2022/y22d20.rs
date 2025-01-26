@@ -12,6 +12,7 @@ fn main() {
     println!("Input parsed ({})", stopwatch.lap().report());
     println!("1. {} ({})", part1(&input), stopwatch.lap().report());
     println!("2. {} ({})", part2(&input), stopwatch.lap().report());
+
     println!("Total: {}", stopwatch.stop().report());
 }
 
@@ -19,92 +20,97 @@ fn parse_input(input: &str) -> Input {
     input.get_numbers().collect()
 }
 
-fn solve(input: &Input, factor: i64, rounds: usize) -> Output {
-    // Important nuance, size is one less because we don't consider the moving number.
-    let size = input.len() - 1;
-    // Another nuance, input contain duplicate numbers, so use index to refer to each number uniquely.
-    let indices: Vec<_> = (0..input.len()).collect();
-    // Pre-process the numbers, coverting any negative indices to positive indices that will wrap.
-    // For example, -1 becomes 4998.
-    let numbers: Vec<_> =
-        input.iter().map(|n| (n * factor).rem_euclid(size as i64) as usize).collect();
+fn solve(numbers: &Input, factor: i64, rounds: usize) -> Output {
+    let numbers: Vec<i64> = numbers.iter().map(|&n| n * factor).collect();
+    let to_chunk: Vec<usize> = (0..numbers.len()).collect();
+    let bucket_size = (numbers.len() as f64).powf(1.0 / 3.0).floor() as usize;
+    
+    let mut top: Vec<Vec<Vec<usize>>> = Vec::with_capacity(bucket_size + 1);
+    let mut top_count: Vec<usize> = vec![0usize; bucket_size + 1];
+    let mut mid_count: Vec<Vec<usize>> = vec![vec![0usize; bucket_size]; bucket_size + 1];
+    let mut lookup: Vec<(usize, usize)> = Vec::with_capacity(numbers.len());
 
-    // Store first and second level indices.
-    let mut lookup = Vec::new();
-    // Triple nested vec of numbers.
-    let mut mixed = Vec::new();
-    // Size of each first level element for convenience.
-    let mut skip = Vec::new();
-
-    // Break 5000 numbers into roughly equals chunks at each level. 289 = 17 * 17.
-    for first in indices.chunks(289) {
-        let mut outer = Vec::new();
-
-        for second in first.chunks(17) {
-            // Initial first and second level indices.
-            (0..second.len()).for_each(|_| lookup.push((mixed.len(), outer.len())));
-
-            // Leave some extra room, as mixing won't balance evenly.
-            let mut inner = Vec::with_capacity(100);
-            inner.extend_from_slice(second);
-
-            outer.push(inner);
+    for (top_idx, top_chunk) in to_chunk
+        .chunks(bucket_size * bucket_size)
+        .enumerate() 
+    {
+        let mut mid: Vec<Vec<usize>> = Vec::with_capacity(bucket_size);
+        for (mid_idx, mid_chunk) in top_chunk.chunks(bucket_size).enumerate() {
+            let mut bottom: Vec<usize> = Vec::with_capacity(100);
+            bottom.extend_from_slice(mid_chunk);
+            for _ in mid_chunk {
+                lookup.push((top_idx, mid_idx));
+            }
+            mid.push(bottom);
+            mid_count[top_idx][mid_idx] += mid_chunk.len();
+            top_count[top_idx] += mid_chunk.len();
         }
-
-        mixed.push(outer);
-        skip.push(first.len());
+        top.push(mid);
     }
 
     for _ in 0..rounds {
-        'mix: for index in 0..input.len() {
-            // Quickly find the leaf vector storing the number.
-            let number = numbers[index];
-            let (first, second) = lookup[index];
-            // Third level changes as other numbers are added and removed,
-            // so needs to be checked each time.
-            let third = mixed[first][second].iter().position(|&i| i == index).unwrap();
+        for n in 0..numbers.len() {
+            // find top and mid location
+            let (top_idx, mid_idx) = lookup[n];
+            
+            // find bottom location
+            let bottom = &mut top[top_idx][mid_idx];
+            let bottom_idx = bottom.iter().position(|&i| i == n).unwrap();
 
-            // Find the offset of the number by adding the size of all previous `vec`s.
-            let position = third
-                + skip[0..first].iter().sum::<usize>()
-                + mixed[first][0..second].iter().map(Vec::len).sum::<usize>();
-            // Update our position, wrapping around if necessary.
-            let mut next = (position + number) % size;
+            // find current overall position
+            let pos: usize = top_count[0..top_idx].iter().sum::<usize>()
+                + mid_count[top_idx][0..mid_idx].iter().sum::<usize>()
+                + bottom_idx;
 
-            // Remove number from current leaf vector, also updating the first level size.
-            mixed[first][second].remove(third);
-            skip[first] -= 1;
+            let movement = (pos as i64 + numbers[n]).rem_euclid(numbers.len() as i64 - 1) as usize;
 
-            // Find our new destination, by checking `vec`s in order until the total elements
-            // are greater than our new index.
-            for (first, outer) in mixed.iter_mut().enumerate() {
-                if next > skip[first] {
-                    next -= skip[first];
-                } else {
-                    for (second, inner) in outer.iter_mut().enumerate() {
-                        if next > inner.len() {
-                            next -= inner.len();
-                        } else {
-                            // Insert number into its new home.
-                            inner.insert(next, index);
-                            skip[first] += 1;
-                            lookup[index] = (first, second);
-                            continue 'mix;
-                        }
-                    }
-                }
-            }
+            // remove index from location
+            bottom.remove(bottom_idx);
+
+            // update counts
+            mid_count[top_idx][mid_idx] -= 1;
+            top_count[top_idx] -= 1;
+
+            // find placement location
+            let mut cumulative = 0;
+            let top_update = navigate(&top_count, movement, &mut cumulative);
+            let mid_update = navigate(&mid_count[top_update], movement, &mut cumulative);
+
+            // place index in new place
+            top[top_update][mid_update].insert(movement - cumulative, n);
+
+            // update lookup
+            lookup[n] = (top_update, mid_update);
+
+            // update counts
+            top_count[top_update] += 1;
+            mid_count[top_update][mid_update] += 1;
         }
     }
 
-    let indices: Vec<_> = mixed.into_iter().flatten().flatten().collect();
-    let zeroth = indices.iter().position(|&i| input[i] == 0).unwrap();
+    let flattened: Vec<_> = top.into_iter().flatten().flatten().collect();
 
-    [1000, 2000, 3000]
-        .iter()
-        .map(|offset| (zeroth + offset) % indices.len())
-        .map(|index| input[indices[index]] * factor)
+    let zero_index = numbers.iter().position(|&n| n == 0).unwrap();
+    let flat_index = flattened.iter().position(|&n| n == zero_index).unwrap();
+
+    (1..=3)
+        .map(|i| {
+            let index = (i * 1000 + flat_index) % flattened.len();
+            numbers[flattened[index]]
+        })
         .sum()
+}
+
+fn navigate(count: &Vec<usize>, movement: usize, cumulative: &mut usize) -> usize {
+    let mut update = 0;
+    for (i, &count) in count.iter().enumerate() {
+        if *cumulative + count > movement {
+            update = i;
+            break;
+        }
+        *cumulative += count;
+    }
+    update
 }
 
 fn part1(numbers: &Input) -> Output {
