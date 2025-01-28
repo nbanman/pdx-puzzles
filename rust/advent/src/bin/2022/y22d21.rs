@@ -121,6 +121,8 @@ fn get_monkeys(input: &str, part2: bool) -> Monkeys {
     let mut indexer = Indexer::new();
     let mut root = 0;
     let mut jobs = vec![Job::Unassigned; number_of_monkeys];
+    let mut left_call_register = vec![Vec::new(); number_of_monkeys];
+    let mut right_call_register = vec![Vec::new(); number_of_monkeys];
 
     let pattern = regex!(r"(?P<monkey>\w+): (?P<call>\d+)?(?:(?P<left>\w+) (?P<op>[-+*/]) (?P<right>\w+))?");
     for caps in pattern.captures_iter(input) {
@@ -151,29 +153,38 @@ fn get_monkeys(input: &str, part2: bool) -> Monkeys {
                     c => { panic!("{c} not a recognized operation!"); }
                 }
             };
+            left_call_register[left].push(monkey);
+            right_call_register[right].push(monkey);
             Job::Wait(operation, left, right)
         };
         jobs[monkey] = job;
     }
+    for monkey in 0..jobs.len() {
+        assign_call(monkey, &mut jobs, &left_call_register, &right_call_register);
+    }
+    Monkeys { root, jobs }
+}
 
-    let mut rerun = true;
-
-    while rerun {
-        rerun = false;
-        for monkey in 0..jobs.len() {
-            if let Job::Wait(operation, left, right) = jobs[monkey] {
-                if let Job::Call(left_call) = jobs[left] {
-                    if let Job::Call(right_call) = jobs[right] {
-                        let call = operate(operation, left_call, right_call);
-                        jobs[monkey] = Job::Call(call);
-                        rerun = true;
-                    }
+fn assign_call(
+    monkey: usize, 
+    jobs: &mut Vec<Job>, 
+    left_call_register: &Vec<Vec<usize>>, 
+    right_call_register: &Vec<Vec<usize>>
+) {
+    if let Job::Wait(operation, left, right) = jobs[monkey] {
+        if let Job::Call(left_call) = jobs[left] {
+            if let Job::Call(right_call) = jobs[right] {
+                let call = operate(operation, left_call, right_call);
+                jobs[monkey] = Job::Call(call);
+                for &left_monkey in left_call_register[monkey].iter() {
+                    assign_call(left_monkey, jobs, left_call_register, right_call_register);
+                }
+                for &right_monkey in right_call_register[monkey].iter() {
+                    assign_call(right_monkey, jobs, left_call_register, right_call_register);
                 }
             }
         }
-    }
-
-    Monkeys { root, jobs }
+    } 
 }
 
 fn operate(operation: Operation, a: Int, b: Int) -> Int {
