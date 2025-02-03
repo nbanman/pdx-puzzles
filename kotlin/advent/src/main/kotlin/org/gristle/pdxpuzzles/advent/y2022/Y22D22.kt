@@ -93,8 +93,11 @@ class Y22D22(input: String) : Day {
             val prospect = pos.move(dir)
             if (!grove.validCoord(prospect) || grove[prospect] == ' ') {
                 if (dir == Nsew.NORTH || dir == Nsew.SOUTH) { // north or south
-                    val newY = (if (prospect.y < colBounds[prospect.x].first) Int.MAX_VALUE else Int.MIN_VALUE)
-                        .coerceIn(colBounds[prospect.x])
+                    val newY = if (prospect.y < colBounds[prospect.x].first) {
+                        colBounds[prospect.x].last
+                    } else {
+                        colBounds[prospect.x].first
+                    }
                     prospect.copy(y = newY) to dir
                 } else { // east or went
                     val newX = (if (prospect.x < rowBounds[prospect.y].first) Int.MAX_VALUE else Int.MIN_VALUE)
