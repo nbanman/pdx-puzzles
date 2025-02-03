@@ -3,7 +3,7 @@ use std::{fmt::Display, ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign}};
 use itertools::Itertools;
 use num_traits::{CheckedAdd, CheckedSub, NumCast, One, PrimInt, Signed, Zero};
 
-use crate::enums::cardinals::Cardinal;
+use crate::enums::{cardinals::Cardinal, intercardinals::Intercardinal};
 
 pub trait Coordinate: Default+PrimInt+Display+Zero+One+Mul {}
 
@@ -44,6 +44,7 @@ impl<T: Coordinate, const N: usize>  Coord<T, N> {
             .zip(multipliers)
             .map(|(xyz, multiplier)| xyz * multiplier)
             .sum();
+
         Some(index)
     }
 
@@ -358,6 +359,23 @@ impl<T: Coordinate> Coord<T, 2> {
             Cardinal::East => Some(Self([self.x() + distance, self.y()])),
             Cardinal::South => Some(Self([self.x(), self.y() + distance])),
             Cardinal::West => Some(Self([self.x().checked_sub(&distance)?, self.y()])),
+        }
+    }
+
+    pub fn move_intercardinal(&self, dir: Intercardinal, distance: T) -> Option<Self> {
+        match dir {
+            Intercardinal::North => Some(Self([self.x(), self.y().checked_sub(&distance)?])),
+            Intercardinal::Northeast => 
+                Some(Self([self.x() + distance, self.y().checked_sub(&distance)?])),
+            Intercardinal::East => Some(Self([self.x() + distance, self.y()])),
+            Intercardinal::Southeast => 
+                Some(Self([self.x() + distance, self.y() + distance])),
+            Intercardinal::South => Some(Self([self.x(), self.y() + distance])),
+            Intercardinal::Southwest => 
+                Some(Self([self.x().checked_sub(&distance)?, self.y() + distance])),
+            Intercardinal::West => Some(Self([self.x().checked_sub(&distance)?, self.y()])),
+            Intercardinal::Northwest => 
+                Some(Self([self.x().checked_sub(&distance)?, self.y().checked_sub(&distance)?])),
         }
     }
 
