@@ -1,6 +1,6 @@
 use crate::structs::coord::Coord;
 
-use super::str_grid::StrGrid;
+use super::StrGrid;
 
 type Pos = Coord<usize, 2>;
 

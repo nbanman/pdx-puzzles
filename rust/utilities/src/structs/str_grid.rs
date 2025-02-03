@@ -4,9 +4,16 @@ use itertools::Itertools;
 
 use crate::{enums::cardinals::Cardinal, structs::coord::Coord};
 
-use super::{adjacent_metadata::AdjacentMetadata, indexes_to_grid::IndexesToGrid, str_grid_error::StrGridError};
-
 type Pos = Coord<usize, 2>;
+
+pub mod str_grid_error;
+pub mod adjacent_metadata;
+pub mod indexes_to_grid;
+
+pub use str_grid_error::*;
+pub use adjacent_metadata::*;
+pub use indexes_to_grid::*;
+
 
 #[derive(Debug, Clone)]
 pub struct StrGrid<'a> {
@@ -119,3 +126,4 @@ impl<'a> StrGrid<'a> {
     }
 
 }
+
