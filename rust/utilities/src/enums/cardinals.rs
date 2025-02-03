@@ -35,7 +35,7 @@ impl Cardinal {
     }
 
     pub fn right(&self) -> Self {
-        Self::entries()[(self.ordinal() + 1).rem_euclid(4)]
+        Self::entries()[(self.ordinal() + 1) % 4]
     }
 
     pub fn straight(&self) -> Self {
@@ -43,7 +43,7 @@ impl Cardinal {
     }
 
     pub fn flip(&self) -> Self {
-        Self::entries()[(self.ordinal() + 2).rem_euclid(4)]
+        Self::entries()[(self.ordinal() + 2) % 4]
     }
 
     pub fn turn(&self, direction: char) -> Option<Self> {
