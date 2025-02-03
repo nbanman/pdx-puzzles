@@ -2,7 +2,7 @@ use std::{cmp::{max, min}, collections::VecDeque};
 
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
-use utilities::structs::{coord::Coord2, stopwatch::{ReportDuration, Stopwatch}, strgrid::{adjacent_metadata::AdjacentMetadata, str_grid::StrGrid}};
+use utilities::structs::{coord::Coord2, stopwatch::{ReportDuration, Stopwatch}, str_grid::{AdjacentMetadata, StrGrid}};
 
 type Output = usize;
 type Pos = Coord2;

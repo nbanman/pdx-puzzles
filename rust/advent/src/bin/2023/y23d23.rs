@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 
 use advent::utilities::get_input::get_input;
 use indexmap::{IndexMap, IndexSet};
-use utilities::structs::{stopwatch::{ReportDuration, Stopwatch}, strgrid::str_grid::StrGrid};
+use utilities::structs::{stopwatch::{ReportDuration, Stopwatch}, str_grid::StrGrid};
 
 type Output = usize;
 type Vertices = IndexSet<usize>;

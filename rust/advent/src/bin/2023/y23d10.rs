@@ -2,7 +2,7 @@ use std::iter::successors;
 
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
-use utilities::{enums::cardinals::Cardinal, structs::{stopwatch::{ReportDuration, Stopwatch}, strgrid::{adjacent_metadata::AdjacentMetadata, str_grid::StrGrid}}};
+use utilities::{enums::cardinals::Cardinal, structs::{stopwatch::{ReportDuration, Stopwatch}, str_grid::{AdjacentMetadata, StrGrid}}};
 
 type Input = Vec<Cardinal>;
 type Output = usize;

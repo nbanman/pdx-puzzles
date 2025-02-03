@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet};
-use utilities::{enums::cardinals::Cardinal, structs::{coord::Coord2U, stopwatch::{ReportDuration, Stopwatch}, strgrid::str_grid::StrGrid}};
+use utilities::{enums::cardinals::Cardinal, structs::{coord::Coord2U, stopwatch::{ReportDuration, Stopwatch}, str_grid::StrGrid, }};
 
 type Input<'a> = &'a str;
 type Output = usize;

@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
 use advent::utilities::get_input::get_input;
-use utilities::structs::{stopwatch::{ReportDuration, Stopwatch}, strgrid::str_grid::StrGrid};
+use utilities::structs::{stopwatch::{ReportDuration, Stopwatch}, str_grid::StrGrid};
 
 type Input<'a> = (StrGrid<'a>, usize);
 type Output = usize;
