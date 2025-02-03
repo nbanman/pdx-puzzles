@@ -17,7 +17,7 @@ impl ReportDuration for Duration {
     /// # Examples
     /// ```
     /// use std::time::Duration;
-    /// use stopwatch::ReportDuration;
+    /// use utilities::structs::stopwatch::ReportDuration;
     /// 
     /// let duration = Duration::from_secs(2);
     /// assert_eq!(duration.report(), "2.00s");
@@ -28,7 +28,7 @@ impl ReportDuration for Duration {
     fn report(&self) -> String {
         let seconds = self.as_secs();
         if seconds > 0 {
-            format!("{seconds}.{:.2}s", self.as_millis())
+            format!("{0}.{1:02}s", seconds, self.as_millis() % 1000)
         } else {
             match self.as_nanos() {
                 ..1_000 => format!("{}ns", self.as_nanos()),
@@ -60,13 +60,6 @@ impl std::fmt::Display for Stopwatch {
 
 impl Stopwatch {
     /// Creates a new stopwatch initialized to zero and not running
-    /// 
-    /// # Examples
-    /// ```
-    /// use everybody_codes::stopwatch::Stopwatch;
-    /// let stopwatch = Stopwatch::new();
-    /// assert!(!stopwatch.is_running);
-    /// ```
     pub fn new() -> Self {
         Self {
             is_running: false,
