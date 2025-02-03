@@ -1,4 +1,5 @@
 pub mod coord;
 pub mod stopwatch;
 pub mod indexer;
-pub mod strgrid;
+pub mod str_grid;
+pub mod grid;
