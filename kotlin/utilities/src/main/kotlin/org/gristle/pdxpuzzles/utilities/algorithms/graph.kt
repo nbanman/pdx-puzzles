@@ -82,8 +82,7 @@ object Graph {
         val h: Double,
         override val parent: Vertex<E>? = null,
     ) : Vertex<E>, Comparable<Vertex<E>> {
-        val f: Double
-            get() = weight + h
+        val f: Double = weight + h
 
         override fun compareTo(other: Vertex<E>): Int {
             return if (other is AStarVertex<*>) {
