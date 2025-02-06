@@ -9,3 +9,5 @@ indexmap = "2.6.0"
 itertools = { workspace = true }
 rayon = { workspace = true }
 thiserror = { workspace = true }
+ordered-float = "4"
+rustc-hash = { workspace = true }

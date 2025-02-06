@@ -712,7 +712,9 @@ dependencies = [
  "indexmap",
  "itertools",
  "num-traits",
+ "ordered-float",
  "rayon",
+ "rustc-hash",
  "thiserror",
 ]
 
