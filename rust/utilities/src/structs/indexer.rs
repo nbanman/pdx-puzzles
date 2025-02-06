@@ -1,6 +1,6 @@
 use std::hash::Hash;
 
-use indexmap::IndexSet;
+use indexmap::{set::MutableValues, IndexSet};
 
 #[derive(Clone, Default, Debug)]
 pub struct Indexer<T: Hash + Eq> {
@@ -46,6 +46,10 @@ impl <T: Hash + Eq> Indexer<T> {
         self.values.get_index(index)
     }
 
+    pub fn get_value_mut(&mut self, index: usize) -> Option<&mut T> {
+        self.values.get_index_mut2(index)
+    }
+
     pub fn len(&self) -> usize {
         self.id
     }
@@ -53,7 +57,22 @@ impl <T: Hash + Eq> Indexer<T> {
     pub fn is_empty(&self) -> bool {
         self.id == 0
     }
+
+    pub fn iter(&self) -> indexmap::set::Iter<'_, T> {
+        self.values.iter()
+    }
 }
+
+impl<T: Hash + Eq> IntoIterator for Indexer<T> {
+    type Item = T;
+
+    type IntoIter = <IndexSet<T> as IntoIterator>::IntoIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.values.into_iter()
+    }
+}
+
 
 #[test]
 fn basic_functionality() {
