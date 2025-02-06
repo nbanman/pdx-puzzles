@@ -227,7 +227,7 @@ impl<T> Grid<T, 3> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{enums::intercardinals::Intercardinal, structs::{coord::{Coord, Coord2, Coord2U}, grid::{Grid, GridAdjacent, GridError, GridIterator}}};
+    use crate::{enums::intercardinals::Intercardinal, structs::{coord::{Coord, Coord2U}, grid::{Grid, GridAdjacent, GridError, GridIterator}}};
 
     fn num_pad() -> Grid<usize, 2> {
         (1..=9).try_collect_grid(3).unwrap()
