@@ -1,3 +1,5 @@
+// use std::cmp::Reverse;
+// use std::collections::BinaryHeap;
 use std::fmt::Debug;
 use std::{collections::VecDeque, hash::Hash};
 
@@ -18,7 +20,7 @@ where
     FS: Fn(&S, EdgeInfo<C>) -> bool,
 {
     let frontier: VecDeque<(S, EdgeInfo<C>)> = VecDeque::new();
-    traverse(start, edges, end_condition, frontier)
+    traverse_unweighted(start, edges, end_condition, frontier)
 }
 
 pub fn dfs<S, C, FN, E, FS>(
@@ -34,26 +36,11 @@ where
     FS: Fn(&S, EdgeInfo<C>) -> bool,
 {
     let frontier: Vec<(S, EdgeInfo<C>)> = Vec::new();
-    traverse(start, edges, end_condition, frontier)
+    
+    traverse_unweighted(start, edges, end_condition, frontier)
 }
 
-pub fn dijkstra<S, C, FN, E, FS>(
-    start: S,
-    edges: FN,
-    end_condition: Option<FS>,
-) -> PathInfo<S, C>
-where 
-    S: Debug + Eq + Hash + Clone,
-    C: Debug + Zero + One + Copy + Hash + Eq,
-    FN: Fn(&S, EdgeInfo<C>) -> E,
-    E: IntoIterator<Item = S>,
-    FS: Fn(&S, EdgeInfo<C>) -> bool,
-{
-    let frontier: VecDeque<(S, EdgeInfo<C>)> = VecDeque::new();
-    traverse(start, edges, end_condition, frontier)
-}
-
-fn traverse<'a, S, C, FN, E, FS, FR>(
+fn traverse_unweighted<'a, S, C, FN, E, FS, FR>(
     start: S,
     edges: FN, 
     end_condition: Option<FS>, 
@@ -90,7 +77,24 @@ where
     PathInfo { nodes: visited, end_index: None }
 }
 
-#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+// pub fn dijkstra<S, C, FN, E, FS>(
+//     start: S,
+//     edges: FN,
+//     end_condition: Option<FS>,
+// ) -> PathInfo<S, C>
+// where 
+//     S: Debug + Eq + Hash + Clone,
+//     C: Debug + Zero + One + Copy + Hash + Eq + Ord,
+//     FN: Fn(&S, EdgeInfo<C>) -> E,
+//     E: IntoIterator<Item = (C, S)>,
+//     FS: Fn(&S, EdgeInfo<C>) -> bool,
+// {
+//     let frontier: BinaryHeap<Reverse<(S, EdgeInfo<C>)>> = BinaryHeap::new();
+//     traverse_weighted(start, edges, end_condition, frontier)
+// }
+
+
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct EdgeInfo<C>
 where 
     C: Debug + Zero + One + Copy + Hash + Eq,
