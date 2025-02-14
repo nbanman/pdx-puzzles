@@ -21,6 +21,6 @@ object Y24D04 : Day {
 fun main() = Day.runDay(Y24D04::class)
 
 //    Quest 1: 70 (0ms)
-//    Quest 1: 910737 (2ms)
-//    Quest 1: 125485323 (1ms)
+//    Quest 2: 910737 (3ms)
+//    Quest 3: 125485323 (1ms)
 //    Total time: 4ms

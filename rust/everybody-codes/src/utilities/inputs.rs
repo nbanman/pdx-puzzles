@@ -10,12 +10,12 @@ pub fn get_inputs(year: u16, day: u8) -> (String, String, String) {
         .unwrap()
 }
 
-pub fn get_input(year: u16, day: u8, part: u8) -> String {
+pub fn get_input(year: u16, day: u8, quest: u8) -> String {
     let path = format!(
-        "./everybody-codes/inputs/2024/everybody_codes_e20{}_q{:02}_p{}.txt", 
+        "/../../inputs/everybody_codes/2024/y{}d{:02}q{}.txt", 
         year, 
         day, 
-        part
+        quest
     );
     let mut file = File::open(&path).unwrap();
     let mut contents = String::new();
