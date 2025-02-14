@@ -20,9 +20,10 @@ interface Day {
             val inputs: List<String?> = getInputs(year, day)
             val timer = Stopwatch(true)
             for ((quest, input) in inputs.withIndex()) {
+                val quest = quest + 1
                 if (input != null) {
-                    val quest = c.runQuest(quest, input)
-                    println("\tQuest 1: $quest (${timer.lap()}ms)")
+                    val answer = c.runQuest(quest, input)
+                    println("Quest $quest: $answer (${timer.lap()}ms)")
                 }
             }
             println("Total time: ${timer.elapsed()}ms")
@@ -32,9 +33,9 @@ interface Day {
 
 private fun Day.runQuest(quest: Int, input: String): String =
     when (quest) {
-        0 -> part1(input)
-        1 -> part2(input)
-        2 -> part3(input)
+        1 -> part1(input)
+        2 -> part2(input)
+        3 -> part3(input)
         else -> null
     }.toString()
 
