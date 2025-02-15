@@ -473,6 +473,8 @@ class ArrayGrid<E> private constructor(
         result = 31 * result + width
         return result
     }
+
+    override fun toString(): String = "W: $width, H: $height -- $elementsImpl"
 }
 
 fun <E> gridOf(width: Int, vararg elements: E): Grid<E> = elements.toGrid(width)
