@@ -35,7 +35,6 @@ fn calibrate(input: Input) -> usize {
         .sum()
 }
 
-
 fn part1(input: Input) -> Output {
     calibrate(input)
 }
