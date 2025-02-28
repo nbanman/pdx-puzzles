@@ -7,6 +7,7 @@ import org.gristle.pdxpuzzles.utilities.math.isEven
 import org.gristle.pdxpuzzles.utilities.objects.Coord
 import org.gristle.pdxpuzzles.utilities.objects.Grid
 import org.gristle.pdxpuzzles.utilities.objects.contains
+import org.gristle.pdxpuzzles.utilities.objects.map
 import org.gristle.pdxpuzzles.utilities.objects.mapToGrid
 import org.gristle.pdxpuzzles.utilities.objects.toGrid
 import java.util.ArrayDeque
@@ -20,24 +21,21 @@ object Y24D15 : Day {
 
     data class State(
         val pos: Int,
-        val herbCollected: Boolean,
-        val exit: Int,
-        val noMoreExits: Boolean,
+        val herbsCollected: List<Int>,
     )
 
     data class Segment(
         val forest: Grid<Terrain>,
-        val rows: Int,
-        val cols: Int,
+        val x: Int,
+        val y: Int,
         val from: List<Int>,
         val to: List<Int>,
         val herbs: Int,
-        val splitPath: Boolean,
         val direction: Nsew,
     ) {
-        fun makeMap() = buildMap<Int, MutableMap<Int, MutableMap<Int, Int>>> {
+        fun makeMap() = buildMap<Int, MutableMap<Int, MutableList<Double>>> {
             val tl = Coord(
-                cols * forest.width,
+                y * forest.width,
                 if (direction == Nsew.SOUTH) {
                     forest.coordOf(from.first()).y
                 } else {
@@ -47,7 +45,7 @@ object Y24D15 : Day {
                 }
             )
             val br = Coord(
-                (cols + 1) * forest.width - 1,
+                (y + 1) * forest.width - 1,
                 if (direction == Nsew.NORTH) {
                     forest.coordOf(from.first()).y
                 } else {
@@ -57,67 +55,53 @@ object Y24D15 : Day {
                 },
             )
             val bounds = tl to br
+            val exits = mutableListOf<Int>()
             for (start in from) {
                 val q = ArrayDeque<Graph.Vertex<State>>()
                 q.addLast(Graph.StdVertex(
-                    State(
-                        start,
-                        rows == 3,
-                        -1,
-                        forest.width < 60
-                                || (forest.width < 100 && rows == 0)
-                                || (forest.width > 100 && rows == 4)
-                    ),
+                    State(start, emptyList()),
                     0.0
                 ))
                 val visited = mutableSetOf<State>()
-                val combos = to.size.coerceAtLeast(1) * from.size
-                var combosFound = 0
                 while (q.isNotEmpty()) {
                     val (state, weight) = q.removeFirst()
-                    if (!visited.add(state)) {
+                    if (!visited.add(state) || state.pos in exits) {
                         continue
                     }
-                    if (state.pos in from && state.herbCollected && state.noMoreExits) {
+                    if (state.pos in to) {
                         getOrPut(start) { mutableMapOf() }
-                            .getOrPut(state.exit) { mutableMapOf() }[state.pos] = weight.toInt()
-                        if (++combosFound == combos) {
-                            break
+                            .getOrPut(state.pos) { mutableListOf() }
+                            .add(weight)
+                        getOrPut(state.pos) { mutableMapOf() }
+                            .getOrPut(start) { mutableListOf() }
+                            .add(weight)
+                        if (state.herbsCollected.size == herbs) {
+                            exits.add(state.pos)
+                            if (exits.size == to.size) {
+                                break
+                            }
                         }
+                        continue
                     }
                     val neighbors = forest
                         .getNeighborsIndexedValue(state.pos)
                         .filter { (nPos, nT) ->
-                            nT != Terrain.BARRIER
-                                    && forest.coordOf(nPos) in bounds
-                                    && (nPos !in from || (state.herbCollected && state.noMoreExits))
+                            nT != Terrain.BARRIER && forest.coordOf(nPos) in bounds
                         }
-                        for ((nPos, nT) in neighbors) {
-                            val herbCollected = state.herbCollected || nT == Terrain.HERB
-                            val exit = if (state.exit != -1) {
-                                state.exit
-                            } else {
-                                if (nPos in to) nPos else -1
-                            }
-                            val noMoreExits = state.noMoreExits
-                                    || (splitPath && state.exit != -1 && nPos in to)
-                                    || (forest.width > 100 && (rows == 0 && cols.isEven()))
-                                    || (forest.width < 100 && rows == 4)
-                            q.addLast(Graph.StdVertex(
-                                State(
-                                    nPos,
-                                    herbCollected,
-                                    exit,
-                                    noMoreExits
-                                ),
-                                weight + 1
-                            ))
-                        }
+                    for ((nPos, nT) in neighbors) {
+                        val newHerb = nT == Terrain.HERB && state.pos !in state.herbsCollected
+                        val herbsCollected = state.herbsCollected + if (newHerb) 1 else 0
+                        q.addLast(Graph.StdVertex(
+                            State(nPos, herbsCollected),
+                            weight + 1
+                        ))
+                    }
                 }
             }
         }
+
         override fun toString(): String {
-            return "Segment(from=$from, to=$to, rows=$rows, cols=$cols, herbs=$herbs, splitPath=$splitPath)"
+            return "Segment(x=$x, y=$y, from=$from, to=$to, herbs=$herbs, direction=$direction)"
         }
     }
 
@@ -135,21 +119,21 @@ object Y24D15 : Day {
             when {
                 it == '.' -> Terrain.FREE
                 it == '~' || it == '#' -> Terrain.BARRIER
-                cols > 1 && it in "EKR" -> Terrain.FREE
+                cols > 1 && it in "ER" -> Terrain.FREE
                 else -> Terrain.HERB
             }
         }
 
         if (rows == 1) {
+            val entrance = listOf(forest.indexOf(Terrain.FREE))
             return Grid(1, 1) { _ ->
                 Segment(
                     forest,
                     0,
                     0,
-                    listOf(forest.indexOf(Terrain.FREE)),
-                    emptyList(),
+                    entrance,
+                    entrance,
                     1,
-                    false,
                     Nsew.SOUTH
                 )
             }
@@ -163,7 +147,7 @@ object Y24D15 : Day {
                 } else {
                     null
                 }
-            }.windowed(size = 2, partialWindows = true)
+            }.zipWithNext()
 
         val colWidth = forest.width / cols
 
@@ -174,7 +158,8 @@ object Y24D15 : Day {
             val (north, south) = dividers[y]
                 .map { rowIdx ->
                     val start = rowIdx * forest.width + x * colWidth
-                    val openSpots = (start until start + colWidth).filter { forest[it] == Terrain.FREE }
+                    val openSpots = (start until start + colWidth)
+                        .filter { forest[it] == Terrain.FREE }
                     if (cols != 1 && y != 0 && openSpots.isEmpty()) {
                         val offset = (rowIdx - 1) * forest.width + x * colWidth
                         listOf(offset, offset + colWidth - 1).filter { forest[it] == Terrain.FREE }
@@ -182,6 +167,7 @@ object Y24D15 : Day {
                         openSpots
                     }
                 }
+            
             val (from, to) = if (cols == 3 && x.isEven()) {
                 south to north
             } else {
@@ -196,13 +182,12 @@ object Y24D15 : Day {
 
             val herbs = when {
                 cols == 1 && y == 4 -> 2
+                x == 1 && y == 4 -> 3
                 y == 3 -> 0
                 else -> 1
             }
 
-            val splitPath = x == 1 && y == 4
-
-            Segment(forest, y, x, from, to, herbs, splitPath, direction)
+            Segment(forest, y, x, from, to, herbs, direction)
         }
     }
 
