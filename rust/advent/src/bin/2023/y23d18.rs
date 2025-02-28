@@ -1,5 +1,8 @@
 use advent::utilities::get_input::get_input;
-use utilities::{enums::cardinals::Cardinal, structs::stopwatch::{ReportDuration, Stopwatch}};
+use utilities::{
+    enums::cardinals::Cardinal,
+    structs::stopwatch::{ReportDuration, Stopwatch},
+};
 
 type Input<'a> = &'a str;
 type Output = i64;
@@ -29,7 +32,8 @@ fn solve(plans: Vec<(Cardinal, i64)>) -> i64 {
 }
 
 fn part1(input: Input) -> Output {
-    let plans: Vec<(Cardinal, i64)> = input.lines()
+    let plans: Vec<(Cardinal, i64)> = input
+        .lines()
         .map(|s| {
             let (dir_str, rest) = s.split_once(' ').unwrap();
             let (dist_str, _) = rest.split_once(' ').unwrap();
@@ -48,7 +52,8 @@ fn part1(input: Input) -> Output {
 }
 
 fn part2(input: Input) -> Output {
-    let plans: Vec<(Cardinal, i64)> = input.lines()
+    let plans: Vec<(Cardinal, i64)> = input
+        .lines()
         .filter_map(|s| {
             let (_, color) = s.split_once('#')?;
             let dir = &color[5..color.len() - 1];

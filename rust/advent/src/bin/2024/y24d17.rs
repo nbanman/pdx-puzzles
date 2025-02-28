@@ -1,6 +1,9 @@
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
-use utilities::{parsing::get_numbers::ContainsNumbers, structs::stopwatch::{ReportDuration, Stopwatch}};
+use utilities::{
+    parsing::get_numbers::ContainsNumbers,
+    structs::stopwatch::{ReportDuration, Stopwatch},
+};
 
 type Input<'a> = &'a str;
 
@@ -26,7 +29,7 @@ fn combo_value(operand: usize, a: usize, b: usize, c: usize) -> usize {
         4 => a,
         5 => b,
         6 => c,
-        x => x
+        x => x,
     }
 }
 
@@ -44,12 +47,18 @@ fn solve(a: usize, b: usize, c: usize, program: &[usize]) -> Vec<usize> {
             0 => a /= 2usize.pow(combo_value(operand, a, b, c).try_into().unwrap()),
             1 => b ^= operand,
             2 => b = combo_value(operand, a, b, c) % 8,
-            3 => if a != 0 { cursor = operand },
+            3 => {
+                if a != 0 {
+                    cursor = operand
+                }
+            }
             4 => b ^= c,
             5 => out.push(combo_value(operand, a, b, c) % 8),
             6 => b = a / 2usize.pow(combo_value(operand, a, b, c).try_into().unwrap()),
             7 => c = a / 2usize.pow(combo_value(operand, a, b, c).try_into().unwrap()),
-            x => { panic!("Invalid opcode. Should be between 0 and 7 instead of {x}."); }
+            x => {
+                panic!("Invalid opcode. Should be between 0 and 7 instead of {x}.");
+            }
         }
     }
 
@@ -68,7 +77,9 @@ fn part2(input: Input) -> usize {
         let answer = solve(counter, b, c, &program);
         let matching = answer == program[program.len() - answer.len()..];
         if matching {
-            if answer.len() == program.len() { break; }
+            if answer.len() == program.len() {
+                break;
+            }
             counter *= 8;
         } else {
             counter += 1;

@@ -19,7 +19,7 @@ fn main() {
 }
 
 fn bfs<'a, F>(start: &'a str, neighbors: F) -> BfsOutput<'a>
-where 
+where
     F: Fn(&'a str) -> Vec<&'a str>,
 {
     let mut q: VecDeque<&str> = VecDeque::new();
@@ -64,25 +64,27 @@ fn part1(input: Input) -> Output {
         for element in elements.iter() {
             components.entry(element).or_insert(Vec::new()).push(parent);
         }
-    };
+    }
 
     // Get a node on the edge by taking a random node, running BFS and grabbing the farthest one.
-    let (start, _blah) = bfs(
-        components.keys().next().unwrap(), 
-        |pos: &str| { components[pos].clone() });
-
+    let (start, _blah) = bfs(components.keys().next().unwrap(), |pos: &str| {
+        components[pos].clone()
+    });
 
     // Run bfs from the start node three times, each time removing edges in the path taken. This will saturate
     // the 3 edges to be cut.
     let mut cut_edges: HashMap<&str, HashSet<&str>> = HashMap::new();
     for _ in 1..=3 {
         let path = path(bfs(start, |pos| {
-            let edges = components[pos].iter()
+            let edges = components[pos]
+                .iter()
                 .filter(|&&component| {
-                    cut_edges.get(pos)
+                    cut_edges
+                        .get(pos)
                         .map(|set| !set.contains(component))
                         .unwrap_or(true)
-                }).cloned()
+                })
+                .cloned()
                 .collect();
             edges
         }));
@@ -90,20 +92,22 @@ fn part1(input: Input) -> Output {
             cut_edges.entry(prev).or_insert(HashSet::new()).insert(next);
         }
     }
-    
+
     // Run bfs one more time. Since all the bridge edges are removed, this will only find the nodes on one side.
     let (_, group_a) = bfs(start, |pos| {
-        components[pos].iter()
-                .filter(|&&component| {
-                    cut_edges.get(pos)
-                        .map(|set| !set.contains(component))
-                        .unwrap_or(true)
-                }).cloned()
-                .collect()
+        components[pos]
+            .iter()
+            .filter(|&&component| {
+                cut_edges
+                    .get(pos)
+                    .map(|set| !set.contains(component))
+                    .unwrap_or(true)
+            })
+            .cloned()
+            .collect()
     });
     group_a.len() * (components.len() - group_a.len())
 }
-
 
 #[test]
 fn default() {

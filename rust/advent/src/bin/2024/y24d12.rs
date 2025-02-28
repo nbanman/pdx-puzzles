@@ -3,7 +3,14 @@ use std::collections::HashSet;
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet};
-use utilities::{enums::cardinals::Cardinal, structs::{coord::Coord2U, stopwatch::{ReportDuration, Stopwatch}, str_grid::StrGrid, }};
+use utilities::{
+    enums::cardinals::Cardinal,
+    structs::{
+        coord::Coord2U,
+        stopwatch::{ReportDuration, Stopwatch},
+        str_grid::StrGrid,
+    },
+};
 
 type Input<'a> = &'a str;
 type Output = usize;
@@ -14,7 +21,7 @@ struct Region {
     area: usize,
     perimeter: usize,
     sides: usize,
-    surveyed: FxHashSet<Pos>
+    surveyed: FxHashSet<Pos>,
 }
 
 impl Region {
@@ -30,35 +37,40 @@ impl Region {
         let mut sides = 0;
 
         let corners = vec![
-                Cardinal::North, Cardinal::East, Cardinal::South, Cardinal::West, Cardinal::North,
+            Cardinal::North,
+            Cardinal::East,
+            Cardinal::South,
+            Cardinal::West,
+            Cardinal::North,
         ];
-        
+
         // DFS loop
         while let Some(current) = q.pop() {
-            let adjacent: FxHashMap<Cardinal , (Pos, bool)> = arrangement.adjacent(current) 
+            let adjacent: FxHashMap<Cardinal, (Pos, bool)> = arrangement
+                .adjacent(current)
                 .map(|adjacent| {
                     let (a_pos, a_dir, a_plant) = adjacent.destruct();
                     (a_dir, (a_pos, a_plant == plant))
                 })
                 .collect();
-            
+
             // update cost factors
             area += 1;
-            let in_region: Vec<Pos> = adjacent.values()
-                .filter_map(|(n_pos, in_region)| {
-                    if *in_region {
-                        Some(*n_pos)
-                    } else {
-                        None
-                    }
-                })
+            let in_region: Vec<Pos> = adjacent
+                .values()
+                .filter_map(
+                    |(n_pos, in_region)| {
+                        if *in_region { Some(*n_pos) } else { None }
+                    },
+                )
                 .collect();
             perimeter += 4 - in_region.len();
             let corners = get_corners(&corners, &adjacent, current, arrangement, plant);
             sides += corners;
-            
+
             // add those plots that haven't already been examined to the queue
-            in_region.into_iter()
+            in_region
+                .into_iter()
                 .filter(|adjacent| surveyed.insert(*adjacent))
                 .for_each(|adjacent| q.push(adjacent));
         }
@@ -72,17 +84,21 @@ impl Region {
 }
 
 fn get_corners(
-    corners: &[Cardinal], 
-    adjacent: &FxHashMap<Cardinal , (Pos, bool)>, 
-    current: Pos, 
+    corners: &[Cardinal],
+    adjacent: &FxHashMap<Cardinal, (Pos, bool)>,
+    current: Pos,
     arrangement: &StrGrid<'_>,
     plant: u8,
 ) -> usize {
-    let corners = corners.iter().tuple_windows()
+    let corners = corners
+        .iter()
+        .tuple_windows()
         .filter(|&(a, b)| {
-            let a_in_region = adjacent.get(a)
+            let a_in_region = adjacent
+                .get(a)
                 .map_or_else(|| false, |(_, in_region)| *in_region);
-            let b_in_region = adjacent.get(b)
+            let b_in_region = adjacent
+                .get(b)
                 .map_or_else(|| false, |(_, in_region)| *in_region);
             if !a_in_region && !b_in_region {
                 true
@@ -114,7 +130,9 @@ fn get_regions(input: &str) -> Vec<Region> {
     for idx in 0..input.len() {
         if let Some(plant) = arrangement.get(idx) {
             let pos = arrangement.idx_to_coord(&idx);
-            if surveyed.contains(&pos) { continue; }
+            if surveyed.contains(&pos) {
+                continue;
+            }
             let region = Region::new(&arrangement, pos, plant);
             for plot in region.surveyed.iter() {
                 surveyed.insert(*plot);
@@ -128,14 +146,16 @@ fn get_regions(input: &str) -> Vec<Region> {
 }
 
 fn part1(input: Input) -> Output {
-    get_regions(input).into_iter()
+    get_regions(input)
+        .into_iter()
         .map(|region| region.area * region.perimeter)
         .sum()
 }
 
 fn part2(input: Input) -> Output {
-    get_regions(input).into_iter()
-        .map(|region| region.area * region.sides )
+    get_regions(input)
+        .into_iter()
+        .map(|region| region.area * region.sides)
         .sum()
 }
 
@@ -158,14 +178,17 @@ fn default() {
 
 #[test]
 fn examples() {
-    let inputs = [r"AAAA
+    let inputs = [
+        r"AAAA
 BBCD
 BBCC
-EEEC", r"OOOOO
+EEEC",
+        r"OOOOO
 OXOXO
 OOOOO
 OXOXO
-OOOOO", r"RRRRIICCFF
+OOOOO",
+        r"RRRRIICCFF
 RRRRIICCCF
 VVRRRCCFFF
 VVRCCCJFFF
@@ -174,16 +197,19 @@ VVIVCCJJEE
 VVIIICJJEE
 MIIIIIJJEE
 MIIISIJEEE
-MMMISSJEEE", r"EEEEE
+MMMISSJEEE",
+        r"EEEEE
 EXXXX
 EEEEE
 EXXXX
-EEEEE", r"AAAAAA
+EEEEE",
+        r"AAAAAA
 AAABBA
 AAABBA
 ABBAAA
 ABBAAA
-AAAAAA"];
+AAAAAA",
+    ];
     assert_eq!(140, part1(inputs[0]));
     assert_eq!(80, part2(inputs[0]));
 }

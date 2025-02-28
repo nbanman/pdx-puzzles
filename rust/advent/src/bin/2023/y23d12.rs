@@ -40,17 +40,17 @@ impl SpringRow {
             };
 
             // the # of consecutive broken springs in the damage report that we try to place along the row
-            let fulfillment = self.damage_report.get(s.damage_index).unwrap_or(&0).to_owned();
+            let fulfillment = self
+                .damage_report
+                .get(s.damage_index)
+                .unwrap_or(&0)
+                .to_owned();
 
             // Base case. Takes states that have fulfilled the entire damage report and returns 1 if valid,
             // 0 if invalid. Valid states are those with no remaining '#' in the current or any future blocks,
             // and that have filled all the damaged spring requirements
             if fulfillment == 0usize {
-                let value = if block.find('#').is_some() {
-                    0
-                } else {
-                    1
-                };
+                let value = if block.find('#').is_some() { 0 } else { 1 };
                 self.cache.insert(s, value);
                 return value;
             }
@@ -60,7 +60,7 @@ impl SpringRow {
             // (to account for the size of the fulfillment itself in the string).
             let value = if block.len() >= fulfillment {
                 (0..=block.len() - fulfillment)
-                    .take_while(|index| { *index == 0 || block.as_bytes()[index - 1] as char != '#' })
+                    .take_while(|index| *index == 0 || block.as_bytes()[index - 1] as char != '#')
                     .filter(|index| {
                         // filter out invalid placements, in cascading fashion
                         // if the placement includes a '.', invalid b/c '.' means not broken
@@ -71,7 +71,9 @@ impl SpringRow {
                             false
                         } else if index + fulfillment == block.len() {
                             true
-                        } else { block.as_bytes()[index + fulfillment] != b'#' }
+                        } else {
+                            block.as_bytes()[index + fulfillment] != b'#'
+                        }
                     })
                     .map(|index| {
                         let new_state = State {
@@ -97,38 +99,40 @@ struct State {
 }
 
 fn parse_input(input: &str) -> Input {
-    input.lines()
-    .map(|line| {
-        let (conditions, damage_str) = line.split_once(' ').unwrap();
-        let damage_report: Vec<usize> = damage_str.split(',')
-            .map(|s| s.parse::<usize>().unwrap())
-            .collect();
-        (conditions.to_string(), damage_report)
-    })
-    .collect()
+    input
+        .lines()
+        .map(|line| {
+            let (conditions, damage_str) = line.split_once(' ').unwrap();
+            let damage_report: Vec<usize> = damage_str
+                .split(',')
+                .map(|s| s.parse::<usize>().unwrap())
+                .collect();
+            (conditions.to_string(), damage_report)
+        })
+        .collect()
 }
 
 fn solve(spring_rows: Vec<SpringRow>) -> usize {
-    spring_rows.into_iter()
+    spring_rows
+        .into_iter()
         .map(|mut spring_row| {
-            
-            spring_row.arrangements(
-                State {
-                    conditions_index: 0,
-                    damage_index: 0,
-                }
-            )
-        }).sum()
+            spring_row.arrangements(State {
+                conditions_index: 0,
+                damage_index: 0,
+            })
+        })
+        .sum()
 }
 
 fn part1(spring_reports: &Input) -> Output {
-    let spring_rows: Vec<SpringRow> = spring_reports.iter()
+    let spring_rows: Vec<SpringRow> = spring_reports
+        .iter()
         .map(|(conditions, damage_report)| {
             let cache: FxHashMap<State, usize> = FxHashMap::default();
-            SpringRow { 
-                conditions: conditions.clone(), 
-                damage_report: damage_report.clone(), 
-                cache 
+            SpringRow {
+                conditions: conditions.clone(),
+                damage_report: damage_report.clone(),
+                cache,
             }
         })
         .collect();
@@ -136,12 +140,11 @@ fn part1(spring_reports: &Input) -> Output {
     solve(spring_rows)
 }
 
-
 fn part2(spring_reports: &Input) -> Output {
-    let spring_rows: Vec<SpringRow> = spring_reports.iter()
+    let spring_rows: Vec<SpringRow> = spring_reports
+        .iter()
         .map(|(conditions, damage_report)| {
-            let expanded_conditions = iter::repeat(conditions).take(5)
-                .join("?");
+            let expanded_conditions = iter::repeat(conditions).take(5).join("?");
             let expanded_damage_report = damage_report.repeat(5);
             let cache: FxHashMap<State, usize> = FxHashMap::default();
             SpringRow {

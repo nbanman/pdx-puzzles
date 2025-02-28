@@ -1,5 +1,5 @@
-use std::{collections::HashSet, iter::successors};
 use everybody_codes::utilities::inputs::get_inputs;
+use std::{collections::HashSet, iter::successors};
 use utilities::structs::coord::Coord2;
 
 fn main() {
@@ -11,25 +11,31 @@ fn main() {
 
 fn solve(input: &str, diagonals: bool) -> usize {
     let width = input.find('\n').unwrap() + 1;
-    let blocks: HashSet<Coord2> = input.as_bytes().iter()
+    let blocks: HashSet<Coord2> = input
+        .as_bytes()
+        .iter()
         .enumerate()
-        .filter(|&(_,  &c)| c == b'#') 
+        .filter(|&(_, &c)| c == b'#')
         .map(|(idx, _)| {
             let x = (idx % width) as i64;
             let y = (idx / width) as i64;
             Coord2::new2d(x, y)
-        }).collect();
+        })
+        .collect();
     let dig = |blocks: &HashSet<Coord2>| -> Option<HashSet<Coord2>> {
-        let next: HashSet<Coord2> = blocks.iter()
-            .filter(|block| { 
-                block.adjacent(diagonals).iter()
+        let next: HashSet<Coord2> = blocks
+            .iter()
+            .filter(|block| {
+                block
+                    .adjacent(diagonals)
+                    .iter()
                     .all(|pos| blocks.contains(pos))
-            }).copied()
+            })
+            .copied()
             .collect();
         if next.is_empty() { None } else { Some(next) }
     };
-    successors(Some(blocks), dig)
-        .fold(0, |count, stage| count + stage.len())
+    successors(Some(blocks), dig).fold(0, |count, stage| count + stage.len())
 }
 
 #[test]

@@ -1,10 +1,13 @@
-use std::{fs::File, io::{self, Read}, path::Path};
+use std::{
+    fs::File,
+    io::{self, Read},
+    path::Path,
+};
 
 pub fn get_input(year: u8, day: u8) -> io::Result<String> {
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
-        .expect("Failed to find manifest directory");
-    let path = manifest_dir
-        + &format!("/../../inputs/advent/20{}/y{}d{:02}.txt", year, year, day);
+    let manifest_dir =
+        std::env::var("CARGO_MANIFEST_DIR").expect("Failed to find manifest directory");
+    let path = manifest_dir + &format!("/../../inputs/advent/20{}/y{}d{:02}.txt", year, year, day);
     // Try to open local file first
     match File::open(&path) {
         Ok(mut file) => {
@@ -20,22 +23,28 @@ pub fn get_input(year: u8, day: u8) -> io::Result<String> {
 }
 
 fn download_input(year: u8, day: u8, path: &str) -> Result<String, io::Error> {
-
     // Ensure the directory exists
     if let Some(parent) = Path::new(path).parent() {
         std::fs::create_dir_all(parent)?;
     }
 
     let url = format!("https://adventofcode.com/20{}/day/{}/input", year, day);
-    
-    let session = std::env::var("ADVENT_SESSION")
-        .map_err(|_| io::Error::new(io::ErrorKind::NotFound, "ADVENT_SESSION environment variable not set"))?;
+
+    let session = std::env::var("ADVENT_SESSION").map_err(|_| {
+        io::Error::new(
+            io::ErrorKind::NotFound,
+            "ADVENT_SESSION environment variable not set",
+        )
+    })?;
     let session = format!("session={}", session);
 
     // Propagate network and file errors
     let mut response = ureq::get(&url)
         .set("Cookie", &session)
-        .set("User-Agent", "github.com/nbanman/pdx-puzzles/tree/main/rust/advent/utilities/get_input.rs")
+        .set(
+            "User-Agent",
+            "github.com/nbanman/pdx-puzzles/tree/main/rust/advent/utilities/get_input.rs",
+        )
         .call()
         .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?
         .into_reader();
@@ -47,6 +56,6 @@ fn download_input(year: u8, day: u8, path: &str) -> Result<String, io::Error> {
     // Read the newly downloaded file
     let mut contents = String::new();
     File::open(path)?.read_to_string(&mut contents)?;
-    
+
     Ok(contents)
 }

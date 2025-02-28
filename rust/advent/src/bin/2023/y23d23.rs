@@ -2,7 +2,10 @@ use std::collections::{HashMap, HashSet, VecDeque};
 
 use advent::utilities::get_input::get_input;
 use indexmap::{IndexMap, IndexSet};
-use utilities::structs::{stopwatch::{ReportDuration, Stopwatch}, str_grid::StrGrid};
+use utilities::structs::{
+    stopwatch::{ReportDuration, Stopwatch},
+    str_grid::StrGrid,
+};
 
 type Output = usize;
 type Vertices = IndexSet<usize>;
@@ -22,39 +25,58 @@ impl<'a> Input<'a> {
     fn new(s: &'a str) -> Self {
         let trails = StrGrid::new(s).unwrap();
         let start = s.find('.').unwrap();
-        let end = trails.s.iter().enumerate().rev()
+        let end = trails
+            .s
+            .iter()
+            .enumerate()
+            .rev()
             .find(|&(_, &c)| c == b'.')
             .unwrap()
             .0;
         let mut vertices = Vertices::new();
 
         vertices.insert(start);
-        
+
         for (pos, &c) in trails.s.iter().enumerate() {
-                if c != b'\n' && c != b'#' {
-                    let neighbor_count = trails.adjacent(pos)
-                        .filter(|neighbor| neighbor.b != b'#')
-                        .count();
-                    if neighbor_count >= 3 {
-                        vertices.insert(pos);
-                    }
-                } 
+            if c != b'\n' && c != b'#' {
+                let neighbor_count = trails
+                    .adjacent(pos)
+                    .filter(|neighbor| neighbor.b != b'#')
+                    .count();
+                if neighbor_count >= 3 {
+                    vertices.insert(pos);
+                }
+            }
         }
 
         vertices.insert(end);
 
-        let vertex_map: VertexMap = vertices.iter().cloned().enumerate()
+        let vertex_map: VertexMap = vertices
+            .iter()
+            .cloned()
+            .enumerate()
             .map(|(index, pos)| (pos, index))
             .collect();
-        
+
         let start = vertex_map[&start];
         let end = vertex_map[&end];
 
-        Self { trails, vertices, vertex_map, start, end }
+        Self {
+            trails,
+            vertices,
+            vertex_map,
+            start,
+            end,
+        }
     }
 }
 
-fn connect_vertex(pos: usize, vertices: &Vertices, can_go_uphill: bool, trails: &StrGrid) -> Vec<State> {
+fn connect_vertex(
+    pos: usize,
+    vertices: &Vertices,
+    can_go_uphill: bool,
+    trails: &StrGrid,
+) -> Vec<State> {
     let mut visited: HashSet<usize> = HashSet::new();
     let mut q: Vec<State> = Vec::new();
     q.push((pos, 0));
@@ -75,7 +97,9 @@ fn connect_vertex(pos: usize, vertices: &Vertices, can_go_uphill: bool, trails: 
             };
 
             for neighbor in these_neighbors {
-                if visited.contains(&neighbor) { continue; }
+                if visited.contains(&neighbor) {
+                    continue;
+                }
                 let b = trails.get(neighbor).unwrap();
                 if b != b'\n' && b != b'#' {
                     visited.insert(neighbor);
@@ -90,16 +114,17 @@ fn connect_vertex(pos: usize, vertices: &Vertices, can_go_uphill: bool, trails: 
 }
 
 fn get_neighbors(pos: usize, trails: &StrGrid<'_>) -> Vec<usize> {
-    trails.adjacent(pos).into_iter()
+    trails
+        .adjacent(pos)
+        .into_iter()
         .map(|neighbor| neighbor.pos)
         .collect()
 }
 
-
 fn find_longest_trail(
-    edge_map: &Vec<Vec<State>>, 
+    edge_map: &Vec<Vec<State>>,
     pos: usize,
-    weight: usize, 
+    weight: usize,
     end: usize,
     visited: usize,
 ) -> usize {
@@ -107,7 +132,8 @@ fn find_longest_trail(
         weight
     } else {
         let visited = visited + (1 << pos);
-        edge_map[pos].iter()
+        edge_map[pos]
+            .iter()
             .filter(|(neighbor, _)| {
                 // println!("{}", neighbor);
                 (visited.clone() >> *neighbor) & 1 == 0
@@ -142,7 +168,13 @@ fn parse_input(input: &str) -> Input {
 }
 
 fn part1(input: &Input) -> Output {
-    let Input { trails, vertices, vertex_map, start, end } = input;
+    let Input {
+        trails,
+        vertices,
+        vertex_map,
+        start,
+        end,
+    } = input;
     let mut edges = Vec::new();
     for pos in vertices.iter() {
         let neighbors: Vec<(usize, usize)> = connect_vertex(pos.clone(), vertices, false, trails)
@@ -155,31 +187,41 @@ fn part1(input: &Input) -> Output {
 }
 
 fn part2(input: &Input) -> Output {
-    let Input { trails, vertices, vertex_map, start, end } = input;
+    let Input {
+        trails,
+        vertices,
+        vertex_map,
+        start,
+        end,
+    } = input;
     let mut initial: IndexMap<usize, Vec<(usize, usize)>> = IndexMap::new();
     for &pos in vertices {
         let pp = vertex_map[&pos];
         for (neighbor, dist) in connect_vertex(pos, vertices, true, trails) {
-            initial.entry(pp)
+            initial
+                .entry(pp)
                 .or_insert(Vec::new())
                 .push((vertex_map[&neighbor], dist));
         }
     }
 
-    // due to grid-like nature of the remaining nodes, the perimeter nodes (those with only three edges) are 
+    // due to grid-like nature of the remaining nodes, the perimeter nodes (those with only three edges) are
     // directional. Quick and dirty way of finding which directions to exclude is to run my standard BFS which
-    // does flood fill of the nodes that don't have four edges, recording the parent node for each node. 
-    // Then convert this to a map of node to parent node. Use this map to exclude certain edges in the edge map, 
+    // does flood fill of the nodes that don't have four edges, recording the parent node for each node.
+    // Then convert this to a map of node to parent node. Use this map to exclude certain edges in the edge map,
     // thus making the perimeter nodes directional.
     // This works for everything except for the bottom corner node. This one fails because my standard BFS is
-    // shortest-path, but the bottom corner node can be reached in two ways. So I handle the bottom corner 
+    // shortest-path, but the bottom corner node can be reached in two ways. So I handle the bottom corner
     // individually.
     let mut q: VecDeque<usize> = VecDeque::new();
     q.push_back(*start);
     let mut verboten = VertexMap::new();
     while let Some(current) = q.pop_front() {
-        let neighbors: Vec<usize> = initial[&current].iter()
-            .filter(|&(neighbor, _)| !verboten.contains_key(neighbor) && initial[neighbor].len() != 4)
+        let neighbors: Vec<usize> = initial[&current]
+            .iter()
+            .filter(|&(neighbor, _)| {
+                !verboten.contains_key(neighbor) && initial[neighbor].len() != 4
+            })
             .map(|(neighbor, _)| *neighbor)
             .collect();
         for neighbor in neighbors {
@@ -192,9 +234,11 @@ fn part2(input: &Input) -> Output {
 
     let bottom_corner = initial.values().last().unwrap().first().unwrap().0;
 
-    let edges: Vec<Vec<(usize, usize)>> = initial.into_iter()
+    let edges: Vec<Vec<(usize, usize)>> = initial
+        .into_iter()
         .map(|(pos, edges)| {
-            edges.into_iter()
+            edges
+                .into_iter()
                 .filter(|&(neighbor, _)| {
                     if pos == bottom_corner {
                         neighbor == *end
@@ -205,7 +249,7 @@ fn part2(input: &Input) -> Output {
                 .collect()
         })
         .collect();
-    
+
     find_longest_trail(&edges, *start, 0, *end, 0)
 }
 

@@ -19,10 +19,13 @@ fn main() {
 
 fn part1(input: Input) -> Output {
     let mut fragmented = Vec::new();
-    for (idx, n) in input.as_bytes().iter()
+    for (idx, n) in input
+        .as_bytes()
+        .iter()
         .filter(|&&c| c != b'\n')
         .map(|c| c - b'0')
-        .enumerate() {
+        .enumerate()
+    {
         let value = if idx & 1 == 0 { Some(idx / 2) } else { None };
         for _ in 0..n {
             fragmented.push(value);
@@ -34,14 +37,16 @@ fn part1(input: Input) -> Output {
     let blocks = fragmented.iter().filter(|it| it.is_some()).count();
     while left < blocks {
         while let Some(block) = fragmented[left] {
-            if left < right { 
+            if left < right {
                 checksum += left * block;
                 left += 1;
             } else {
                 break;
             }
         }
-        while fragmented[right].is_none() { right -= 1; }
+        while fragmented[right].is_none() {
+            right -= 1;
+        }
         checksum += left * fragmented[right].unwrap();
         left += 1;
         right -= 1;
@@ -69,14 +74,21 @@ fn part2(input: Input) -> Output {
     let mut spaces: [BinaryHeap<Reverse<usize>>; 10] = std::array::from_fn(|_| BinaryHeap::new());
     let mut blocks = Vec::new();
     let mut index = 0;
-    for (order, size) in input.as_bytes().iter()
+    for (order, size) in input
+        .as_bytes()
+        .iter()
         .filter(|&&c| c != b'\n')
         .map(|c| c - b'0')
-        .enumerate() {
+        .enumerate()
+    {
         let size = size as usize;
         if size > 0 {
             if order & 1 == 0 {
-                let block = Block { index, size, value: order / 2 };
+                let block = Block {
+                    index,
+                    size,
+                    value: order / 2,
+                };
                 blocks.push(block);
             } else {
                 spaces[size].push(Reverse(index));
@@ -87,14 +99,16 @@ fn part2(input: Input) -> Output {
 
     let mut checksum = 0;
     for block in blocks.iter_mut().rev() {
-        if let &Some((&space_idx, ref heap_idx)) = &spaces[block.size..].iter().enumerate()
+        if let &Some((&space_idx, ref heap_idx)) = &spaces[block.size..]
+            .iter()
+            .enumerate()
             .filter_map(|(heap_idx, space)| {
                 if let Some(Reverse(space_index)) = space.peek() {
                     if *space_index < block.index {
                         Some((space_index, heap_idx))
                     } else {
                         None
-                    }                    
+                    }
                 } else {
                     None
                 }
@@ -112,7 +126,6 @@ fn part2(input: Input) -> Output {
         } else {
             checksum += block.checksum(block.index)
         }
-        
     }
     checksum
 }
@@ -126,7 +139,7 @@ fn default() {
 
 #[test]
 fn examples() {
-    let inputs = [r"2333133121414131402", ];
+    let inputs = [r"2333133121414131402"];
     assert_eq!(1928, part1(inputs[0]));
     assert_eq!(2858, part2(inputs[0]));
 }
@@ -135,6 +148,3 @@ fn examples() {
 // 1. 6390180901651 (1ms)
 // 2. 6412390114238 (739μs)
 // Total: 1ms
-
-
-

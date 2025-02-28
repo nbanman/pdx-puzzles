@@ -1,7 +1,10 @@
 use std::collections::VecDeque;
 
 use advent::utilities::get_input::get_input;
-use utilities::structs::{stopwatch::{ReportDuration, Stopwatch}, str_grid::StrGrid};
+use utilities::structs::{
+    stopwatch::{ReportDuration, Stopwatch},
+    str_grid::StrGrid,
+};
 
 type Input<'a> = (StrGrid<'a>, usize);
 type Output = usize;
@@ -27,7 +30,7 @@ fn height(pos: u8) -> u8 {
     match pos {
         b'S' => b'a',
         b'E' => b'z',
-        pos => pos
+        pos => pos,
     }
 }
 

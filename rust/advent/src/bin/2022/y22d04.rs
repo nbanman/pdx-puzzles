@@ -1,7 +1,10 @@
-use std::ops::RangeInclusive;
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
-use utilities::{parsing::get_numbers::ContainsNumbers, structs::stopwatch::{ReportDuration, Stopwatch}};
+use std::ops::RangeInclusive;
+use utilities::{
+    parsing::get_numbers::ContainsNumbers,
+    structs::stopwatch::{ReportDuration, Stopwatch},
+};
 
 type Int = i16;
 type Input = Vec<(RangeInclusive<Int>, RangeInclusive<Int>)>;
@@ -19,7 +22,9 @@ fn main() {
 }
 
 fn parse_input(input: &str) -> Input {
-    input.get_numbers().tuples()
+    input
+        .get_numbers()
+        .tuples()
         .map(|(low1, high1, low2, high2)| (low1..=high1, low2..=high2))
         .collect()
 }
@@ -37,15 +42,15 @@ fn overlaps(a: &RangeInclusive<Int>, b: &RangeInclusive<Int>) -> bool {
 }
 
 fn part1(ranges: &Input) -> Output {
-    ranges.iter()
-        .filter(|(left, right)| {
-            contains_all(left, right) || contains_all(right, left)
-        })
+    ranges
+        .iter()
+        .filter(|(left, right)| contains_all(left, right) || contains_all(right, left))
         .count()
 }
 
 fn part2(ranges: &Input) -> Output {
-    ranges.iter()
+    ranges
+        .iter()
         .filter(|(left, right)| overlaps(left, right))
         .count()
 }

@@ -1,8 +1,14 @@
-use std::{collections::{HashMap, HashSet}, iter::successors};
+use std::{
+    collections::{HashMap, HashSet},
+    iter::successors,
+};
 
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
-use utilities::structs::{coord::Coord, stopwatch::{ReportDuration, Stopwatch}};
+use utilities::structs::{
+    coord::Coord,
+    stopwatch::{ReportDuration, Stopwatch},
+};
 
 type Input<'a> = &'a str;
 type Output = usize;
@@ -18,22 +24,24 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn solve<F>(city_limits: Input, get_antinodes: &F) -> Output 
-where 
+fn solve<F>(city_limits: Input, get_antinodes: &F) -> Output
+where
     F: Fn((&Pos, &Pos)) -> Vec<Pos>,
 {
     get_antennae(city_limits)
         .iter()
         .flat_map(|positions| {
-            positions.iter().tuple_combinations::<(_, _)>().flat_map(get_antinodes)
+            positions
+                .iter()
+                .tuple_combinations::<(_, _)>()
+                .flat_map(get_antinodes)
         })
         .collect::<HashSet<_>>()
         .len()
 }
 
 fn within_city_limits(pos: &Pos, width: usize, height: usize) -> bool {
-    (0..width as isize - 1).contains(&pos.x()) 
-                    && (0..height as isize ).contains(&pos.y())
+    (0..width as isize - 1).contains(&pos.x()) && (0..height as isize).contains(&pos.y())
 }
 
 fn part1(city_limits: Input) -> Output {
@@ -41,11 +49,12 @@ fn part1(city_limits: Input) -> Output {
     let height = (city_limits.len() + 1) / width;
     let get_antinodes = |(&a, &b): (&Pos, &Pos)| {
         let diff = a - b;
-        [a + diff, b - diff].into_iter()
+        [a + diff, b - diff]
+            .into_iter()
             .filter(|antinode| within_city_limits(antinode, width, height))
             .collect::<Vec<Pos>>()
     };
-    
+
     solve(city_limits, &get_antinodes)
 }
 
@@ -60,7 +69,7 @@ fn part2(city_limits: Input) -> Output {
         a_ray.extend(b_ray);
         a_ray
     };
-    
+
     solve(city_limits, &get_antinodes)
 }
 
@@ -113,7 +122,7 @@ fn examples() {
 .........A..
 ............
 ............
-", ];
+"];
     assert_eq!(14, part1(inputs[0]));
     // assert_eq!(34, part2(&input[0]));
 }

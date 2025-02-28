@@ -17,15 +17,15 @@ fn main() {
 }
 
 fn parse_input(input: &str) -> Vec<Output> {
-    input.lines()
+    input
+        .lines()
         .filter_map(|line| {
             let numbers = &line[line.find(':')? + 1..]
                 .split_whitespace()
                 .collect::<Vec<_>>();
-            Some(
-                numbers.len() - numbers.iter().unique().count()
-            )
-        }).collect()
+            Some(numbers.len() - numbers.iter().unique().count())
+        })
+        .collect()
 }
 
 fn part1(cards: Input) -> Output {

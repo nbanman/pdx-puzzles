@@ -1,7 +1,14 @@
-use std::{borrow::BorrowMut, cmp::Reverse, collections::{BinaryHeap, HashSet}};
+use std::{
+    borrow::BorrowMut,
+    cmp::Reverse,
+    collections::{BinaryHeap, HashSet},
+};
 
 use advent::utilities::get_input::get_input;
-use utilities::{enums::cardinals::Cardinal, structs::stopwatch::{ReportDuration, Stopwatch}};
+use utilities::{
+    enums::cardinals::Cardinal,
+    structs::stopwatch::{ReportDuration, Stopwatch},
+};
 
 type Input<'a> = &'a str;
 type Output = usize;
@@ -34,7 +41,7 @@ impl State {
 struct Path {
     weight: usize,
     parent: Option<usize>,
-    alternate_paths: Vec<usize>
+    alternate_paths: Vec<usize>,
 }
 
 fn get_paths(input: Input) -> (Vec<Option<Path>>, usize) {
@@ -42,9 +49,9 @@ fn get_paths(input: Input) -> (Vec<Option<Path>>, usize) {
     let width = input.find('\n').unwrap() + 1;
     let start = input.find('S').unwrap();
     let end = input.find('E').unwrap();
-    
+
     let mut best_path = usize::MAX;
-    let mut paths: Vec<Option<Path>> = vec![None; maze.len() * 4]; 
+    let mut paths: Vec<Option<Path>> = vec![None; maze.len() * 4];
 
     let start_state = State::new(start, Cardinal::East);
     paths[start_state.0] = Some(Path {
@@ -57,11 +64,17 @@ fn get_paths(input: Input) -> (Vec<Option<Path>>, usize) {
     q.push(Reverse((0, start_state)));
 
     while let Some(Reverse((weight, current))) = q.pop() {
-        if maze[current.0 >> 2] == b'#' { println!("{:?}", current) };
-        if weight > best_path { break; }
+        if maze[current.0 >> 2] == b'#' {
+            println!("{:?}", current)
+        };
+        if weight > best_path {
+            break;
+        }
         let (pos, _) = current.destruct();
-        if pos == end { best_path = weight; }
-        
+        if pos == end {
+            best_path = weight;
+        }
+
         for (neighbor_weight, neighbor) in get_edges(current, maze, width) {
             let alternate_weight = weight + neighbor_weight;
             let existing_weight = paths[neighbor.0]
@@ -84,7 +97,11 @@ fn get_paths(input: Input) -> (Vec<Option<Path>>, usize) {
                 q.push(Reverse((alternate_weight, neighbor)));
             }
             if alternate_weight == existing_weight {
-                paths[neighbor.0].as_mut().unwrap().alternate_paths.push(current.0);
+                paths[neighbor.0]
+                    .as_mut()
+                    .unwrap()
+                    .alternate_paths
+                    .push(current.0);
             }
         }
     }
@@ -93,8 +110,9 @@ fn get_paths(input: Input) -> (Vec<Option<Path>>, usize) {
 
 fn get_edges(state: State, maze: &[u8], width: usize) -> Vec<(usize, State)> {
     let (pos, dir) = state.destruct();
-    let edges: Vec<(usize, State)> = [dir, dir.left(), dir.right()].into_iter()
-        .filter_map(move|new_dir| {
+    let edges: Vec<(usize, State)> = [dir, dir.left(), dir.right()]
+        .into_iter()
+        .filter_map(move |new_dir| {
             let new_pos = match new_dir {
                 Cardinal::North => pos.checked_sub(width),
                 Cardinal::East => Some(pos + 1),
@@ -114,7 +132,8 @@ fn get_edges(state: State, maze: &[u8], width: usize) -> Vec<(usize, State)> {
 }
 
 fn part1(paths: &[Option<Path>], end: usize) -> Output {
-    Cardinal::entries().into_iter()
+    Cardinal::entries()
+        .into_iter()
         .filter_map(|entry| {
             let index = entry.ordinal() + (end << 2);
             paths[index].as_ref()
@@ -130,7 +149,7 @@ fn part2(paths: &Vec<Option<Path>>, end: usize) -> Output {
     for entry in Cardinal::entries() {
         let index = entry.ordinal() + (end << 2);
         if paths[index].is_some() {
-            get_seats(index, paths, &mut seats); 
+            get_seats(index, paths, &mut seats);
         }
     }
     seats.len()
@@ -144,7 +163,7 @@ fn get_seats(index: usize, paths: &Vec<Option<Path>>, seats: &mut HashSet<usize>
         let alternate_paths: &Vec<usize> = paths[index].as_ref().unwrap().alternate_paths.as_ref();
         for &alternate_path in alternate_paths {
             get_seats(alternate_path, paths, seats);
-        }    
+        }
         index = parent;
     }
 }

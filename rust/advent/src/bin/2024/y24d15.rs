@@ -2,7 +2,13 @@ use std::iter::successors;
 
 use advent::utilities::get_input::get_input;
 use rustc_hash::FxHashMap;
-use utilities::{enums::cardinals::Cardinal, structs::{coord::Coord2U, stopwatch::{ReportDuration, Stopwatch}}};
+use utilities::{
+    enums::cardinals::Cardinal,
+    structs::{
+        coord::Coord2U,
+        stopwatch::{ReportDuration, Stopwatch},
+    },
+};
 
 type Warehouse = FxHashMap<Pos, Entity>;
 type Input = (Pos, Warehouse, Vec<Cardinal>, Pos);
@@ -30,27 +36,32 @@ enum Entity {
 
 fn parse_input(input: &str) -> Input {
     let (warehouse, directions) = input.split_once("\n\n").unwrap();
-    let directions = directions.as_bytes().iter()
-        .filter_map(|&it| {
-            match it {
-                b'^' => Some(Cardinal::North),
-                b'>' => Some(Cardinal::East),
-                b'v' => Some(Cardinal::South),
-                b'<' => Some(Cardinal::West),
-                b'\n' => None,
-                x => { panic!("Movement '{}' not recognized", x); }
+    let directions = directions
+        .as_bytes()
+        .iter()
+        .filter_map(|&it| match it {
+            b'^' => Some(Cardinal::North),
+            b'>' => Some(Cardinal::East),
+            b'v' => Some(Cardinal::South),
+            b'<' => Some(Cardinal::West),
+            b'\n' => None,
+            x => {
+                panic!("Movement '{}' not recognized", x);
             }
         })
         .collect();
     let width = warehouse.find('\n').unwrap();
     let height = (warehouse.len() + 1) / (width + 1);
     let bounds = Pos::new2d(width, height);
-    
+
     let robot = warehouse.find('@').unwrap();
     let robot = Pos::from_index(robot, width + 1).unwrap();
-    
-    let warehouse: Warehouse = warehouse.as_bytes().iter().enumerate()
-        .filter_map(|(idx, &c)| {    
+
+    let warehouse: Warehouse = warehouse
+        .as_bytes()
+        .iter()
+        .enumerate()
+        .filter_map(|(idx, &c)| {
             match c {
                 b'#' => Some(Entity::Wall),
                 b'O' => Some(Entity::Box),
@@ -68,14 +79,17 @@ fn parse_input(input: &str) -> Input {
 fn part1(input: Input) -> Output {
     let (bounds, mut warehouse, directions, mut robot) = input;
     for dir in directions {
-        let Some(empty) = find_empty(robot, dir, &warehouse, bounds) else { continue; };
+        let Some(empty) = find_empty(robot, dir, &warehouse, bounds) else {
+            continue;
+        };
         robot = robot.move_direction(dir, 1).unwrap();
         if warehouse.contains_key(&robot) {
             warehouse.remove(&robot);
             warehouse.insert(empty, Entity::Box);
         }
     }
-    warehouse.into_iter()
+    warehouse
+        .into_iter()
         .filter(|(_, entity)| matches!(*entity, Entity::Box))
         .map(|(pos, _)| gps(pos))
         .sum()
@@ -84,19 +98,22 @@ fn part1(input: Input) -> Output {
 fn find_empty(robot: Pos, dir: Cardinal, warehouse: &Warehouse, bounds: Pos) -> Option<Pos> {
     successors(robot.move_direction(dir, 1), |it| it.move_direction(dir, 1))
         .take_while(|pos| {
-            (1..bounds.x() - 1).contains(&pos.x()) 
-                && (1.. bounds.y() - 1).contains(&pos.y())
+            (1..bounds.x() - 1).contains(&pos.x())
+                && (1..bounds.y() - 1).contains(&pos.y())
                 && !matches!(warehouse.get(pos), Some(Entity::Wall))
         })
         .find(|pos| !warehouse.contains_key(pos))
 }
 
-fn gps(pos: Pos) -> Output { pos.y() * 100 + pos.x() }
+fn gps(pos: Pos) -> Output {
+    pos.y() * 100 + pos.x()
+}
 
 fn part2(input: Input) -> Output {
     let (_, warehouse, directions, robot) = input;
     let mut robot = Pos::new2d(robot.x() * 2, robot.y());
-    let mut  warehouse: Warehouse = warehouse.iter()
+    let mut warehouse: Warehouse = warehouse
+        .iter()
         .flat_map(|(old_pos, old_entity)| {
             let pos = Pos::new2d(old_pos.x() * 2, old_pos.y());
             let east = pos.move_direction(Cardinal::East, 1).unwrap();
@@ -123,7 +140,8 @@ fn part2(input: Input) -> Output {
         // print_maze(robot, &warehouse, bounds.x(), bounds.y());
     }
 
-    warehouse.into_iter()
+    warehouse
+        .into_iter()
         .filter(|(_, entity)| matches!(*entity, Entity::LeftBox))
         .map(|(pos, _)| gps(pos))
         .sum()
@@ -141,10 +159,12 @@ fn check_vt(pos: Pos, dir: Cardinal, warehouse: &Warehouse, is_robot: bool) -> b
                     None => true,
                     Some(Entity::Wall) => false,
                     Some(Entity::LeftBox) => check_vt(next_right, dir, warehouse, false),
-                    Some(_) => { panic!("Should not be right box."); },
+                    Some(_) => {
+                        panic!("Should not be right box.");
+                    }
                 }
             }
-        },
+        }
         Some(Entity::Wall) => false,
         Some(Entity::LeftBox) => check_vt(next, dir, warehouse, false),
         Some(Entity::RightBox) => {
@@ -155,15 +175,19 @@ fn check_vt(pos: Pos, dir: Cardinal, warehouse: &Warehouse, is_robot: bool) -> b
                 match warehouse.get(&next_right) {
                     Some(Entity::Wall) => false,
                     Some(Entity::LeftBox) => {
-                        check_vt(next_left, dir, warehouse, false) 
+                        check_vt(next_left, dir, warehouse, false)
                             && check_vt(next_right, dir, warehouse, false)
-                    },
+                    }
                     None => check_vt(next_left, dir, warehouse, false),
-                    _ => { panic!("Should not be right box"); }
+                    _ => {
+                        panic!("Should not be right box");
+                    }
                 }
             }
         }
-        Some(_) => { panic!("Normal boxes should not be in map."); },
+        Some(_) => {
+            panic!("Normal boxes should not be in map.");
+        }
     }
 }
 
@@ -186,23 +210,31 @@ fn push_box_vt(pos: Pos, dir: Cardinal, warehouse: &mut Warehouse, is_robot: boo
                     Some(Entity::LeftBox) => {
                         push_box_vt(next_left, dir, warehouse, false);
                         push_box_vt(next_right, dir, warehouse, false);
-                    },
+                    }
                     None => push_box_vt(next_left, dir, warehouse, false),
-                    Some(right) => { panic!("{:?} should be empty or leftBox", right); },
+                    Some(right) => {
+                        panic!("{:?} should be empty or leftBox", right);
+                    }
                 }
             }
-        },
+        }
         None => {
-            if is_robot { return; }
+            if is_robot {
+                return;
+            }
             match warehouse.get(&next_right) {
                 Some(Entity::LeftBox) => push_box_vt(next_right, dir, warehouse, false),
-                None => {},
-                Some(right) => { panic!("{:?} should be empty or left box.", right); },
+                None => {}
+                Some(right) => {
+                    panic!("{:?} should be empty or left box.", right);
+                }
             }
-        },
-        Some(_) => { panic!("There cannot be a wall here.") },
+        }
+        Some(_) => {
+            panic!("There cannot be a wall here.")
+        }
     }
-    
+
     if !is_robot {
         warehouse.remove(&pos);
         warehouse.remove(&pos.move_direction(Cardinal::East, 1).unwrap());
@@ -211,20 +243,32 @@ fn push_box_vt(pos: Pos, dir: Cardinal, warehouse: &mut Warehouse, is_robot: boo
     }
 }
 
-fn push_hz(pos: Pos, dir: Cardinal, dist: usize, warehouse: &mut Warehouse, is_robot: bool) -> bool {
+fn push_hz(
+    pos: Pos,
+    dir: Cardinal,
+    dist: usize,
+    warehouse: &mut Warehouse,
+    is_robot: bool,
+) -> bool {
     let next = pos.move_direction(dir, dist).unwrap();
     match warehouse.get(&next) {
         Some(Entity::Wall) => false,
-        Some(Entity::Box) => { panic!("Normal boxes should not be in map."); },
+        Some(Entity::Box) => {
+            panic!("Normal boxes should not be in map.");
+        }
         None => {
-            if warehouse.contains_key(&pos) { push_box_hz(pos, warehouse, dir); }
+            if warehouse.contains_key(&pos) {
+                push_box_hz(pos, warehouse, dir);
+            }
             true
-        },
+        }
         _ => {
             let moveable = push_hz(next, dir, 2, warehouse, false);
-            if moveable && !is_robot { push_box_hz(pos, warehouse, dir) }
+            if moveable && !is_robot {
+                push_box_hz(pos, warehouse, dir)
+            }
             moveable
-        },
+        }
     }
 }
 
@@ -278,7 +322,8 @@ fn default() {
 
 #[test]
 fn examples() {
-    let inputs: Vec<_> = [r"#######
+    let inputs: Vec<_> = [
+        r"#######
 #...#.#
 #.....#
 #..OO@#
@@ -286,7 +331,8 @@ fn examples() {
 #.....#
 #######
 
-<vv<<^^<<^^", r"##########
+<vv<<^^<<^^",
+        r"##########
 #..O..O.O#
 #......O.#
 #.OO..O.O#
@@ -307,10 +353,11 @@ vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v
 <><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>
 ^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
 v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^
-"]
-        .iter()
-        .map(|&input| parse_input(input))
-        .collect();
+",
+    ]
+    .iter()
+    .map(|&input| parse_input(input))
+    .collect();
     assert_eq!(618, part2(inputs[0].clone()));
     assert_eq!(9021, part2(inputs[1].clone()));
 }

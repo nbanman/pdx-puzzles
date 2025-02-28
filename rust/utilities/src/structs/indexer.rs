@@ -5,10 +5,10 @@ use indexmap::{set::MutableValues, IndexSet};
 #[derive(Clone, Default, Debug)]
 pub struct Indexer<T: Hash + Eq> {
     id: usize,
-    values: IndexSet<T>
+    values: IndexSet<T>,
 }
 
-impl <T: Hash + Eq> Indexer<T> {
+impl<T: Hash + Eq> Indexer<T> {
     pub fn new() -> Self {
         let values = IndexSet::new();
         Self { id: 0, values }
@@ -72,7 +72,6 @@ impl<T: Hash + Eq> IntoIterator for Indexer<T> {
         self.values.into_iter()
     }
 }
-
 
 #[test]
 fn basic_functionality() {

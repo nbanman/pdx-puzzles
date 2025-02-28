@@ -23,10 +23,9 @@ fn part1(input: &str) -> usize {
     parse_words(words)
         .map(|word| {
             let word = word.as_bytes();
-            code.windows(word.len())
-                .filter(|&it| it == word)
-                .count()
-        }).sum()
+            code.windows(word.len()).filter(|&it| it == word).count()
+        })
+        .sum()
 }
 
 fn part2(input: &str) -> usize {
@@ -37,10 +36,14 @@ fn part2(input: &str) -> usize {
     let mut symbols = vec![false; code.len()];
 
     for (index, c) in code.chars().enumerate() {
-        if c == '\n' || c == ' ' { continue; }
+        if c == '\n' || c == ' ' {
+            continue;
+        }
         let mut snippet = &code[index..min(code.len(), index + word_lengths[0])];
         for &length in word_lengths.iter() {
-            if snippet.len() < length { continue; }
+            if snippet.len() < length {
+                continue;
+            }
             snippet = &snippet[..length];
             if words.contains(snippet) {
                 for symbol in symbols.iter_mut().skip(index).take(length) {
@@ -54,7 +57,8 @@ fn part2(input: &str) -> usize {
 }
 
 fn get_word_lengths(words: &HashSet<String>) -> Vec<usize> {
-    let word_lengths: Vec<usize> = words.iter()
+    let word_lengths: Vec<usize> = words
+        .iter()
         .map(|word| word.len())
         .collect::<HashSet<_>>()
         .into_iter()
@@ -70,9 +74,12 @@ fn get_words(words_str: &str) -> HashSet<String> {
     for &word in forwards.iter() {
         words.insert(word.to_string());
     }
-    forwards.iter()
+    forwards
+        .iter()
         .map(|&word| word.chars().rev().collect::<String>())
-        .for_each(|word| { words.insert(word); });
+        .for_each(|word| {
+            words.insert(word);
+        });
     words
 }
 
@@ -81,21 +88,22 @@ fn part3(input: &str) -> usize {
     let words = get_words(words);
     let word_lengths = get_word_lengths(&words);
     let longest_word = word_lengths[0];
-    
+
     let armor_width = armor.find('\n').unwrap() + 1;
     let mut symbols = vec![false; armor.len()];
 
     for (pos, c) in armor.chars().enumerate() {
-        if c == '\n' { continue; }
+        if c == '\n' {
+            continue;
+        }
         let pos = Coord::new2d(pos % armor_width, pos / armor_width);
-        
-        let (east_index, east) = 
-            east(armor, armor_width, pos, longest_word);
+
+        let (east_index, east) = east(armor, armor_width, pos, longest_word);
         let mut east = east.as_str();
         for &length in word_lengths.iter() {
-            if length != east.len() { 
+            if length != east.len() {
                 east = &east[0..length];
-             }
+            }
             if words.contains(east) {
                 for &index in east_index.iter().take(length) {
                     symbols[index] = true;
@@ -103,12 +111,13 @@ fn part3(input: &str) -> usize {
                 break;
             }
         }
-        let (south_index, south) = 
-            south(armor, armor_width, pos, longest_word);
+        let (south_index, south) = south(armor, armor_width, pos, longest_word);
         let mut south = south.as_str();
         for &length in word_lengths.iter() {
-            if south.len() < length { continue; }
-            if length != south.len() { 
+            if south.len() < length {
+                continue;
+            }
+            if length != south.len() {
                 south = &south[0..length];
             }
             if words.contains(south) {
@@ -123,42 +132,37 @@ fn part3(input: &str) -> usize {
 }
 
 fn east(
-    armor: &str, 
-    width: usize, 
-    pos: Coord<usize, 2>, 
-    word_length: usize
+    armor: &str,
+    width: usize,
+    pos: Coord<usize, 2>,
+    word_length: usize,
 ) -> (Vec<usize>, String) {
     let armor = armor.as_bytes();
     let indices: Vec<usize> = (0..word_length)
         .map(|i| {
-            let x = (pos.x() + i) % (width - 1); 
+            let x = (pos.x() + i) % (width - 1);
             let coord = Coord::new2d(x, pos.y());
-            
+
             coord.get_index(&[width]).unwrap()
-        }).collect();
-    
-    
-    let rune: String = indices.iter()
-        .map(|&x| armor[x] as char)
+        })
         .collect();
+
+    let rune: String = indices.iter().map(|&x| armor[x] as char).collect();
     (indices, rune)
 }
 
 fn south(
-    armor: &str, 
-    width: usize, 
-    pos: Coord<usize, 2>, 
-    word_length: usize
+    armor: &str,
+    width: usize,
+    pos: Coord<usize, 2>,
+    word_length: usize,
 ) -> (Vec<usize>, String) {
     let length = (armor.len() + 1) / width;
     let armor = armor.as_bytes();
     let indices: Vec<usize> = (pos.y()..min(length, pos.y() + word_length))
-        .map(|y| {
-            Coord::new2d(pos.x(), y).get_index(&[width]).unwrap()
-        }).collect();
-    let rune: String = indices.iter()
-        .map(|&x| armor[x] as char)
+        .map(|y| Coord::new2d(pos.x(), y).get_index(&[width]).unwrap())
         .collect();
+    let rune: String = indices.iter().map(|&x| armor[x] as char).collect();
     (indices, rune)
 }
 

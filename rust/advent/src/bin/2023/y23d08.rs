@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 
 use advent::utilities::get_input::get_input;
-use utilities::{math::formulae::lcm, structs::stopwatch::{ReportDuration, Stopwatch}};
+use utilities::{
+    math::formulae::lcm,
+    structs::stopwatch::{ReportDuration, Stopwatch},
+};
 
 type Input<'a> = (&'a str, HashMap<String, (String, String)>);
 type Output = usize;
@@ -33,8 +36,10 @@ fn traverse<F>(
     directions: &str,
     network: &HashMap<String, (String, String)>,
     start_node: &str,
-    end_condition: F) -> usize
-    where F: Fn(&str) -> bool
+    end_condition: F,
+) -> usize
+where
+    F: Fn(&str) -> bool,
 {
     directions
         .chars()
@@ -42,21 +47,22 @@ fn traverse<F>(
         .scan(start_node, |node, dir| {
             let new_node = network
                 .get(&node.to_string())
-                .map(|(left, right)| if dir == 'L' {
-                    left.as_str()
-                } else {
-                    right.as_str()
+                .map(|(left, right)| {
+                    if dir == 'L' {
+                        left.as_str()
+                    } else {
+                        right.as_str()
+                    }
                 })
                 .unwrap();
             *node = new_node;
             Some(new_node)
         })
         .enumerate()
-        .find(|(_, node)| {
-            end_condition(node)
-        })
+        .find(|(_, node)| end_condition(node))
         .unwrap()
-        .0 + 1
+        .0
+        + 1
 }
 
 fn part1(input: &Input) -> Output {
@@ -68,7 +74,8 @@ fn part1(input: &Input) -> Output {
 fn part2(input: &Input) -> Output {
     let (directions, network) = input;
     let end_condition = |end: &str| end.ends_with('Z');
-    network.keys()
+    network
+        .keys()
         .filter(|node| node.ends_with('A'))
         .map(|node| traverse(directions, network, node, end_condition))
         .reduce(|acc, cycle_length| lcm(acc as i64, cycle_length as i64) as usize)

@@ -21,22 +21,19 @@ fn patterns(input: Input) -> impl Iterator<Item = Vec<i64>> + use<'_> {
     input
         .lines()
         .map(|line| line.split(' ').map(|n| n.parse().unwrap()).collect())
-
 }
 
 fn find_next(pattern: Vec<i64>) -> i64 {
     successors(Some(pattern), |it| {
         Some(it.iter().tuple_windows().map(|(a, b)| b - a).collect())
     })
-    .take_while(|next| next.iter().any(|it| it != &0) )
+    .take_while(|next| next.iter().any(|it| it != &0))
     .map(|it| *it.last().unwrap())
     .sum()
 }
 
 fn part1(input: Input) -> Output {
-    patterns(input)
-        .map(find_next)
-        .sum()
+    patterns(input).map(find_next).sum()
 }
 
 fn part2(input: Input) -> Output {

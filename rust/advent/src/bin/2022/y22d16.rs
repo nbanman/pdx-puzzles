@@ -1,11 +1,17 @@
-use std::{cmp::{min, Reverse}, collections::BinaryHeap};
+use std::{
+    cmp::{Reverse, min},
+    collections::BinaryHeap,
+};
 
 use advent::utilities::get_input::get_input;
 use bit_set::BitSet;
 use bit_vec::BitVec;
 use lazy_regex::regex;
 use rustc_hash::FxHashSet;
-use utilities::structs::{indexer::Indexer, stopwatch::{ReportDuration, Stopwatch}};
+use utilities::structs::{
+    indexer::Indexer,
+    stopwatch::{ReportDuration, Stopwatch},
+};
 
 type Int = usize;
 type FlowMap = Vec<Int>;
@@ -27,7 +33,6 @@ impl PartialOrd for State {
         Some(std::cmp::Ordering::Equal)
     }
 }
-
 
 fn main() {
     let mut stopwatch = Stopwatch::new();
@@ -57,7 +62,8 @@ fn parse_input(input: &str) -> Input {
     for (_, [valve, rate, tunnels]) in rx.captures_iter(input).map(|c| c.extract()) {
         let valve = indexer.get_index(&valve).unwrap();
         old_flow_map[valve] = rate.parse().unwrap();
-        let tunnels: Vec<(Int, Int)> = tunnels.split(", ")
+        let tunnels: Vec<(Int, Int)> = tunnels
+            .split(", ")
             .map(|tunnel| {
                 let tunnel: Int = indexer.get_index(&tunnel).unwrap();
                 (tunnel, 1)
@@ -86,9 +92,11 @@ fn parse_input(input: &str) -> Input {
                 }
             }
 
-            edge_map_no_valves[valve] = weights.into_iter().enumerate()
+            edge_map_no_valves[valve] = weights
+                .into_iter()
+                .enumerate()
                 .filter(|&(edge, weight)| {
-                    edge != valve && edge != aa && old_flow_map[edge] > 0 && weight != Int::MAX 
+                    edge != valve && edge != aa && old_flow_map[edge] > 0 && weight != Int::MAX
                 })
                 .collect();
         }
@@ -117,8 +125,10 @@ fn parse_input(input: &str) -> Input {
     }
 
     let mut flow_map: FlowMap = vec![0; reindexer.len()];
-    
-    old_flow_map.into_iter().enumerate()
+
+    old_flow_map
+        .into_iter()
+        .enumerate()
         .filter(|&(old_id, rate)| old_id == aa || rate > 0)
         .for_each(|(old_id, rate)| {
             let new_id = get_new_id(old_id, &indexer, &reindexer);
@@ -136,10 +146,10 @@ fn get_new_id(old_id: usize, indexer: &Indexer<&str>, reindexer: &Indexer<&str>)
 }
 
 fn solve(
-    start: usize, 
-    elephant_helper: bool, 
-    minutes: Int, 
-    flow_map: &FlowMap, 
+    start: usize,
+    elephant_helper: bool,
+    minutes: Int,
+    flow_map: &FlowMap,
     edge_map: &EdgeMap,
 ) -> Int {
     let mut max = 0;
@@ -154,7 +164,7 @@ fn solve(
                 Some((start, 0))
             } else {
                 None
-            }
+            },
         ],
         valves,
         flow: 0,
@@ -166,13 +176,19 @@ fn solve(
     let mut closed = FxHashSet::default();
 
     while let Some((heuristic, state)) = open.pop() {
-        if closed.contains(&state) { continue; }
+        if closed.contains(&state) {
+            continue;
+        }
 
-        let potential_future = heuristic + 
-            state.valves.iter()
+        let potential_future = heuristic
+            + state
+                .valves
+                .iter()
                 .map(|valve| {
                     let rate = flow_map[valve];
-                    state.pos.iter()
+                    state
+                        .pos
+                        .iter()
                         .filter_map(|&room_info| {
                             let (room, time_offset) = room_info?;
                             let time = edge_map[room][valve]? as i64;
@@ -196,7 +212,10 @@ fn solve(
 
         let mut distances: Vec<Option<(Int, i64)>> = vec![None; flow_map.len()];
         for valve in state.valves.iter() {
-            distances[valve] = state.pos.iter().enumerate()
+            distances[valve] = state
+                .pos
+                .iter()
+                .enumerate()
                 .filter_map(|(room_no, &room_info)| {
                     let (room, time_offset) = room_info?;
                     let time = edge_map[room][valve]? as i64;
@@ -207,19 +226,27 @@ fn solve(
         }
 
         for (valve, room_info) in distances.into_iter().enumerate() {
-            let Some((room_no, distance)) = room_info else { continue; };
+            let Some((room_no, distance)) = room_info else {
+                continue;
+            };
 
             let new_pos = if elephant_helper {
                 if room_no == 0 {
                     let new_first_offset = min(0, distance) as i64;
                     let new_second_offset = core::cmp::max(0, distance) as i64;
                     let second_room = state.pos[1].unwrap().0;
-                    [Some((valve, new_first_offset)), Some((second_room, new_second_offset))]
+                    [
+                        Some((valve, new_first_offset)),
+                        Some((second_room, new_second_offset)),
+                    ]
                 } else {
                     let new_second_offset = -(min(0, distance) as i64);
                     let new_first_offset = core::cmp::max(0, distance) as i64;
                     let first_room = state.pos[0].unwrap().0;
-                    [Some((first_room, new_first_offset)), Some((valve, new_second_offset))]
+                    [
+                        Some((first_room, new_first_offset)),
+                        Some((valve, new_second_offset)),
+                    ]
                 }
             } else {
                 [Some((valve, 0)), None]
@@ -239,7 +266,8 @@ fn solve(
                 minute: new_minute,
             };
 
-            let new_heuristic = (heuristic as i64 + flow_map[valve] as i64 * (new_minute as i64 - 1)) as usize;
+            let new_heuristic =
+                (heuristic as i64 + flow_map[valve] as i64 * (new_minute as i64 - 1)) as usize;
 
             open.push((new_heuristic, new_state));
         }

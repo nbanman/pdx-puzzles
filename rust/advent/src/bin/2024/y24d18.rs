@@ -1,9 +1,15 @@
 use std::collections::{HashSet, VecDeque};
 
-use bit_set::BitSet;
 use advent::utilities::get_input::get_input;
+use bit_set::BitSet;
 use itertools::Itertools;
-use utilities::{parsing::get_numbers::ContainsNumbers, structs::{coord::Coord2U, stopwatch::{ReportDuration, Stopwatch}}};
+use utilities::{
+    parsing::get_numbers::ContainsNumbers,
+    structs::{
+        coord::Coord2U,
+        stopwatch::{ReportDuration, Stopwatch},
+    },
+};
 
 type Input = Vec<BitSet>;
 
@@ -19,7 +25,9 @@ fn main() {
 }
 
 fn parse_input(input: &str) -> Input {
-    input.get_numbers().tuples::<(usize, usize)>()
+    input
+        .get_numbers()
+        .tuples::<(usize, usize)>()
         .scan(BitSet::new(), |state, (x, y)| {
             let mut next = BitSet::new();
             next.insert(y * 71 + x);
@@ -42,15 +50,12 @@ fn solve(bytes: &Input, simulate: usize) -> Option<usize> {
             return Some(steps);
         } else {
             visited.insert(pos);
-            let neighbors = pos
-                .adjacent(false)
-                .into_iter()
-                .filter(|neighbor| {
-                    bounds.contains(&neighbor.x()) 
-                        && bounds.contains(&neighbor.y())
-                        && !bytes.contains(neighbor.get_index(&[71]).unwrap())
-                        && visited.insert(*neighbor)
-                });
+            let neighbors = pos.adjacent(false).into_iter().filter(|neighbor| {
+                bounds.contains(&neighbor.x())
+                    && bounds.contains(&neighbor.y())
+                    && !bytes.contains(neighbor.get_index(&[71]).unwrap())
+                    && visited.insert(*neighbor)
+            });
             for neighbor in neighbors {
                 q.push_back((neighbor, steps + 1));
             }

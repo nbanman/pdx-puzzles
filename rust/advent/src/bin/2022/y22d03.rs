@@ -24,11 +24,15 @@ fn priority(b: u8) -> u8 {
 }
 
 fn bitset(sack: &[u8]) -> Int {
-    sack.iter().fold(0, |acc, &b| acc | (1 << (priority(b) as Int)))
+    sack.iter()
+        .fold(0, |acc, &b| acc | (1 << (priority(b) as Int)))
 }
 
 fn part1(rucksacks: Input) -> Int {
-    rucksacks.trim_end().as_bytes().split(|&b| b == b'\n')
+    rucksacks
+        .trim_end()
+        .as_bytes()
+        .split(|&b| b == b'\n')
         .map(|sack| {
             let (a, b) = sack.split_at(sack.len() / 2);
             (bitset(a) & bitset(b)).trailing_zeros() as u64
@@ -37,12 +41,18 @@ fn part1(rucksacks: Input) -> Int {
 }
 
 fn part2(rucksacks: Input) -> Int {
-    rucksacks.trim_end().as_bytes().split(|&b| b == b'\n')
+    rucksacks
+        .trim_end()
+        .as_bytes()
+        .split(|&b| b == b'\n')
         .map(|sack| bitset(sack))
         .chunks(3)
         .into_iter()
         .map(|chunk| {
-            chunk.reduce(std::ops::BitAnd::bitand).unwrap().trailing_zeros() as Int
+            chunk
+                .reduce(std::ops::BitAnd::bitand)
+                .unwrap()
+                .trailing_zeros() as Int
         })
         .sum()
 }

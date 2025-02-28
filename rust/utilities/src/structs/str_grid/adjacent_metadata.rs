@@ -3,7 +3,7 @@ use crate::enums::cardinals::Cardinal;
 use super::IndexesToGrid;
 
 pub struct AdjacentMetadata<T>
-where 
+where
     T: IndexesToGrid,
 {
     pub pos: T,

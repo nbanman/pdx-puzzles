@@ -6,14 +6,13 @@ use crate::{enums::cardinals::Cardinal, structs::coord::Coord};
 
 type Pos = Coord<usize, 2>;
 
-pub mod str_grid_error;
 pub mod adjacent_metadata;
 pub mod indexes_to_grid;
+pub mod str_grid_error;
 
-pub use str_grid_error::*;
 pub use adjacent_metadata::*;
 pub use indexes_to_grid::*;
-
+pub use str_grid_error::*;
 
 #[derive(Debug, Clone)]
 pub struct StrGrid<'a> {
@@ -31,17 +30,23 @@ impl<'a> StrGrid<'a> {
         if s.contains(&b'\r') {
             return Err(StrGridError::ContainsCarriageReturns);
         }
-        let breaks: Vec<usize> = s.iter().enumerate()
+        let breaks: Vec<usize> = s
+            .iter()
+            .enumerate()
             .filter(|&(_, &c)| c == b'\n')
             .map(|(idx, _)| idx)
             .collect();
         let width = *breaks.first().ok_or(StrGridError::NoLineBreak)? + 1;
-        if breaks.iter().tuple_windows()
+        if breaks
+            .iter()
+            .tuple_windows()
             .map(|(a, b)| b - a)
             .collect::<HashSet<_>>()
-            .len() != 1 {
-                return Err(StrGridError::UnevenWidth);
-            }
+            .len()
+            != 1
+        {
+            return Err(StrGridError::UnevenWidth);
+        }
         let offset = if s[s.len() - 1] == b'\n' { 0 } else { 1 };
         let height = (s.len() + offset) / width;
         Ok(Self { s, width, height })
@@ -50,15 +55,15 @@ impl<'a> StrGrid<'a> {
     pub fn idx_to_coord(&self, idx: &usize) -> Pos {
         Pos::new2d(idx % self.width, idx / self.width)
     }
-    
+
     pub fn coord_to_idx(&self, coord: &Pos) -> usize {
         coord.y() * self.width + coord.x()
     }
-    
+
     pub fn get(&self, idx: impl IndexesToGrid) -> Option<u8> {
         self.get_index(idx.as_grid_idx(self))
     }
-    
+
     pub fn get_index(&self, idx: usize) -> Option<u8> {
         let b = self.s.get(idx)?;
         if *b == b'\n' {
@@ -72,47 +77,48 @@ impl<'a> StrGrid<'a> {
         let idx = self.coord_to_idx(&coord);
         self.get(idx)
     }
-    
+
     pub fn try_get<T: TryInto<usize>>(&self, idx: T) -> Option<u8> {
-        match idx.try_into() { Ok(idx) => {
-            self.get(idx)
-        } _ => {
-            None
-        }}
+        match idx.try_into() {
+            Ok(idx) => self.get(idx),
+            _ => None,
+        }
     }
-    
+
     pub fn try_get_coord<T: TryInto<Pos>>(&self, pos: T) -> Option<u8> {
-        match pos.try_into() { Ok(pos) => {
-            let idx = self.coord_to_idx(&pos);
-            self.try_get(idx)
-        } _ => {
-            None
-        }}
-        
+        match pos.try_into() {
+            Ok(pos) => {
+                let idx = self.coord_to_idx(&pos);
+                self.try_get(idx)
+            }
+            _ => None,
+        }
     }
-    
-    pub fn adjacent<T>(&'a self, idx: T) -> impl Iterator<Item = AdjacentMetadata<T>> + 'a 
-    where 
-        T: IndexesToGrid + 'a
+
+    pub fn adjacent<T>(&'a self, idx: T) -> impl Iterator<Item = AdjacentMetadata<T>> + 'a
+    where
+        T: IndexesToGrid + 'a,
     {
         let idx_usize = idx.as_grid_idx(self);
-        Cardinal::entries().into_iter()
-            .filter_map(move |dir| {
-                let a_idx = match dir {
-                    Cardinal::North => idx_usize.checked_sub(self.width),
-                    Cardinal::East => Some(idx_usize + 1),
-                    Cardinal::South => Some(idx_usize + self.width),
-                    Cardinal::West => idx_usize.checked_sub(1),
-                }?;
-                let a_b = self.get(a_idx)?;
-                Some(AdjacentMetadata { pos: idx.to_self(a_idx, self), dir, b: a_b  })
+        Cardinal::entries().into_iter().filter_map(move |dir| {
+            let a_idx = match dir {
+                Cardinal::North => idx_usize.checked_sub(self.width),
+                Cardinal::East => Some(idx_usize + 1),
+                Cardinal::South => Some(idx_usize + self.width),
+                Cardinal::West => idx_usize.checked_sub(1),
+            }?;
+            let a_b = self.get(a_idx)?;
+            Some(AdjacentMetadata {
+                pos: idx.to_self(a_idx, self),
+                dir,
+                b: a_b,
             })
-    } 
+        })
+    }
 
-    pub fn move_direction<T>(&'a self, idx: T, dir: Cardinal) 
-        -> Option<AdjacentMetadata<T>>
-    where 
-        T: IndexesToGrid + 'a
+    pub fn move_direction<T>(&'a self, idx: T, dir: Cardinal) -> Option<AdjacentMetadata<T>>
+    where
+        T: IndexesToGrid + 'a,
     {
         let idx_usize = idx.as_grid_idx(self);
         let a_idx = match dir {
@@ -122,8 +128,10 @@ impl<'a> StrGrid<'a> {
             Cardinal::West => idx_usize.checked_sub(1),
         }?;
         let a_b = self.get(a_idx)?;
-        Some(AdjacentMetadata { pos: idx.to_self(a_idx, self), dir, b: a_b  })
+        Some(AdjacentMetadata {
+            pos: idx.to_self(a_idx, self),
+            dir,
+            b: a_b,
+        })
     }
-
 }
-

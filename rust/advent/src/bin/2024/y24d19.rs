@@ -14,8 +14,16 @@ fn main() {
     let mut cache = Cache::default();
     cache.insert(String::new(), 1usize);
     println!("Input parsed ({})", stopwatch.lap().report());
-    println!("1. {} ({})", part1(&input, &mut cache), stopwatch.lap().report());
-    println!("2. {} ({})", part2(&input, &mut cache), stopwatch.lap().report());
+    println!(
+        "1. {} ({})",
+        part1(&input, &mut cache),
+        stopwatch.lap().report()
+    );
+    println!(
+        "2. {} ({})",
+        part2(&input, &mut cache),
+        stopwatch.lap().report()
+    );
     println!("Total: {}", stopwatch.stop().report());
 }
 
@@ -29,9 +37,14 @@ fn parse_input(input: &str) -> Input {
 }
 
 fn variations(design: &str, towels: &[&str], cache: &mut Cache) -> Output {
-    if design.is_empty() { return 1; }
-    if cache.contains_key(design) { return cache[design]; }
-    let vars = towels.iter() 
+    if design.is_empty() {
+        return 1;
+    }
+    if cache.contains_key(design) {
+        return cache[design];
+    }
+    let vars = towels
+        .iter()
         .map(|&towel| {
             if let Some(stripped) = design.strip_prefix(towel) {
                 variations(stripped, towels, cache)
@@ -46,14 +59,16 @@ fn variations(design: &str, towels: &[&str], cache: &mut Cache) -> Output {
 
 fn part1(input: &Input, cache: &mut Cache) -> Output {
     let (towels, designs) = input;
-    designs.iter()
+    designs
+        .iter()
         .filter(|&&design| variations(design, towels, cache) > 0)
         .count()
 }
 
 fn part2(input: &Input, cache: &mut Cache) -> Output {
     let (towels, designs) = input;
-    designs.iter()
+    designs
+        .iter()
         .map(|&design| variations(design, towels, cache))
         .sum()
 }

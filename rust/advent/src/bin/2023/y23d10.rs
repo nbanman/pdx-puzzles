@@ -2,7 +2,13 @@ use std::iter::successors;
 
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
-use utilities::{enums::cardinals::Cardinal, structs::{stopwatch::{ReportDuration, Stopwatch}, str_grid::{AdjacentMetadata, StrGrid}}};
+use utilities::{
+    enums::cardinals::Cardinal,
+    structs::{
+        stopwatch::{ReportDuration, Stopwatch},
+        str_grid::{AdjacentMetadata, StrGrid},
+    },
+};
 
 type Input = Vec<Cardinal>;
 type Output = usize;
@@ -21,15 +27,11 @@ fn main() {
 fn parse_input(input: &str) -> Input {
     let field = StrGrid::new(input).unwrap();
     let start_pos = input.find('S').unwrap();
-    let north = field
-        .move_direction(start_pos, Cardinal::North)
-        .unwrap();
+    let north = field.move_direction(start_pos, Cardinal::North).unwrap();
     let start_dir = if north.b == b'7' || north.b == b'F' || north.b == b'|' {
         Cardinal::North
     } else {
-        let east = field
-            .move_direction(start_pos, Cardinal::East)
-            .unwrap();
+        let east = field.move_direction(start_pos, Cardinal::East).unwrap();
         if east.b == b'7' || east.b == b'J' || east.b == b'-' {
             Cardinal::East
         } else {
@@ -40,23 +42,32 @@ fn parse_input(input: &str) -> Input {
     let move_along_pipe = |pos, dir| {
         let new_pos: AdjacentMetadata<usize> = field.move_direction(pos, dir).unwrap();
         let new_dir = match new_pos.b {
-            b'L' | b'7' => if dir.ordinal() & 1 == 1 { dir.right() } else { dir.left() },
-            b'J' | b'F' => if dir.ordinal() & 1 == 0 { dir.right() } else { dir.left() },   
+            b'L' | b'7' => {
+                if dir.ordinal() & 1 == 1 {
+                    dir.right()
+                } else {
+                    dir.left()
+                }
+            }
+            b'J' | b'F' => {
+                if dir.ordinal() & 1 == 0 {
+                    dir.right()
+                } else {
+                    dir.left()
+                }
+            }
             _ => dir,
         };
         (new_pos, new_dir)
     };
 
-    
-
-    successors(Some(move_along_pipe(start_pos, start_dir)), |(next_pos, next_dir)| {
-        Some(move_along_pipe(next_pos.pos, *next_dir))
-    })
-        .take_while_inclusive(|(next_pos, _)| {
-            next_pos.b != b'S'
-        })
-        .map(|(_, dir)| dir)
-        .collect()
+    successors(
+        Some(move_along_pipe(start_pos, start_dir)),
+        |(next_pos, next_dir)| Some(move_along_pipe(next_pos.pos, *next_dir)),
+    )
+    .take_while_inclusive(|(next_pos, _)| next_pos.b != b'S')
+    .map(|(_, dir)| dir)
+    .collect()
 }
 
 fn part1(pipe: &Input) -> Output {
@@ -64,14 +75,13 @@ fn part1(pipe: &Input) -> Output {
 }
 
 fn part2(pipe: &Input) -> Output {
-    let area: i32 = pipe.iter()
-        .fold((0, 0), |(sum, d), dir| {
-            match &dir {
-                Cardinal::North => (sum, d - 1),
-                Cardinal::East => (sum + d, d),
-                Cardinal::South => (sum, d + 1),
-                Cardinal::West => (sum - d, d),
-            }
+    let area: i32 = pipe
+        .iter()
+        .fold((0, 0), |(sum, d), dir| match &dir {
+            Cardinal::North => (sum, d - 1),
+            Cardinal::East => (sum + d, d),
+            Cardinal::South => (sum, d + 1),
+            Cardinal::West => (sum - d, d),
         })
         .0;
     (area.unsigned_abs() as usize) - (pipe.len() / 2) + 1

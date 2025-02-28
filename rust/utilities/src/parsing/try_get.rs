@@ -4,10 +4,9 @@ pub trait TryGet<T> {
 
 impl<T> TryGet<T> for [T] {
     fn try_get<U: TryInto<usize>>(&self, n: U) -> Option<&T> {
-        match n.try_into() { Ok(index) => {
-            self.get(index)
-        } _ => {
-            None
-        }}
+        match n.try_into() {
+            Ok(index) => self.get(index),
+            _ => None,
+        }
     }
 }

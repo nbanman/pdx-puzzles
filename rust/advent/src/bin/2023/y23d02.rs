@@ -26,16 +26,16 @@ fn parse_input(input: &str) -> Input {
         .map(|line| {
             let mut game: HashMap<String, usize> = HashMap::new();
             pattern.captures_iter(line).for_each(|m| {
-                let amt = m.get(1).map_or(0, |amt| {
-                    amt.as_str().parse::<usize>().unwrap()
-                });
-                let color = m.get(2).map_or("unknown", |color| {
-                    color.as_str()
-                });
+                let amt = m
+                    .get(1)
+                    .map_or(0, |amt| amt.as_str().parse::<usize>().unwrap());
+                let color = m.get(2).map_or("unknown", |color| color.as_str());
                 match game.get(color) {
-                    Some(n) => if n < &amt {
-                        game.insert(color.to_string(), amt);
-                    },
+                    Some(n) => {
+                        if n < &amt {
+                            game.insert(color.to_string(), amt);
+                        }
+                    }
                     None => {
                         game.insert(color.to_string(), amt);
                     }
@@ -47,7 +47,8 @@ fn parse_input(input: &str) -> Input {
                 }
             });
             game
-        }).collect()
+        })
+        .collect()
 }
 
 fn part1(input: &Input) -> Output {
@@ -60,19 +61,17 @@ fn part1(input: &Input) -> Output {
         .iter()
         .enumerate()
         .filter(|(_, game)| {
-            game.iter().all(|(color, amt)| {
-                standard_bag.get(color).unwrap_or(&0) >= amt
-            })
-        }).map(|(index, _)| index + 1)
+            game.iter()
+                .all(|(color, amt)| standard_bag.get(color).unwrap_or(&0) >= amt)
+        })
+        .map(|(index, _)| index + 1)
         .sum()
 }
 
 fn part2(input: &Input) -> Output {
     input
         .iter()
-        .map(|game| {
-            game.values().product::<usize>()
-        })
+        .map(|game| game.values().product::<usize>())
         .sum()
 }
 

@@ -11,7 +11,7 @@ type Output = usize;
 #[derive(Debug, PartialEq, Eq)]
 enum Packet {
     List(Vec<Packet>),
-    Value(Value)
+    Value(Value),
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -27,27 +27,25 @@ impl Value {
 impl Ord for Packet {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         match self {
-            Packet::List(a_list) => {
-                match other {
-                    Packet::List(b_list) => {
-                        for (a_item, b_item) in a_list.iter().zip(b_list.iter()) {
-                            match a_item.cmp(b_item) {
-                                Ordering::Equal => { continue; },
-                                eval => { return eval; }
+            Packet::List(a_list) => match other {
+                Packet::List(b_list) => {
+                    for (a_item, b_item) in a_list.iter().zip(b_list.iter()) {
+                        match a_item.cmp(b_item) {
+                            Ordering::Equal => {
+                                continue;
+                            }
+                            eval => {
+                                return eval;
                             }
                         }
-                        a_list.len().cmp(&b_list.len())
-                    },
-                    Packet::Value(b_val) => {
-                        self.cmp(&b_val.to_packet_list())
-                    },
+                    }
+                    a_list.len().cmp(&b_list.len())
                 }
+                Packet::Value(b_val) => self.cmp(&b_val.to_packet_list()),
             },
-            Packet::Value(a_val) => {
-                match other {
-                    Packet::List(_) => a_val.to_packet_list().cmp(&other),
-                    Packet::Value(b_val) => a_val.0.cmp(&b_val.0),
-                }
+            Packet::Value(a_val) => match other {
+                Packet::List(_) => a_val.to_packet_list().cmp(&other),
+                Packet::Value(b_val) => a_val.0.cmp(&b_val.0),
             },
         }
     }
@@ -66,17 +64,18 @@ impl Packet {
      */
     fn new(line: &str) -> Self {
         let rx = regex!(r"\[|]|\d+");
-        let mut iterator = rx.find_iter(line)
-            .map(|m| m.as_str());
+        let mut iterator = rx.find_iter(line).map(|m| m.as_str());
         Self::make_packet(&mut iterator)
     }
 
-    fn make_packet<'a> (iterator: &mut impl Iterator<Item = &'a str>) -> Packet {
+    fn make_packet<'a>(iterator: &mut impl Iterator<Item = &'a str>) -> Packet {
         let mut list = Vec::new();
         while let Some(next) = iterator.next() {
             match next {
                 "[" => list.push(Self::make_packet(iterator)),
-                "]" => { break; },
+                "]" => {
+                    break;
+                }
                 next => list.push(Packet::Value(Value(next.parse().unwrap()))),
             }
         }
@@ -96,33 +95,29 @@ fn main() {
 }
 
 fn parse_input(input: &str) -> Input {
-    input.lines().filter(|line| !line.is_empty()).map(Packet::new).collect()
+    input
+        .lines()
+        .filter(|line| !line.is_empty())
+        .map(Packet::new)
+        .collect()
 }
 
 fn part1(packets: &Input) -> Output {
-    packets.iter()
+    packets
+        .iter()
         .tuples::<(_, _)>()
         .enumerate()
-        .map(|(index, (a, b))| {
-            if a < b {
-                index + 1
-            } else {
-                0
-            }
-        })
+        .map(|(index, (a, b))| if a < b { index + 1 } else { 0 })
         .sum()
 }
 
 fn part2(packets: &Input) -> Output {
-    let divider_packets = [
-        Packet::new("[[2]]"),
-        Packet::new("[[6]]"),
-    ];
+    let divider_packets = [Packet::new("[[2]]"), Packet::new("[[6]]")];
 
-    divider_packets.iter().enumerate()
-        .map(|(index, packet)| {
-            packets.iter().filter(|&other| packet > other).count() + index + 1
-        })
+    divider_packets
+        .iter()
+        .enumerate()
+        .map(|(index, packet)| packets.iter().filter(|&other| packet > other).count() + index + 1)
         .reduce(std::ops::Mul::mul)
         .unwrap()
 }

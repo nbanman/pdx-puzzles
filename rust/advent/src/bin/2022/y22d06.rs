@@ -21,21 +21,25 @@ fn solve(input: Input, n: usize) -> Output {
     let mut duplicate_index = 0;
     let mut index = 0;
 
-    input.as_bytes().iter().enumerate()
-        .find(|(_, &b)| {
+    input
+        .as_bytes()
+        .iter()
+        .enumerate()
+        .find(|&(_, &b)| {
             let i = (b - b'a') as usize;
 
             let last_seen = index_map[i];
             index_map[i] = index;
             duplicate_index = max(duplicate_index, last_seen);
-            
+
             let predicate = index - duplicate_index >= n;
             index += 1;
 
             predicate
         })
         .unwrap()
-        .0 + 1
+        .0
+        + 1
 }
 
 fn part1(input: Input) -> Output {

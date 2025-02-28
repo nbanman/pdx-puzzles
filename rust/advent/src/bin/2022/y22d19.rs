@@ -3,7 +3,10 @@ use std::collections::VecDeque;
 use advent::utilities::get_input::get_input;
 use lazy_regex::regex;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use utilities::structs::{indexer::Indexer, stopwatch::{ReportDuration, Stopwatch}};
+use utilities::structs::{
+    indexer::Indexer,
+    stopwatch::{ReportDuration, Stopwatch},
+};
 
 type Input<'a> = (Vec<Blueprint>, Indexer<&'a str>);
 type Output = usize;
@@ -35,9 +38,13 @@ struct State {
 
 impl State {
     fn new() -> Self {
-        State { minute: 0, resources: [0; 4], robots: [0; 4] }
+        State {
+            minute: 0,
+            resources: [0; 4],
+            robots: [0; 4],
+        }
     }
-    
+
     fn max_bound(&self, minutes: usize, resource: usize) -> usize {
         let current_amount = self.resources[resource];
         let current_robot_num = self.robots[resource];
@@ -46,23 +53,23 @@ impl State {
             .sum();
         current_amount + max_future
     }
-    
+
     fn min_bound(&self, minutes: usize, resource: usize) -> usize {
         let current_amount = self.resources[resource];
         let current_robot_num = self.robots[resource];
         current_amount + (minutes - self.minute) * current_robot_num
     }
-    
+
     fn next_states(
-        &self, 
-        blueprint: &Blueprint, 
-        minutes: usize, 
-        cutoff: &Vec<usize>
+        &self,
+        blueprint: &Blueprint,
+        minutes: usize,
+        cutoff: &Vec<usize>,
     ) -> Vec<State> {
         (0..4)
             .filter_map(|robot_type| {
-                if Some(&self.robots[robot_type]) == blueprint.max_material.get(robot_type) { 
-                    return None; 
+                if Some(&self.robots[robot_type]) == blueprint.max_material.get(robot_type) {
+                    return None;
                 }
                 let remaining_minutes = minutes.checked_sub(self.minute)?;
                 remaining_minutes.checked_sub(cutoff[robot_type])?;
@@ -78,7 +85,7 @@ impl State {
                 for (component, cost) in new_resources.iter_mut().enumerate() {
                     *cost = *cost + self.robots[component] * build_time - costs[component];
                 }
-                
+
                 Some(State {
                     minute: self.minute + build_time,
                     resources: new_resources,
@@ -87,9 +94,11 @@ impl State {
             })
             .collect()
     }
-    
+
     fn build_time(&self, blueprint: &Blueprint, robot_type: usize) -> usize {
-        blueprint.robot_costs[robot_type].iter().enumerate()
+        blueprint.robot_costs[robot_type]
+            .iter()
+            .enumerate()
             .map(|(component, &cost)| {
                 let resources_available = self.resources[component];
                 if cost <= resources_available {
@@ -99,8 +108,9 @@ impl State {
                     if robots_available == 0 {
                         usize::MAX
                     } else {
-                        ((cost - resources_available) as f64 
-                            / robots_available as f64).ceil() as usize + 1
+                        ((cost - resources_available) as f64 / robots_available as f64).ceil()
+                            as usize
+                            + 1
                     }
                 }
             })
@@ -112,7 +122,9 @@ impl State {
 fn parse_input(input: &str) -> Input {
     let rx = regex!(r"Each ([a-z]+) robot costs (\d+) ([a-z]+)(?: and (\d+) ([a-z]+))?. ?");
     let mut indexer = Indexer::new();
-    let blueprints = input.lines().enumerate()
+    let blueprints = input
+        .lines()
+        .enumerate()
         .map(|(idx, spec)| {
             let mut robot_costs = [[0; 4]; 4];
             for caps in rx.captures_iter(spec) {
@@ -125,7 +137,7 @@ fn parse_input(input: &str) -> Input {
                 let resource1 = indexer.get_or_assign_index(resource1);
 
                 robot[resource1] = cost1;
-                
+
                 if let Some(cost2) = caps.get(4) {
                     let cost2: usize = cost2.as_str().parse().unwrap();
                     let resource2 = caps.get(5).unwrap().as_str();
@@ -135,22 +147,27 @@ fn parse_input(input: &str) -> Input {
                 }
             }
             let max_material: [usize; 3] = std::array::from_fn(|resource| {
-                robot_costs.iter()
-                .map(|resources| resources[resource])
-                .max()
-                .unwrap_or_default()
+                robot_costs
+                    .iter()
+                    .map(|resources| resources[resource])
+                    .max()
+                    .unwrap_or_default()
             });
-            Blueprint { id: idx + 1, robot_costs, max_material }
+            Blueprint {
+                id: idx + 1,
+                robot_costs,
+                max_material,
+            }
         })
         .collect();
     (blueprints, indexer)
 }
 
 fn find_resource(
-    blueprint: &Blueprint, 
-    resource: usize, 
-    initial_state: State, 
-    minutes: usize
+    blueprint: &Blueprint,
+    resource: usize,
+    initial_state: State,
+    minutes: usize,
 ) -> Output {
     let cutoff: Vec<usize> = (0..4)
         .map(|robot_type| {
@@ -167,7 +184,9 @@ fn find_resource(
     let mut q = VecDeque::new();
     q.push_back(initial_state);
     while let Some(state) = q.pop_front() {
-        if state.max_bound(minutes, resource) < max_geodes { continue; }
+        if state.max_bound(minutes, resource) < max_geodes {
+            continue;
+        }
         let min_geodes = state.min_bound(minutes, resource);
         if min_geodes > max_geodes {
             max_geodes = min_geodes;
@@ -182,14 +201,16 @@ fn find_resource(
 fn part1((blueprints, indexer): &Input) -> Output {
     let mut initial_state = State::new();
     initial_state.robots[indexer.get_index(&"ore").unwrap()] = 1;
-    blueprints.par_iter()
+    blueprints
+        .par_iter()
         .map(|blueprint| {
-            blueprint.id * find_resource(
-                blueprint, 
-                indexer.get_index(&"geode").unwrap(), 
-                initial_state, 
-                24
-            )
+            blueprint.id
+                * find_resource(
+                    blueprint,
+                    indexer.get_index(&"geode").unwrap(),
+                    initial_state,
+                    24,
+                )
         })
         .sum()
 }
@@ -197,13 +218,14 @@ fn part1((blueprints, indexer): &Input) -> Output {
 fn part2((blueprints, indexer): &Input) -> Output {
     let mut initial_state = State::new();
     initial_state.robots[indexer.get_index(&"ore").unwrap()] = 1;
-    blueprints[..3].par_iter()
+    blueprints[..3]
+        .par_iter()
         .map(|blueprint| {
             find_resource(
-                blueprint, 
-                indexer.get_index(&"geode").unwrap(), 
-                initial_state, 
-                32
+                blueprint,
+                indexer.get_index(&"geode").unwrap(),
+                initial_state,
+                32,
             )
         })
         .reduce(|| 1, |acc, minutes| acc * minutes)

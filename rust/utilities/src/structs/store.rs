@@ -5,10 +5,10 @@ use indexmap::IndexMap;
 #[derive(Clone, Default, Debug)]
 pub struct Store<K: Hash + Eq, V> {
     id: usize,
-    values: IndexMap<K, V>
+    values: IndexMap<K, V>,
 }
 
-impl <K: Hash + Eq, V> Store<K, V> {
+impl<K: Hash + Eq, V> Store<K, V> {
     pub fn new() -> Self {
         let values = IndexMap::new();
         Self { id: 0, values }
@@ -50,11 +50,11 @@ impl <K: Hash + Eq, V> Store<K, V> {
         self.id > index
     }
 
-    pub fn get_entry(&self, index: usize) -> Option<(&K, &V)>  {
+    pub fn get_entry(&self, index: usize) -> Option<(&K, &V)> {
         self.values.get_index(index)
     }
 
-    pub fn get_entry_mut(&mut self, index: usize) -> Option<(&K, &mut V)>  {
+    pub fn get_entry_mut(&mut self, index: usize) -> Option<(&K, &mut V)> {
         self.values.get_index_mut(index)
     }
 

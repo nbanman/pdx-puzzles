@@ -23,7 +23,9 @@ struct State {
 impl State {
     fn contains(&self, x: i8, y: usize, rock: &[i8]) -> bool {
         rock.iter().enumerate().any(|(dy, &row)| {
-            let Some(&other) = self.rows.get(y + dy) else { return false; };
+            let Some(&other) = self.rows.get(y + dy) else {
+                return false;
+            };
             (row << x) as u8 & other != 0
         })
     }
@@ -50,8 +52,9 @@ impl State {
                 continue;
             }
             for next in [pos - 8, pos - 1, pos + 1, pos + 8] {
-                if next & 7 != 7 && (0..(visible.len() << 3)).contains(&next) &&
-                    visible[next >> 3] & (1 << (next & 7)) == 0 
+                if next & 7 != 7
+                    && (0..(visible.len() << 3)).contains(&next)
+                    && visible[next >> 3] & (1 << (next & 7)) == 0
                 {
                     visible[next >> 3] = visible[next >> 3] | (1 << (next & 7));
                     q.push(next);
@@ -61,12 +64,17 @@ impl State {
         for (i, row) in rows.iter_mut().enumerate() {
             *row = *row & visible[i];
         }
-        let trim = rows.iter().enumerate()
-            .find(|(_, &row)| row != 0)
+        let trim = rows
+            .iter()
+            .enumerate()
+            .find(|&(_, &row)| row != 0)
             .map(|(i, _)| i)
             .unwrap_or_default();
-        
-        Self { height, rows: rows[trim as usize..].to_owned() }
+
+        Self {
+            height,
+            rows: rows[trim as usize..].to_owned(),
+        }
     }
 }
 
@@ -83,8 +91,11 @@ fn main() {
 fn solve(n: usize, jet: Input) -> Output {
     let jet = jet.trim();
     let mut jet_index = 0;
-    let mut state = State { height: 0, rows: vec![127] };
-    let mut seen: HashMap<(usize, usize, Vec<u8>), usize, rustc_hash::FxBuildHasher> = 
+    let mut state = State {
+        height: 0,
+        rows: vec![127],
+    };
+    let mut seen: HashMap<(usize, usize, Vec<u8>), usize, rustc_hash::FxBuildHasher> =
         FxHashMap::default();
     let mut heights: Vec<usize> = Vec::new();
 
@@ -92,9 +103,9 @@ fn solve(n: usize, jet: Input) -> Output {
         let rock_index = i % 5;
         if let Some(j) = seen.insert((rock_index, jet_index, state.rows.clone()), i) {
             let q = (n - j) / (i - j);
-            let r = (n -j) % (i - j);
+            let r = (n - j) % (i - j);
             return heights[j + r] + q * (state.height - heights[j]);
-        } 
+        }
         let (width, rock) = ROCKS[rock_index];
         let mut x: i8 = 2;
         let mut y = state.rows.len() + 3;
@@ -102,7 +113,7 @@ fn solve(n: usize, jet: Input) -> Output {
             let x2 = match jet.as_bytes()[jet_index] {
                 b'<' => x - 1,
                 b'>' => x + 1,
-                c => panic!("{} is not a valid wind direction", c as char)
+                c => panic!("{} is not a valid wind direction", c as char),
             };
             jet_index = if jet_index == jet.len() - 1 {
                 0
@@ -119,7 +130,6 @@ fn solve(n: usize, jet: Input) -> Output {
     }
     state.height
 }
-
 
 fn part1(jet: Input) -> Output {
     solve(2022, jet)

@@ -45,7 +45,8 @@ fn parse_input(garden: &str) -> Input {
                 } else {
                     false
                 }
-            }).collect();
+            })
+            .collect();
         neighbors.into_iter().for_each(|neighbor| {
             visited[neighbor as usize] = true;
             q.push_back((neighbor as usize, steps + 1));
@@ -56,18 +57,21 @@ fn parse_input(garden: &str) -> Input {
 
 fn part1(input: &Input) -> Output {
     let (_, garden_path) = input;
-    garden_path.iter().filter(|steps| steps <= &&64u8 && *steps & 1 == 0).count()
+    garden_path
+        .iter()
+        .filter(|steps| steps <= &&64u8 && *steps & 1 == 0)
+        .count()
 }
 
 fn part2(input: &Input) -> Output {
     let (width, garden_path) = input;
-    let (even_path, odd_path): (Vec<u8>, Vec<u8>) = garden_path.iter()
-        .partition(|&it| *it & 1 == 0);
+    let (even_path, odd_path): (Vec<u8>, Vec<u8>) =
+        garden_path.iter().partition(|&it| *it & 1 == 0);
     let even_corners = even_path.iter().filter(|it| it > &&65).count();
     let odd_corners = odd_path.iter().filter(|it| it > &&65).count();
     let n = (26501365 - width / 2) / width;
-    (n + 1) * (n + 1) * odd_path.len() + n * n * even_path.len() - (n + 1) 
-        * odd_corners + n * even_corners
+    (n + 1) * (n + 1) * odd_path.len() + n * n * even_path.len() - (n + 1) * odd_corners
+        + n * even_corners
 }
 
 #[test]

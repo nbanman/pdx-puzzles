@@ -1,6 +1,12 @@
 use advent::utilities::get_input::get_input;
 use rustc_hash::FxHashSet;
-use utilities::{enums::cardinals::Cardinal, structs::{coord::Coord2, stopwatch::{ReportDuration, Stopwatch}}};
+use utilities::{
+    enums::cardinals::Cardinal,
+    structs::{
+        coord::Coord2,
+        stopwatch::{ReportDuration, Stopwatch},
+    },
+};
 
 type Pos = Coord2;
 type Input = Vec<Pos>;
@@ -53,7 +59,7 @@ fn solve(first_knot: Input, knots: usize) -> usize {
                 if diff.x().abs() > 1 || diff.y().abs() > 1 {
                     pos += Pos::new2d(diff.x().signum(), 0);
                     pos += Pos::new2d(0, diff.y().signum());
-                    rope.push(pos);  
+                    rope.push(pos);
                 }
             }
             rope

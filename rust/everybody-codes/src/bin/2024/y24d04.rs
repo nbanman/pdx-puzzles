@@ -7,27 +7,26 @@ fn main() {
     println!("3. {}", solve(&input3, least));
 }
 
-fn lowest(nails: &mut[usize]) -> usize {
+fn lowest(nails: &mut [usize]) -> usize {
     *nails.iter().min().unwrap()
 }
 
-fn least(nails: &mut[usize]) -> usize {
+fn least(nails: &mut [usize]) -> usize {
     nails.sort_unstable();
     nails[nails.len() / 2]
 }
 
-fn solve<F>(input: &str, get_target: F) -> usize 
+fn solve<F>(input: &str, get_target: F) -> usize
 where
-    F: FnOnce(&mut[usize]) -> usize,
+    F: FnOnce(&mut [usize]) -> usize,
 {
-    let mut nails: Vec<usize> = input.lines()
+    let mut nails: Vec<usize> = input
+        .lines()
         .map(|line| line.parse::<usize>().unwrap())
         .collect();
     let target = get_target(&mut nails);
-    
-    nails.into_iter()
-        .map(|nail| target.abs_diff(nail))
-        .sum()
+
+    nails.into_iter().map(|nail| target.abs_diff(nail)).sum()
 }
 
 #[test]
@@ -36,7 +35,7 @@ fn examples() {
 4
 7
 8";
-     let test3 = r"2
+    let test3 = r"2
 4
 5
 6

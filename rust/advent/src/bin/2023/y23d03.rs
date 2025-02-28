@@ -17,11 +17,17 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn numbers_adjacent_to_symbol<F>(schematic: &str, width: usize, symbol: F) -> Vec<HashSet<Range<Output>>>
-    where
-        F: Fn(&char) -> bool
+fn numbers_adjacent_to_symbol<F>(
+    schematic: &str,
+    width: usize,
+    symbol: F,
+) -> Vec<HashSet<Range<Output>>>
+where
+    F: Fn(&char) -> bool,
 {
-    schematic.chars().enumerate()
+    schematic
+        .chars()
+        .enumerate()
         .filter(|(_, c)| symbol(c))
         .map(|(index, _)| {
             let mut set_of_ranges: HashSet<Range<usize>> = HashSet::new();
@@ -32,14 +38,19 @@ fn numbers_adjacent_to_symbol<F>(schematic: &str, width: usize, symbol: F) -> Ve
                         set_of_ranges.insert(int_range);
                     }
                 }
-            };
+            }
             set_of_ranges
-        }).collect()
+        })
+        .collect()
 }
 
 fn get_number(schematic: &str, index: isize) -> Option<Range<Output>> {
-    if index < 0 || index >= schematic.len() as isize { return None; };
-    if !schematic.as_bytes()[index as usize].is_ascii_digit() { return None; };
+    if index < 0 || index >= schematic.len() as isize {
+        return None;
+    };
+    if !schematic.as_bytes()[index as usize].is_ascii_digit() {
+        return None;
+    };
     let mut left_index = index as usize;
     let mut right_index = index as usize;
     while let Some(x) = left_index.checked_sub(1) {
@@ -48,19 +59,16 @@ fn get_number(schematic: &str, index: isize) -> Option<Range<Output>> {
         } else {
             break;
         }
-    };
+    }
     while schematic.as_bytes()[right_index + 1].is_ascii_digit() {
         right_index += 1;
-    };
+    }
     Some(left_index..right_index)
 }
 
-
 fn part1(schematic: Input) -> Output {
     let width = schematic.find('\n').unwrap() + 1;
-    let symbol = |c: &char| {
-        *c != '\n' && *c != '.' && !c.is_ascii_digit()
-    };
+    let symbol = |c: &char| *c != '\n' && *c != '.' && !c.is_ascii_digit();
     numbers_adjacent_to_symbol(schematic, width, symbol)
         .iter()
         .flatten()
@@ -76,15 +84,12 @@ fn part1(schematic: Input) -> Output {
 
 fn part2(schematic: Input) -> Output {
     let width = schematic.find('\n').unwrap() + 1;
-    let symbol = |c: &char| {
-        *c == '*'
-    };
+    let symbol = |c: &char| *c == '*';
     numbers_adjacent_to_symbol(schematic, width, symbol)
         .iter()
         .filter(|set| set.len() == 2)
         .map(|set| {
-            set
-                .iter()
+            set.iter()
                 .map(|range| {
                     let start = range.start;
                     let end = range.end;
@@ -92,7 +97,8 @@ fn part2(schematic: Input) -> Output {
                 })
                 .filter_map(|substring| substring.parse::<usize>().ok())
                 .product::<usize>()
-        }).sum()
+        })
+        .sum()
 }
 
 #[test]

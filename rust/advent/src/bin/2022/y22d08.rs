@@ -2,7 +2,13 @@ use std::iter::successors;
 
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
-use utilities::{enums::cardinals::Cardinal, structs::{stopwatch::{ReportDuration, Stopwatch}, str_grid::{AdjacentMetadata, StrGrid},}};
+use utilities::{
+    enums::cardinals::Cardinal,
+    structs::{
+        stopwatch::{ReportDuration, Stopwatch},
+        str_grid::{AdjacentMetadata, StrGrid},
+    },
+};
 
 type Trees<'a> = StrGrid<'a>;
 type Int = usize;
@@ -23,24 +29,25 @@ fn parse_input(input: &str) -> Trees {
 }
 
 fn rays<'a>(tree: Int, trees: &'a Trees) -> Vec<impl Iterator<Item = AdjacentMetadata<Int>> + 'a> {
-    Cardinal::entries().into_iter()
+    Cardinal::entries()
+        .into_iter()
         .map(|dir| {
-            successors(
-                trees.move_direction(tree, dir), move |next| trees.move_direction(next.pos, dir)
-            )
+            successors(trees.move_direction(tree, dir), move |next| {
+                trees.move_direction(next.pos, dir)
+            })
         })
         .collect()
 }
 
 fn is_visible(tree: Int, height: u8, trees: &Trees) -> bool {
-    rays(tree, trees).into_iter()
-        .any(|mut ray| {
-            ray.all(|pos| height > pos.b)
-        })
+    rays(tree, trees)
+        .into_iter()
+        .any(|mut ray| ray.all(|pos| height > pos.b))
 }
 
 fn scenic_score(tree: Int, height: u8, trees: &Trees) -> Int {
-    rays(tree, trees).into_iter()
+    rays(tree, trees)
+        .into_iter()
         .map(|ray| {
             ray.enumerate()
                 .find_or_last(|(_, it)| trees.get(it.pos).unwrap() >= height)
@@ -52,15 +59,19 @@ fn scenic_score(tree: Int, height: u8, trees: &Trees) -> Int {
 }
 
 fn part1(trees: &Trees) -> Int {
-    trees.s.iter().enumerate()
-        .filter(|&(tree, &height)| {
-            height != b'\n' && is_visible(tree, height, trees)
-        })
+    trees
+        .s
+        .iter()
+        .enumerate()
+        .filter(|&(tree, &height)| height != b'\n' && is_visible(tree, height, trees))
         .count()
 }
 
 fn part2(trees: &Trees) -> Int {
-    trees.s.iter().enumerate()
+    trees
+        .s
+        .iter()
+        .enumerate()
         .filter(|&(_, &height)| height != b'\n')
         .map(|(tree, &height)| scenic_score(tree, height, trees))
         .max()

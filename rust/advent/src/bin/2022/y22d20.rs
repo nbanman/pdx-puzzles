@@ -1,5 +1,8 @@
 use advent::utilities::get_input::get_input;
-use utilities::{parsing::get_numbers::ContainsNumbers, structs::stopwatch::{ReportDuration, Stopwatch}};
+use utilities::{
+    parsing::get_numbers::ContainsNumbers,
+    structs::stopwatch::{ReportDuration, Stopwatch},
+};
 
 type Input = Vec<i64>;
 type Output = i64;
@@ -24,16 +27,13 @@ fn solve(numbers: &Input, factor: i64, rounds: usize) -> Output {
     let numbers: Vec<i64> = numbers.iter().map(|&n| n * factor).collect();
     let to_chunk: Vec<usize> = (0..numbers.len()).collect();
     let bucket_size = (numbers.len() as f64).powf(1.0 / 3.0).floor() as usize;
-    
+
     let mut top: Vec<Vec<Vec<usize>>> = Vec::with_capacity(bucket_size + 1);
     let mut top_count: Vec<usize> = vec![0usize; bucket_size + 1];
     let mut mid_count: Vec<Vec<usize>> = vec![vec![0usize; bucket_size]; bucket_size + 1];
     let mut lookup: Vec<(usize, usize)> = Vec::with_capacity(numbers.len());
 
-    for (top_idx, top_chunk) in to_chunk
-        .chunks(bucket_size * bucket_size)
-        .enumerate() 
-    {
+    for (top_idx, top_chunk) in to_chunk.chunks(bucket_size * bucket_size).enumerate() {
         let mut mid: Vec<Vec<usize>> = Vec::with_capacity(bucket_size);
         for (mid_idx, mid_chunk) in top_chunk.chunks(bucket_size).enumerate() {
             let mut bottom: Vec<usize> = Vec::with_capacity(100);
@@ -52,7 +52,7 @@ fn solve(numbers: &Input, factor: i64, rounds: usize) -> Output {
         for n in 0..numbers.len() {
             // find top and mid location
             let (top_idx, mid_idx) = lookup[n];
-            
+
             // find bottom location
             let bottom = &mut top[top_idx][mid_idx];
             let bottom_idx = bottom.iter().position(|&i| i == n).unwrap();

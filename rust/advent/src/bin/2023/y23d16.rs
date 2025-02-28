@@ -2,7 +2,14 @@ use std::usize;
 
 use advent::utilities::get_input::get_input;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use utilities::{enums::cardinals::Cardinal, structs::{coord::{Coord2, Coord2U}, stopwatch::{ReportDuration, Stopwatch}, str_grid::StrGrid}};
+use utilities::{
+    enums::cardinals::Cardinal,
+    structs::{
+        coord::{Coord2, Coord2U},
+        stopwatch::{ReportDuration, Stopwatch},
+        str_grid::StrGrid,
+    },
+};
 
 type Input<'a> = StrGrid<'a>;
 type Output = usize;
@@ -20,9 +27,9 @@ fn main() {
 }
 
 #[derive(Clone, Debug)]
-struct State { 
-    pos: Pos, 
-    dir: Cardinal 
+struct State {
+    pos: Pos,
+    dir: Cardinal,
 }
 
 impl State {
@@ -31,9 +38,7 @@ impl State {
     }
 
     fn next(&self, grid: &Input) -> Option<impl Iterator<Item = Self>> {
-        let moved = self.pos
-            .move_direction(self.dir, 1)
-            .unwrap();
+        let moved = self.pos.move_direction(self.dir, 1).unwrap();
 
         let x: usize = moved.x().try_into().ok()?;
         let y: usize = moved.y().try_into().ok()?;
@@ -45,25 +50,29 @@ impl State {
             b'|' => match self.dir {
                 Cardinal::North | Cardinal::South => vec![self.dir],
                 Cardinal::East | Cardinal::West => vec![Cardinal::North, Cardinal::South],
-            }
+            },
             b'-' => match self.dir {
                 Cardinal::North | Cardinal::South => vec![Cardinal::East, Cardinal::West],
                 Cardinal::East | Cardinal::West => vec![self.dir],
+            },
+            b'/' => {
+                if self.dir.ordinal() & 1 == 0 {
+                    vec![self.dir.right()]
+                } else {
+                    vec![self.dir.left()]
+                }
             }
-            b'/' => if self.dir.ordinal() & 1 == 0 { 
-                vec![self.dir.right()] 
-            } else {
-                vec![self.dir.left()]
-            },
-            b'\\' => if self.dir.ordinal() & 1 == 1 { 
-                vec![self.dir.right()] 
-            } else {
-                vec![self.dir.left()]
-            },
-            c => panic!("{} not recognized as space or mirror", c as char)
+            b'\\' => {
+                if self.dir.ordinal() & 1 == 1 {
+                    vec![self.dir.right()]
+                } else {
+                    vec![self.dir.left()]
+                }
+            }
+            c => panic!("{} not recognized as space or mirror", c as char),
         }
-            .into_iter()
-            .map(move |dir| Self { pos: moved, dir });
+        .into_iter()
+        .map(move |dir| Self { pos: moved, dir });
         Some(next)
     }
 }
@@ -75,14 +84,13 @@ fn light_beam(state: State, grid: &Input) -> usize {
 
     while let Some(current) = q.pop() {
         if let Some(next) = current.next(grid) {
-            next
-                .filter(|next_state| {
-                    let index = next_state.to_index(grid);
-                    let is_visited = visited[index];
-                    visited[index] = true;
-                    !is_visited
-                })
-                .for_each(|next_state| q.push(next_state));
+            next.filter(|next_state| {
+                let index = next_state.to_index(grid);
+                let is_visited = visited[index];
+                visited[index] = true;
+                !is_visited
+            })
+            .for_each(|next_state| q.push(next_state));
         }
     }
 
@@ -103,22 +111,34 @@ fn parse_input(input: &str) -> Input {
 }
 
 fn part1(grid: &Input) -> Output {
-    let start = State { pos: Pos::new2d(-1, 0), dir: Cardinal::East };
+    let start = State {
+        pos: Pos::new2d(-1, 0),
+        dir: Cardinal::East,
+    };
     light_beam(start, grid)
 }
 
 fn part2(grid: &Input) -> Output {
     let mut states = Vec::new();
-    states.extend((0..grid.width - 1)
-        .map(|x| State { pos: Pos::new2d(x as i64, -1), dir: Cardinal::South }));
-    states.extend((0..grid.width - 1)
-        .map(|x| State { pos: Pos::new2d(x as i64, grid.height as i64), dir: Cardinal::North }));
-    states.extend((0..grid.height)
-        .map(|y| State { pos: Pos::new2d(-1, y as i64), dir: Cardinal::East }));
-    states.extend((0..grid.height)
-        .map(|y| State { pos: Pos::new2d((grid.width - 1) as i64, y as i64), dir: Cardinal::West }));
+    states.extend((0..grid.width - 1).map(|x| State {
+        pos: Pos::new2d(x as i64, -1),
+        dir: Cardinal::South,
+    }));
+    states.extend((0..grid.width - 1).map(|x| State {
+        pos: Pos::new2d(x as i64, grid.height as i64),
+        dir: Cardinal::North,
+    }));
+    states.extend((0..grid.height).map(|y| State {
+        pos: Pos::new2d(-1, y as i64),
+        dir: Cardinal::East,
+    }));
+    states.extend((0..grid.height).map(|y| State {
+        pos: Pos::new2d((grid.width - 1) as i64, y as i64),
+        dir: Cardinal::West,
+    }));
 
-    states.par_iter()
+    states
+        .par_iter()
         .map(|v| light_beam(v.clone(), grid))
         .max()
         .unwrap()

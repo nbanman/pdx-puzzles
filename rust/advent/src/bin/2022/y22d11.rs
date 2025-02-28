@@ -79,8 +79,8 @@ fn parse_input(input: &str) -> Input {
 }
 
 fn solve<F>(mut monkeys: Input, rounds: usize, f: F) -> Output
-    where
-        F: Fn(usize) -> usize,
+where
+    F: Fn(usize) -> usize,
 {
     let mut inspects = vec![0; monkeys.len()];
 
@@ -104,7 +104,6 @@ fn solve<F>(mut monkeys: Input, rounds: usize, f: F) -> Output
 
     inspects.into_iter().sorted().rev().take(2).product()
 }
-
 
 fn part1(monkeys: Input) -> Output {
     solve(monkeys, 20, |w| w / 3)

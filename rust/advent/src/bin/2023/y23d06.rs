@@ -15,18 +15,16 @@ fn main() {
 }
 
 fn solve<F>(input: &str, parse_line: F) -> i64
-    where
-        F: Fn(&str) -> Vec<i64>
+where
+    F: Fn(&str) -> Vec<i64>,
 {
-    let races: Vec<Vec<i64>> = input
-        .lines()
-        .map(parse_line)
-        .collect();
+    let races: Vec<Vec<i64>> = input.lines().map(parse_line).collect();
 
     let times = races.first().unwrap();
     let distances = races.get(1).unwrap();
     let races = times.iter().zip(distances.iter());
-    races.map(|(time, distance)| ways_to_win(*time, *distance))
+    races
+        .map(|(time, distance)| ways_to_win(*time, *distance))
         .product()
 }
 
@@ -44,10 +42,11 @@ fn quadratic(a: f64, b: f64, c: f64) -> (f64, f64) {
     (root_1, root_2)
 }
 
-
 fn part1(input: Input) -> Output {
     let parse_line = |line: &str| -> Vec<i64> {
-        line.split_whitespace().filter_map(|substr| substr.parse().ok()).collect()
+        line.split_whitespace()
+            .filter_map(|substr| substr.parse().ok())
+            .collect()
     };
     solve(input, parse_line)
 }

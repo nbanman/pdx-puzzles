@@ -2,7 +2,13 @@ use std::{cmp::max, iter::successors, ops::RangeInclusive};
 
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
-use utilities::{parsing::get_numbers::ContainsNumbers, structs::{coord::Coord2, stopwatch::{ReportDuration, Stopwatch}}};
+use utilities::{
+    parsing::get_numbers::ContainsNumbers,
+    structs::{
+        coord::Coord2,
+        stopwatch::{ReportDuration, Stopwatch},
+    },
+};
 
 type Pos = Coord2;
 type Input = Vec<Sensor>;
@@ -15,9 +21,9 @@ struct Sensor {
 
 impl Sensor {
     fn to_range(&self, y: i64) -> Option<RangeInclusive<i64>> {
-        let x_distance = (self.pos.x() - self.beacon.x()).abs() +
-            (self.pos.y() - self.beacon.y()).abs() -
-            (self.pos.y() - y).abs();
+        let x_distance = (self.pos.x() - self.beacon.x()).abs()
+            + (self.pos.y() - self.beacon.y()).abs()
+            - (self.pos.y() - y).abs();
         if x_distance >= 0 {
             Some(self.pos.x() - x_distance..=self.pos.x() + x_distance)
         } else {
@@ -39,7 +45,8 @@ fn main() {
 
 fn is_contiguous(a: &RangeInclusive<i64>, b: &RangeInclusive<i64>) -> Option<RangeInclusive<i64>> {
     let binding = [a, b];
-    let (&lesser, &greater) = binding.iter()
+    let (&lesser, &greater) = binding
+        .iter()
         .minmax_by_key(|r| r.start())
         .into_option()
         .unwrap();
@@ -51,7 +58,8 @@ fn is_contiguous(a: &RangeInclusive<i64>, b: &RangeInclusive<i64>) -> Option<Ran
 }
 
 fn row_ranges(sensors: &Vec<Sensor>, y: i64) -> Vec<RangeInclusive<i64>> {
-    let mut row_ranges: Vec<_> = sensors.into_iter()
+    let mut row_ranges: Vec<_> = sensors
+        .into_iter()
         .filter_map(|sensor| sensor.to_range(y))
         .collect();
 
@@ -98,7 +106,12 @@ fn part2(sensors: &Input) -> Output {
         .map(|y| (y, row_ranges(&sensors, y)))
         .find(|(_, ranges)| ranges.len() > 1)
         .unwrap();
-    let x = range.iter().min_by(|x, y| x.start().cmp(&y.start())).unwrap().end() + 1;
+    let x = range
+        .iter()
+        .min_by(|x, y| x.start().cmp(&y.start()))
+        .unwrap()
+        .end()
+        + 1;
     4_000_000i64 * x + y
 }
 

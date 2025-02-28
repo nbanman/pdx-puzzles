@@ -1,8 +1,14 @@
-use std::{cmp::Ordering, collections::{HashMap, HashSet}};
+use std::{
+    cmp::Ordering,
+    collections::{HashMap, HashSet},
+};
 
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
-use utilities::{parsing::get_numbers::get_numbers, structs::stopwatch::{ReportDuration, Stopwatch}};
+use utilities::{
+    parsing::get_numbers::get_numbers,
+    structs::stopwatch::{ReportDuration, Stopwatch},
+};
 
 type Rules = HashMap<usize, HashSet<usize>>;
 type Input = (Vec<Vec<usize>>, Rules);
@@ -20,15 +26,16 @@ fn main() {
 }
 
 fn parse_input(input: &str) -> Input {
-    let (rules_build, updates) = input.split("\n\n")
-        .map(|stanza| {
-            stanza.lines().map(get_numbers::<usize>).collect::<Vec<_>>() 
-        })
+    let (rules_build, updates) = input
+        .split("\n\n")
+        .map(|stanza| stanza.lines().map(get_numbers::<usize>).collect::<Vec<_>>())
         .collect_tuple()
         .unwrap();
     let mut rules: Rules = Rules::new();
     for rule in rules_build {
-        let [l, r] = rule[..2] else { panic!("Invalid rule") };
+        let [l, r] = rule[..2] else {
+            panic!("Invalid rule")
+        };
         rules.entry(r).or_default().insert(l);
         rules.entry(l).or_default();
     }
@@ -37,9 +44,13 @@ fn parse_input(input: &str) -> Input {
 
 fn part1(input: &Input) -> Output {
     let (updates, rules) = input;
-    updates.iter()
-        .filter(|update| { 
-            update.iter().tuple_windows().all(|(a, b)| rules[b].contains(a))
+    updates
+        .iter()
+        .filter(|update| {
+            update
+                .iter()
+                .tuple_windows()
+                .all(|(a, b)| rules[b].contains(a))
         })
         .map(|update| update[update.len() / 2])
         .sum()
@@ -47,12 +58,17 @@ fn part1(input: &Input) -> Output {
 
 fn part2(input: &Input) -> Output {
     let (updates, rules) = input;
-    updates.iter()
+    updates
+        .iter()
         .filter(|update| {
-            update.iter().tuple_windows().any(|(a, b)| !rules[b].contains(a))
+            update
+                .iter()
+                .tuple_windows()
+                .any(|(a, b)| !rules[b].contains(a))
         })
         .map(|update| {
-            update.iter()
+            update
+                .iter()
                 .sorted_by(|&a, &b| {
                     if rules[b].contains(a) {
                         Ordering::Less
@@ -79,4 +95,3 @@ fn default() {
 // 1. 5129 (46μs)
 // 2. 4077 (202μs)
 // Total: 644μs
-

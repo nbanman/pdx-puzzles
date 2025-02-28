@@ -1,7 +1,10 @@
 use std::collections::BinaryHeap;
 
 use advent::utilities::get_input::get_input;
-use utilities::{parsing::get_numbers::ContainsNumbers, structs::stopwatch::{ReportDuration, Stopwatch}};
+use utilities::{
+    parsing::get_numbers::ContainsNumbers,
+    structs::stopwatch::{ReportDuration, Stopwatch},
+};
 
 type Input = BinaryHeap<u32>;
 type Output = u32;
@@ -18,7 +21,8 @@ fn main() {
 }
 
 fn parse_input(input: &str) -> Input {
-    input.split("\n\n")
+    input
+        .split("\n\n")
         .map(|stanza| stanza.get_numbers::<u32>().sum())
         .collect()
 }

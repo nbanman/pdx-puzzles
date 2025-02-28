@@ -1,6 +1,9 @@
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
-use utilities::{parsing::get_numbers::ContainsNumbers, structs::stopwatch::{ReportDuration, Stopwatch}};
+use utilities::{
+    parsing::get_numbers::ContainsNumbers,
+    structs::stopwatch::{ReportDuration, Stopwatch},
+};
 
 type Input<'a> = &'a str;
 type Output = i64;
@@ -16,7 +19,8 @@ fn main() {
 }
 
 fn solve(input: Input, additional: i64) -> Output {
-    input.get_numbers()
+    input
+        .get_numbers()
         .tuples()
         .filter_map(|(a1, a2, b1, b2, c1, c2)| {
             let c1 = c1 + additional;
@@ -24,7 +28,7 @@ fn solve(input: Input, additional: i64) -> Output {
             tokens(a1, a2, b1, b2, c1, c2)
         })
         .map(|(a, b)| a * 3 + b)
-        .sum() 
+        .sum()
 }
 
 fn tokens(a1: i64, a2: i64, b1: i64, b2: i64, c1: i64, c2: i64) -> Option<(i64, i64)> {
@@ -40,16 +44,24 @@ fn tokens(a1: i64, a2: i64, b1: i64, b2: i64, c1: i64, c2: i64) -> Option<(i64, 
     let y_numerator = c1 * f1 + c2 * f2;
     let y_denominator = b1 * f1 + b2 * f2;
     let y = y_numerator / y_denominator;
-    if y * y_denominator != y_numerator { return None; }
+    if y * y_denominator != y_numerator {
+        return None;
+    }
     let x_numerator = c1 - b1 * y;
     let x_denominator = a1;
     let x = x_numerator / x_denominator;
-    if x * x_denominator != x_numerator { return None; }
+    if x * x_denominator != x_numerator {
+        return None;
+    }
     Some((x, y))
 }
 
-fn part1(input: Input) -> Output { solve(input, 0) }
-fn part2(input: Input) -> Output { solve(input, 10_000_000_000_000) }
+fn part1(input: Input) -> Output {
+    solve(input, 0)
+}
+fn part2(input: Input) -> Output {
+    solve(input, 10_000_000_000_000)
+}
 
 #[test]
 fn default() {
@@ -62,4 +74,3 @@ fn default() {
 // 1. 37128 (69μs)
 // 2. 74914228471331 (65μs)
 // Total: 165μs
-

@@ -12,10 +12,7 @@ fn solve(input: &str, group_size: usize) -> usize {
         .as_bytes()
         .chunks(group_size)
         .map(|baddies| {
-            let number_of_baddies = baddies
-                .iter()
-                .filter(|&&it| it != b'x')
-                .count();
+            let number_of_baddies = baddies.iter().filter(|&&it| it != b'x').count();
             let value = |baddie: &u8| -> usize {
                 match &baddie {
                     b'A' => 0,
@@ -26,10 +23,11 @@ fn solve(input: &str, group_size: usize) -> usize {
                 }
             };
             let potions: usize = baddies.iter().map(value).sum();
-            let bonus_potions: usize = number_of_baddies * 
-                number_of_baddies.checked_sub(1).unwrap_or_default();
+            let bonus_potions: usize =
+                number_of_baddies * number_of_baddies.checked_sub(1).unwrap_or_default();
             potions + bonus_potions
-        }).sum()
+        })
+        .sum()
 }
 
 #[test]

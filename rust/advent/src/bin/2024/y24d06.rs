@@ -3,7 +3,10 @@ use std::iter::successors;
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
 use rayon::iter::{ParallelBridge, ParallelIterator};
-use utilities::{enums::cardinals::Cardinal, structs::stopwatch::{ReportDuration, Stopwatch}};
+use utilities::{
+    enums::cardinals::Cardinal,
+    structs::stopwatch::{ReportDuration, Stopwatch},
+};
 
 type Input<'a> = &'a str;
 type Output = usize;
@@ -25,7 +28,7 @@ struct State {
     turned: bool,
 }
 
-fn move_dir(pos: usize , dir: Cardinal, width: usize) -> Option<usize> {
+fn move_dir(pos: usize, dir: Cardinal, width: usize) -> Option<usize> {
     match dir {
         Cardinal::North => pos.checked_sub(width),
         Cardinal::East => Some(pos + 1),
@@ -38,16 +41,26 @@ fn move_guard(lab: Input, width: usize, state: &State, obstacle: Option<usize>) 
     let forward = move_dir(state.pos, state.dir, width)?;
     let lab = lab.as_bytes();
     let space = *lab.get(forward)?;
-    if space == b'\n' { return None; }
+    if space == b'\n' {
+        return None;
+    }
     if Some(forward) != obstacle && space != b'#' {
-        Some(State { pos: forward, dir: state.dir, turned: false })
+        Some(State {
+            pos: forward,
+            dir: state.dir,
+            turned: false,
+        })
     } else {
         let right = state.dir.right();
-        Some(State { pos: state.pos, dir: right, turned: true })
+        Some(State {
+            pos: state.pos,
+            dir: right,
+            turned: true,
+        })
     }
 }
 
-fn golden_path(lab: &str, width: usize, start: State) -> impl Iterator<Item = State> + use<'_>{
+fn golden_path(lab: &str, width: usize, start: State) -> impl Iterator<Item = State> + use<'_> {
     successors(Some(start), move |state| {
         move_guard(lab, width, state, None)
     })
@@ -56,7 +69,11 @@ fn golden_path(lab: &str, width: usize, start: State) -> impl Iterator<Item = St
 fn part1(lab: Input) -> Output {
     let width = lab.find('\n').unwrap() + 1;
     let start = lab.find('^').unwrap();
-    let start = State { pos: start, dir: Cardinal::North, turned: false };
+    let start = State {
+        pos: start,
+        dir: Cardinal::North,
+        turned: false,
+    };
     golden_path(lab, width, start)
         .map(|state| state.pos)
         .unique()
@@ -66,7 +83,11 @@ fn part1(lab: Input) -> Output {
 fn part2(lab: &str) -> Output {
     let width = lab.find('\n').unwrap() + 1;
     let start = lab.find('^').unwrap();
-    let start = State { pos: start, dir: Cardinal::North, turned: false };
+    let start = State {
+        pos: start,
+        dir: Cardinal::North,
+        turned: false,
+    };
     let mut obstacles = vec![false; lab.len()];
     golden_path(lab, width, start)
         .tuple_windows::<(_, _)>()
@@ -87,18 +108,18 @@ fn part2(lab: &str) -> Output {
             successors(Some(*current), move |state| {
                 move_guard(lab, width, state, Some(obstacle))
             })
-                .any(|state| {
-                    if state.turned && state.dir == Cardinal::North {
-                        if visited[state.pos] {
-                            true
-                        } else {
-                            visited[state.pos] = true;
-                            false
-                        }
+            .any(|state| {
+                if state.turned && state.dir == Cardinal::North {
+                    if visited[state.pos] {
+                        true
                     } else {
+                        visited[state.pos] = true;
                         false
                     }
-                })
+                } else {
+                    false
+                }
+            })
         })
         .count()
 }
@@ -127,7 +148,7 @@ fn examples() {
 ........#.
 #.........
 ......#...
-", ];
+"];
     assert_eq!(41, part1(inputs[0]));
     assert_eq!(6, part2(inputs[0]));
 }

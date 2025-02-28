@@ -1,7 +1,7 @@
 use std::time::{Duration, Instant};
 
 /// Trait for formatting Duration values into human-readable strings
-/// 
+///
 /// Provides consistent formatting of time durations across different time scales,
 /// from nanoseconds to seconds.
 pub trait ReportDuration {
@@ -13,15 +13,15 @@ impl ReportDuration for Duration {
     /// Formats the duration using appropriate units based on its magnitude:
     /// - For durations >= 1 second: Returns "seconds.milliseconds"
     /// - For durations < 1 second: Uses the most appropriate unit (ns, μs, or ms)
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use std::time::Duration;
     /// use utilities::structs::stopwatch::ReportDuration;
-    /// 
+    ///
     /// let duration = Duration::from_secs(2);
     /// assert_eq!(duration.report(), "2.00s");
-    /// 
+    ///
     /// let duration = Duration::from_nanos(500);
     /// assert_eq!(duration.report(), "500ns");
     /// ```
@@ -48,7 +48,7 @@ pub struct Stopwatch {
     /// Indicates whether the stopwatch is currently running
     pub is_running: bool,
     elapsed: Duration,
-    last_start: Option<Instant>,   
+    last_start: Option<Instant>,
     lap_start: Option<Instant>,
 }
 
@@ -70,7 +70,7 @@ impl Stopwatch {
     }
 
     /// Starts the stopwatch if it isn't already running
-    /// 
+    ///
     /// # Returns
     /// - `true` if the stopwatch was successfully started
     /// - `false` if the stopwatch was already running
@@ -86,11 +86,11 @@ impl Stopwatch {
     }
 
     /// Stops the stopwatch and returns the total elapsed time
-    /// 
+    ///
     /// If the stopwatch is running, adds the time since the last start
     /// to the total elapsed time. If already stopped, returns the current
     /// elapsed time without modification.
-    /// 
+    ///
     /// # Returns
     /// The total elapsed time the stopwatch has been running
     pub fn stop(&mut self) -> Duration {
@@ -105,7 +105,7 @@ impl Stopwatch {
     }
 
     /// Records a lap time and starts timing a new lap
-    /// 
+    ///
     /// # Returns
     /// - If running: Duration of the completed lap
     /// - If stopped: Duration::ZERO
@@ -122,7 +122,7 @@ impl Stopwatch {
 
     /// Returns the time elapsed while the stopwatch has been running
     /// without affecting the running state
-    /// 
+    ///
     /// # Returns
     /// - If running: Time since last start
     /// - If stopped: Duration::ZERO
@@ -136,7 +136,7 @@ impl Stopwatch {
     }
 
     /// Resets the stopwatch to its initial state
-    /// 
+    ///
     /// Clears all accumulated time and stops the stopwatch if it was running
     pub fn reset(&mut self) {
         self.elapsed = Duration::ZERO;

@@ -19,11 +19,9 @@ fn parse_input(input: &str) -> Input {
     input
         .trim_end()
         .split(['\n', ' '])
-        .map(|word| {
-            match word {
-                "addx" | "noop" => 0,
-                d => d.parse::<isize>().unwrap()
-            }
+        .map(|word| match word {
+            "addx" | "noop" => 0,
+            d => d.parse::<isize>().unwrap(),
         })
         .scan(1isize, |state, x| {
             let old_state = state.clone();

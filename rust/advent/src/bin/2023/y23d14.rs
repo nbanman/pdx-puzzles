@@ -22,10 +22,10 @@ fn parse_input(input: &str) -> Input {
 }
 
 fn load(rocks: &Input) -> usize {
-    rocks.iter().enumerate()
-        .map(|(index, row)| {
-            (rocks.len() - index) * row.iter().filter(|c| **c == 'O').count()
-        })
+    rocks
+        .iter()
+        .enumerate()
+        .map(|(index, row)| (rocks.len() - index) * row.iter().filter(|c| **c == 'O').count())
         .sum()
 }
 
@@ -33,29 +33,25 @@ fn tilt_up(rocks: &Input) -> Vec<Vec<char>> {
     let mut tilted = vec![vec!['.'; rocks.len()]; rocks.len()];
 
     rocks.into_iter().enumerate().for_each(|(y, row)| {
-        row.into_iter().enumerate().for_each(|(x, c)| {
-            match c {
-                '#' => tilted[y][x] = '#',
-                'O' => {
-                    for yy in (0..=y).rev() {
-                        let next = yy as isize - 1;
-                        if next < 0 || "#O".contains(tilted[next as usize][x]) {
-                            tilted[yy][x] = 'O';
-                            break;
-                        }
+        row.into_iter().enumerate().for_each(|(x, c)| match c {
+            '#' => tilted[y][x] = '#',
+            'O' => {
+                for yy in (0..=y).rev() {
+                    let next = yy as isize - 1;
+                    if next < 0 || "#O".contains(tilted[next as usize][x]) {
+                        tilted[yy][x] = 'O';
+                        break;
                     }
                 }
-                _ => {}
             }
+            _ => {}
         })
     });
     tilted
 }
 
 fn spin_cycle(rocks: &Input) -> Vec<Vec<char>> {
-    (1..=4).fold(rocks.clone(), |acc, _| {
-        rotate(&tilt_up(&acc))
-    })
+    (1..=4).fold(rocks.clone(), |acc, _| rotate(&tilt_up(&acc)))
 }
 
 fn rotate(rocks: &Input) -> Vec<Vec<char>> {
@@ -87,10 +83,11 @@ fn part2(initial: &Input) -> Output {
     };
     let cycle_space = 1_000_000_000 - first_index_of_cycle;
     let cycle_length = rock_formations.len() - first_index_of_cycle;
-    let answer = rock_formations.iter()
-        .find(|(_, v)| {
-            **v == first_index_of_cycle + cycle_space % cycle_length
-        }).unwrap().0;
+    let answer = rock_formations
+        .iter()
+        .find(|(_, v)| **v == first_index_of_cycle + cycle_space % cycle_length)
+        .unwrap()
+        .0;
     load(answer)
 }
 
@@ -102,7 +99,7 @@ fn default() {
     assert_eq!(100531, part2(&input));
 }
 
-    // Input parsed (41μs)
-    // 1. 106990 (65μs)
-    // 2. 100531 (45ms)
-    // Total: 45ms
+// Input parsed (41μs)
+// 1. 106990 (65μs)
+// 2. 100531 (45ms)
+// Total: 45ms

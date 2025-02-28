@@ -2,7 +2,14 @@ use std::iter::successors;
 
 use everybody_codes::utilities::inputs::get_inputs;
 use itertools::Itertools;
-use utilities::{enums::cardinals::Cardinal, parsing::try_get::TryGet, structs::{coord::Coord, stopwatch::{ReportDuration, Stopwatch}}};
+use utilities::{
+    enums::cardinals::Cardinal,
+    parsing::try_get::TryGet,
+    structs::{
+        coord::Coord,
+        stopwatch::{ReportDuration, Stopwatch},
+    },
+};
 
 type Pos = Coord<isize, 2>;
 
@@ -19,12 +26,10 @@ fn main() {
 
 fn part1(input: &str) -> String {
     let knights = parse_knights(input);
-    let race = TRACK1.as_bytes().iter()
-        .map(power_of);
-    knights.into_iter()
-        .map(|(knight, plan)| {
-            (knight, get_power(&plan, race.clone()))
-        })
+    let race = TRACK1.as_bytes().iter().map(power_of);
+    knights
+        .into_iter()
+        .map(|(knight, plan)| (knight, get_power(&plan, race.clone())))
         .sorted_unstable_by_key(|(_, power)| *power)
         .rev()
         .map(|(knight, _)| knight)
@@ -35,7 +40,8 @@ fn part2(input: &str) -> String {
     let knights = parse_knights(input);
     let track = parse_track(TRACK2);
     let race = get_race(&track, 10);
-    knights.into_iter()
+    knights
+        .into_iter()
         .map(|(knight, plan)| (knight, get_power(&plan, race.clone())))
         .sorted_unstable_by_key(|(_, power)| *power)
         .rev()
@@ -47,16 +53,15 @@ fn part3(input: &str) -> usize {
     let (_, opponent_plan) = parse_knights(input)[0].clone();
     let track = parse_track(TRACK3);
     // I was too lazy to do an lcm function, but the lcm is just 11 * track size, so 11 laps
-    // is what it takes to cycle. It would work anyway even if there was a lower lcm; it 
+    // is what it takes to cycle. It would work anyway even if there was a lower lcm; it
     // would just not be as efficient.
     let laps = 11;
     let race = get_race(&track, laps);
     let opponent_power = get_power(&opponent_plan, race.clone());
     let plans: Vec<Vec<isize>> = get_plans();
-    plans.iter()
-        .filter(|&plan| {
-            get_power(plan, race.clone()) > opponent_power
-        })
+    plans
+        .iter()
+        .filter(|&plan| get_power(plan, race.clone()) > opponent_power)
         .count()
 }
 
@@ -68,11 +73,7 @@ fn get_plans() -> Vec<Vec<isize>> {
     permutations
 }
 
-fn traverse(
-    permutations: &mut Vec<Vec<isize>>,
-    working: &mut Vec<isize>,
-    store: &mut [usize; 3],
-) {
+fn traverse(permutations: &mut Vec<Vec<isize>>, working: &mut Vec<isize>, store: &mut [usize; 3]) {
     for value in 0..=2 {
         if store[value] > 0 {
             working.push(value as isize - 1);
@@ -89,10 +90,12 @@ fn traverse(
 }
 
 fn parse_knights(input: &str) -> Vec<(&str, Vec<isize>)> {
-    input.lines()
+    input
+        .lines()
         .map(|line| {
             let (knight, power) = line.split_once(':').unwrap();
-            let power = power.split(',')
+            let power = power
+                .split(',')
                 .map(|c| power_of(&c.as_bytes()[0]))
                 .collect();
             (knight, power)
@@ -102,7 +105,8 @@ fn parse_knights(input: &str) -> Vec<(&str, Vec<isize>)> {
 
 fn parse_track(track: &'static str) -> Vec<isize> {
     let width = track.find('\n').unwrap();
-    let track: Vec<Vec<u8>> = track.lines()
+    let track: Vec<Vec<u8>> = track
+        .lines()
         .map(|line| {
             format!("{:<width$}", line, width = width)
                 .as_bytes()
@@ -111,10 +115,9 @@ fn parse_track(track: &'static str) -> Vec<isize> {
         .collect();
     let turns = [Cardinal::straight, Cardinal::left, Cardinal::right];
 
-    let go = 
-        |(pos, dir): (Pos, Cardinal)| -> Option<(Pos, Cardinal)>
-    {
-        turns.iter()
+    let go = |(pos, dir): (Pos, Cardinal)| -> Option<(Pos, Cardinal)> {
+        turns
+            .iter()
             .filter_map(|turn| {
                 let new_dir = turn(&dir);
                 let new_pos = pos.move_direction(new_dir, 1)?;
@@ -147,14 +150,14 @@ fn get_race(track: &[isize], laps: usize) -> impl Iterator<Item = isize> + '_ + 
 }
 
 fn get_power(plan: &[isize], race: impl Iterator<Item = isize>) -> isize {
-        let plan = plan.iter().copied().cycle();
-        race.zip(plan)
-            .scan(10isize, |state, (track, device)| {
-                let adjust = if track == 0 { device } else { track };
-                *state += adjust;
-                Some(*state)
-            })
-            .sum()
+    let plan = plan.iter().copied().cycle();
+    race.zip(plan)
+        .scan(10isize, |state, (track, device)| {
+            let adjust = if track == 0 { device } else { track };
+            *state += adjust;
+            Some(*state)
+        })
+        .sum()
 }
 
 fn power_of(byte: &u8) -> isize {
@@ -164,8 +167,6 @@ fn power_of(byte: &u8) -> isize {
         _ => 0,
     }
 }
-
-
 
 const TRACK1: &str = "==========";
 const TRACK2: &str = r"S-=++=-==++=++=-=+=-=+=+=--=-=++=-==++=-+=-=+=-=+=+=++=-+==++=++=-=-=--

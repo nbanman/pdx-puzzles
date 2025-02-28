@@ -1,6 +1,6 @@
-use std::collections::HashMap;
 use everybody_codes::utilities::inputs::get_inputs;
 use itertools::Itertools;
+use std::collections::HashMap;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 type Branches<'a> = HashMap<&'a str, Vec<&'a str>>;
@@ -10,7 +10,11 @@ fn main() {
     stopwatch.start();
     let (input1, input2, input3) = get_inputs(24, 6);
     println!("Inputs loaded ({})", stopwatch.lap().report());
-    println!("1. {} ({})", solve(&input1, false), stopwatch.lap().report());
+    println!(
+        "1. {} ({})",
+        solve(&input1, false),
+        stopwatch.lap().report()
+    );
     println!("2. {} ({})", solve(&input2, true), stopwatch.lap().report());
     println!("3. {} ({})", solve(&input3, true), stopwatch.lap().report());
     println!("Total: {}", stopwatch);
@@ -23,7 +27,8 @@ fn solve(input: &str, truncate: bool) -> String {
 }
 
 fn get_branches(input: &str) -> Branches {
-    input.lines()
+    input
+        .lines()
         .filter(|line| {
             let possible_pest = &line[0..3];
             possible_pest != "ANT" && possible_pest != "BUG"
@@ -38,13 +43,13 @@ fn get_branches(input: &str) -> Branches {
 
 fn get_paths(truncate: bool, branches: HashMap<&str, Vec<&str>>) -> Vec<String> {
     let mut paths: Vec<String> = Vec::new();
-    
+
     let mut q = vec![vec!["RR"]];
     while let Some(path) = q.pop() {
         let &current = path.last().unwrap();
         if current == "@" {
             let mut path_name = String::new();
-        
+
             for s in path {
                 if truncate {
                     path_name.push(s.chars().next().unwrap());
@@ -58,19 +63,19 @@ fn get_paths(truncate: bool, branches: HashMap<&str, Vec<&str>>) -> Vec<String> 
                 let mut new_path = path.clone();
                 new_path.push(child);
                 q.push(new_path);
-            } 
+            }
         }
     }
     paths
 }
 
 fn get_strongest(paths: Vec<String>) -> String {
-    paths.iter()
+    paths
+        .iter()
         .into_group_map_by(|&s| s.len())
         .values()
         .find(|paths| paths.len() == 1)
-        .expect("All values have a matching length value.")
-        [0]
+        .expect("All values have a matching length value.")[0]
         .to_string()
 }
 
@@ -86,7 +91,8 @@ E:@
 F:@
 G:@
 H:@
-    ".trim();
+    "
+    .trim();
     assert_eq!("RRB@".to_string(), solve(test1, false));
     assert_eq!("RB@", solve(test1, true));
 }

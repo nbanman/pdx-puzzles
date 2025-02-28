@@ -13,5 +13,5 @@ pub enum GridError {
     #[error("Supplied backing data is empty.")]
     Empty,
     #[error("Index exceeds dimensions.")]
-    OutOfRange
+    OutOfRange,
 }

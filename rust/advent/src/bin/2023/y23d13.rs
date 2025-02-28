@@ -17,14 +17,19 @@ fn main() {
 
 // Stores data in both rows and columns for easy operation.
 #[derive(Debug)]
-struct Pattern { rows: Vec<Vec<bool>>, cols: Vec<Vec<bool>>, }
+struct Pattern {
+    rows: Vec<Vec<bool>>,
+    cols: Vec<Vec<bool>>,
+}
 
 impl Pattern {
     fn new(s: &str) -> Self {
         let width = s.find('\n').unwrap();
-        
+
         // intermediate representation
-        let mirrors: Vec<bool> = s.as_bytes().iter()
+        let mirrors: Vec<bool> = s
+            .as_bytes()
+            .iter()
             .filter(|&&c| c != b'\n')
             .map(|&c| c == b'#')
             .collect();
@@ -32,20 +37,16 @@ impl Pattern {
         let rows = (0..height)
             .map(|n| {
                 let offset = n * width;
-                mirrors[offset..offset + width].iter()
-                    .copied()
-                    .collect()
+                mirrors[offset..offset + width].iter().copied().collect()
             })
             .collect();
         let cols = (0..width)
-            .map(move |n| {
-                (0..height).map(|row| mirrors[row * width + n]).collect() 
-            })
+            .map(move |n| (0..height).map(|row| mirrors[row * width + n]).collect())
             .collect();
-        Pattern { rows, cols } 
+        Pattern { rows, cols }
     }
-    
-    // calls find_seam for columns first. If a seam is found, return the value. 
+
+    // calls find_seam for columns first. If a seam is found, return the value.
     // Otherwise, calls find_seam for rows. If a seam is found, return the value * 100.
     // Otherwise, panic!
     fn seam_summary(&self, smudged: bool) -> usize {
@@ -54,10 +55,10 @@ impl Pattern {
     }
 
     // Goes through each "line" (either a row or column), and compares it with the next one.
-    // If there is a mirrored line, checks if the mirroring continues on either side. If it 
+    // If there is a mirrored line, checks if the mirroring continues on either side. If it
     // continues until there are no more lines to be compared, a seam is found.
-    // 
-    // In part 2, there is one line that has a difference of 1 (the smudge). So track 
+    //
+    // In part 2, there is one line that has a difference of 1 (the smudge). So track
     // differences with "diff" and proceed accordingly.
     fn find_seam(&self, is_hz: bool, smudged: bool) -> Option<usize> {
         let smudge = if smudged { 1 } else { 0 };
@@ -65,13 +66,21 @@ impl Pattern {
         for i in 0..lines.len() - 1 {
             let mut diff = 0;
             for j in 0..=i {
-                if i + j + 1 == lines.len() { break; }
-                diff += lines[i - j].iter().zip(lines[i + j + 1].iter())
-                    .filter(|(&aa, &bb)| aa != bb)
+                if i + j + 1 == lines.len() {
+                    break;
+                }
+                diff += lines[i - j]
+                    .iter()
+                    .zip(lines[i + j + 1].iter())
+                    .filter(|&(&aa, &bb)| aa != bb)
                     .count();
-                if diff > smudge { break; }
+                if diff > smudge {
+                    break;
+                }
             }
-            if smudge == diff { return Some(i + 1)}; 
+            if smudge == diff {
+                return Some(i + 1);
+            };
         }
         None
     }
@@ -82,11 +91,17 @@ fn parse_input(input: &str) -> Input {
 }
 
 fn part1(patterns: &Input) -> Output {
-    patterns.iter().map(|pattern| pattern.seam_summary(false)).sum()
+    patterns
+        .iter()
+        .map(|pattern| pattern.seam_summary(false))
+        .sum()
 }
 
 fn part2(patterns: &Input) -> Output {
-    patterns.iter().map(|pattern| pattern.seam_summary(true)).sum()
+    patterns
+        .iter()
+        .map(|pattern| pattern.seam_summary(true))
+        .sum()
 }
 
 #[test]

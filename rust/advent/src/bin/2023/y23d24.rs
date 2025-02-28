@@ -1,6 +1,12 @@
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
-use utilities::{parsing::get_numbers::ContainsNumbers, structs::{coord::Coord3, stopwatch::{ReportDuration, Stopwatch}}};
+use utilities::{
+    parsing::get_numbers::ContainsNumbers,
+    structs::{
+        coord::Coord3,
+        stopwatch::{ReportDuration, Stopwatch},
+    },
+};
 
 type Input<'a> = &'a str;
 
@@ -18,16 +24,20 @@ struct Stone {
 
 impl Stone {
     fn intersects(&self, other: &Stone) -> bool {
-        let t = (other.pos.y + (self.pos.x - other.pos.x) * other.vel.y / other.vel.x - self.pos.y) /
-            (self.vel.y - self.vel.x * other.vel.y / other.vel.x);
-        if t < 0.0 { return false; }
+        let t = (other.pos.y + (self.pos.x - other.pos.x) * other.vel.y / other.vel.x - self.pos.y)
+            / (self.vel.y - self.vel.x * other.vel.y / other.vel.x);
+        if t < 0.0 {
+            return false;
+        }
 
         let s = (t * self.vel.x + self.pos.x - other.pos.x) / other.vel.x;
-        if s < 0.0 { return false; }
+        if s < 0.0 {
+            return false;
+        }
 
         let x = t * self.vel.x + self.pos.x;
         let y = t * self.vel.y + self.pos.y;
-        
+
         let lower = 200000000000000.0;
         let upper = 400000000000000.0;
 
@@ -46,9 +56,13 @@ fn main() {
 }
 
 fn part1(input: Input) -> usize {
-    input.get_numbers::<i64>()
+    input
+        .get_numbers::<i64>()
         .tuples()
-        .map(|(x, y, _)| Point { x: x as f64, y: y as f64 })
+        .map(|(x, y, _)| Point {
+            x: x as f64,
+            y: y as f64,
+        })
         .tuples()
         .map(|(pos, vel)| Stone { pos, vel })
         .combinations(2)
@@ -61,7 +75,8 @@ fn part1(input: Input) -> usize {
 }
 
 fn part2(input: Input) -> i64 {
-    let stones: Vec<(Coord3, Coord3)> = input.get_numbers::<i64>()
+    let stones: Vec<(Coord3, Coord3)> = input
+        .get_numbers::<i64>()
         .tuples::<(_, _, _)>()
         .map(|(x, y, z)| Coord3::new3d(x, y, z))
         .tuples::<(_, _)>()
@@ -90,11 +105,15 @@ fn part2(input: Input) -> i64 {
                     }
                 }
             }
-            if !times.is_empty() { break 'outer; }
+            if !times.is_empty() {
+                break 'outer;
+            }
         }
     }
 
-    let (i, j) = times.iter().enumerate()
+    let (i, j) = times
+        .iter()
+        .enumerate()
         .filter(|&(_, &time)| time > 0)
         .map(|(idx, _)| idx)
         .take(2)
@@ -108,8 +127,8 @@ fn part2(input: Input) -> i64 {
     (0..=2)
         .map(|axis| {
             let i_pos = rock_pos(&stones, i, axis, times[i]);
-            i_pos - (i_pos - rock_pos(&stones, j, axis, times[j])) /
-                (times[i] - times[j]) * times[i]
+            i_pos
+                - (i_pos - rock_pos(&stones, j, axis, times[j])) / (times[i] - times[j]) * times[i]
         })
         .sum()
 }

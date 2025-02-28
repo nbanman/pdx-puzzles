@@ -1,7 +1,10 @@
 use advent::utilities::get_input::get_input;
 use lazy_regex::regex;
-use utilities::structs::{indexer::Indexer, stopwatch::{ReportDuration, Stopwatch}};
 use std::{fmt::Display, ops::Index};
+use utilities::structs::{
+    indexer::Indexer,
+    stopwatch::{ReportDuration, Stopwatch},
+};
 
 type Input<'a> = &'a str;
 type Int = i64;
@@ -52,7 +55,7 @@ impl Display for Equation {
                     Operation::OddDiv => "o/",
                 };
                 write!(f, "({left} {op} {right})")
-            },
+            }
         }
     }
 }
@@ -62,16 +65,16 @@ impl Equation {
         match self {
             Equation::X => true,
             Equation::Number(_) => false,
-            Equation::Composite(left, right, _) => {
-                left.contains_x() || right.contains_x()
-            },
+            Equation::Composite(left, right, _) => left.contains_x() || right.contains_x(),
         }
     }
 
     fn solve(&self, to: Equation) -> Equation {
         match self {
             Equation::X => to.clone(),
-            Equation::Number(_) => { panic!("numbers cannot be solved!") },
+            Equation::Number(_) => {
+                panic!("numbers cannot be solved!")
+            }
             Equation::Composite(left, right, op) => {
                 let move_right = left.contains_x();
                 let (moving, stay) = if move_right {
@@ -81,27 +84,37 @@ impl Equation {
                 };
                 let new_op = match op {
                     Operation::Add => Operation::Sub,
-                    Operation::Sub => if move_right { Operation::Add } else { Operation::OddSub },
+                    Operation::Sub => {
+                        if move_right {
+                            Operation::Add
+                        } else {
+                            Operation::OddSub
+                        }
+                    }
                     Operation::Mul => Operation::Div,
-                    _ => if move_right { Operation::Mul } else { Operation::OddDiv },
+                    _ => {
+                        if move_right {
+                            Operation::Mul
+                        } else {
+                            Operation::OddDiv
+                        }
+                    }
                 };
-                let new_to = Self::Composite(
-                    Box::new(to.clone()), 
-                    Box::new(moving), 
-                    new_op
-                );
+                let new_to = Self::Composite(Box::new(to.clone()), Box::new(moving), new_op);
                 stay.solve(new_to)
-            },
+            }
         }
     }
 
     fn calculate(&self) -> i64 {
         match self {
-            Equation::X => { panic!("X should be removed from equation!"); },
+            Equation::X => {
+                panic!("X should be removed from equation!");
+            }
             Equation::Number(n) => *n,
             Equation::Composite(left, right, op) => {
                 operate(*op, left.calculate(), right.calculate())
-            },
+            }
         }
     }
 }
@@ -124,14 +137,15 @@ fn get_monkeys(input: &str, part2: bool) -> Monkeys {
     let mut left_call_register = vec![Vec::new(); number_of_monkeys];
     let mut right_call_register = vec![Vec::new(); number_of_monkeys];
 
-    let pattern = regex!(r"(?P<monkey>\w+): (?P<call>\d+)?(?:(?P<left>\w+) (?P<op>[-+*/]) (?P<right>\w+))?");
+    let pattern =
+        regex!(r"(?P<monkey>\w+): (?P<call>\d+)?(?:(?P<left>\w+) (?P<op>[-+*/]) (?P<right>\w+))?");
     for caps in pattern.captures_iter(input) {
         let name = caps.index("monkey");
         let monkey = indexer.get_or_assign_index(name.to_string());
         if name == "root" {
             root = monkey;
         }
-        
+
         let job = if let Some(call) = caps.name("call") {
             if name == "humn" && part2 {
                 Job::Unassigned
@@ -150,7 +164,9 @@ fn get_monkeys(input: &str, part2: bool) -> Monkeys {
                     "-" => Operation::Sub,
                     "*" => Operation::Mul,
                     "/" => Operation::Div,
-                    c => { panic!("{c} not a recognized operation!"); }
+                    c => {
+                        panic!("{c} not a recognized operation!");
+                    }
                 }
             };
             left_call_register[left].push(monkey);
@@ -166,10 +182,10 @@ fn get_monkeys(input: &str, part2: bool) -> Monkeys {
 }
 
 fn assign_call(
-    monkey: usize, 
-    jobs: &mut Vec<Job>, 
-    left_call_register: &Vec<Vec<usize>>, 
-    right_call_register: &Vec<Vec<usize>>
+    monkey: usize,
+    jobs: &mut Vec<Job>,
+    left_call_register: &Vec<Vec<usize>>,
+    right_call_register: &Vec<Vec<usize>>,
 ) {
     if let Job::Wait(operation, left, right) = jobs[monkey] {
         if let Job::Call(left_call) = jobs[left] {
@@ -184,7 +200,7 @@ fn assign_call(
                 }
             }
         }
-    } 
+    }
 }
 
 fn operate(operation: Operation, a: Int, b: Int) -> Int {
@@ -202,7 +218,9 @@ fn part1(input: Input) -> Output {
     let Monkeys { root, jobs } = get_monkeys(input, false);
     match jobs[root] {
         Job::Call(root_call) => root_call,
-        job => { panic!("Root not resolved!: {:?}", job); },
+        job => {
+            panic!("Root not resolved!: {:?}", job);
+        }
     }
 }
 
@@ -218,8 +236,8 @@ fn get_equation(monkey: usize, jobs: &Vec<Job>) -> Equation {
         Job::Unassigned => Equation::X,
         Job::Call(n) => Equation::Number(n),
         Job::Wait(operation, left, right) => Equation::Composite(
-            Box::new(get_equation(left, jobs)), 
-            Box::new(get_equation(right, jobs)), 
+            Box::new(get_equation(left, jobs)),
+            Box::new(get_equation(right, jobs)),
             operation,
         ),
     }

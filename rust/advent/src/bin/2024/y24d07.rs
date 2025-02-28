@@ -1,5 +1,8 @@
 use advent::utilities::get_input::get_input;
-use utilities::{parsing::get_numbers::get_numbers, structs::stopwatch::{ReportDuration, Stopwatch}};
+use utilities::{
+    parsing::get_numbers::get_numbers,
+    structs::stopwatch::{ReportDuration, Stopwatch},
+};
 
 type Input = Vec<Vec<usize>>;
 type Output = usize;
@@ -24,14 +27,14 @@ enum Operation {
 impl Operation {
     fn operate(&self, a: usize, b: usize) -> Option<usize> {
         match self {
-            Operation::Sub => { a.checked_sub(b) },
+            Operation::Sub => a.checked_sub(b),
             Operation::Divide => {
                 if a % b == 0 {
                     Some(a / b)
                 } else {
                     None
                 }
-            },
+            }
             Operation::Slough => {
                 let a = a.to_string();
                 let b = b.to_string();
@@ -41,13 +44,14 @@ impl Operation {
                 } else {
                     None
                 }
-            },
+            }
         }
     }
 }
 
 fn solve(equations: Input, operations: &[Operation]) -> Output {
-    equations.into_iter()
+    equations
+        .into_iter()
         .filter(|equation| test_validity(equation, operations))
         .map(|equation| equation[0])
         .sum()
@@ -55,8 +59,12 @@ fn solve(equations: Input, operations: &[Operation]) -> Output {
 
 fn test_validity(equation: &[usize], operations: &[Operation]) -> bool {
     fn dfs(current: usize, equation: &[usize], index: usize, operations: &[Operation]) -> bool {
-        if current < equation[1] { return false }
-        if index == 1 { return current == equation[1] }
+        if current < equation[1] {
+            return false;
+        }
+        if index == 1 {
+            return current == equation[1];
+        }
         operations.iter().any(|operation| {
             if let Some(next) = operation.operate(current, equation[index]) {
                 dfs(next, equation, index - 1, operations)
@@ -79,7 +87,10 @@ fn part1(input: &str) -> Output {
 
 fn part2(input: &str) -> Output {
     let equations = parse_input(input);
-    solve(equations, &[Operation::Divide, Operation::Slough, Operation::Sub])
+    solve(
+        equations,
+        &[Operation::Divide, Operation::Slough, Operation::Sub],
+    )
 }
 
 #[test]

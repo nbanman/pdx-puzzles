@@ -46,14 +46,21 @@ fn parse_input(input: &str) -> Input {
 }
 
 fn part1(directories: &Input) -> Int {
-    directories.values().filter(|file_size| file_size <= &&100_000).sum()
+    directories
+        .values()
+        .filter(|file_size| file_size <= &&100_000)
+        .sum()
 }
 
 fn part2(directories: &Input) -> Int {
     let space_available = 70_000_000 - directories.get(&String::from("/")).unwrap();
     let min_dir_size = 30_000_000 - space_available;
 
-    *directories.values().filter(|file_size| file_size >= &&min_dir_size).min().unwrap()
+    *directories
+        .values()
+        .filter(|file_size| file_size >= &&min_dir_size)
+        .min()
+        .unwrap()
 }
 
 #[test]

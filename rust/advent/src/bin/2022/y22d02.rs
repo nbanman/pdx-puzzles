@@ -17,7 +17,8 @@ fn main() {
 }
 
 fn parse_input(input: &str) -> Input {
-    input.split_ascii_whitespace()
+    input
+        .split_ascii_whitespace()
         .map(|c| match c {
             "A" | "X" => 0,
             "B" | "Y" => 1,
@@ -28,9 +29,13 @@ fn parse_input(input: &str) -> Input {
         .collect()
 }
 
-fn throw_score(my_throw: Int) -> Int { my_throw + 1 }
+fn throw_score(my_throw: Int) -> Int {
+    my_throw + 1
+}
 
-fn outcome_score(my_outcome: Int) -> Int { my_outcome * 3 }
+fn outcome_score(my_outcome: Int) -> Int {
+    my_outcome * 3
+}
 
 fn my_outcome(my_throw: Int, opponent_throw: Int) -> Int {
     (my_throw - opponent_throw + 1).rem_euclid(3)
@@ -41,7 +46,8 @@ fn my_throw(my_outcome: Int, opponent_throw: Int) -> Int {
 }
 
 fn part1(rounds: &Input) -> Int {
-    rounds.iter()
+    rounds
+        .iter()
         .map(|&(opponent_throw, my_throw)| {
             let my_outcome = my_outcome(my_throw, opponent_throw);
             outcome_score(my_outcome) + throw_score(my_throw)
@@ -50,7 +56,8 @@ fn part1(rounds: &Input) -> Int {
 }
 
 fn part2(rounds: &Input) -> Int {
-    rounds.iter()
+    rounds
+        .iter()
         .map(|&(opponent_throw, my_outcome)| {
             let my_throw = my_throw(my_outcome, opponent_throw);
             outcome_score(my_outcome) + throw_score(my_throw)

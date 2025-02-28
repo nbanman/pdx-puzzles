@@ -2,7 +2,10 @@ use std::collections::VecDeque;
 
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
-use utilities::{parsing::get_numbers::ContainsNumbers, structs::stopwatch::{ReportDuration, Stopwatch}};
+use utilities::{
+    parsing::get_numbers::ContainsNumbers,
+    structs::stopwatch::{ReportDuration, Stopwatch},
+};
 
 type Int = usize;
 type Input = (Vec<VecDeque<char>>, Vec<(Int, Int, Int)>);
@@ -22,13 +25,13 @@ fn main() {
 fn parse_input(input: &str) -> Input {
     let (stacks_str, instructions) = input.split_once("\n\n").unwrap();
     let mut stacks = vec![VecDeque::new(); 10];
-    
+
     for line in stacks_str.lines().dropping_back(1) {
         for (idx, c) in line.chars().enumerate().filter(|(_, c)| c.is_alphabetic()) {
             stacks[idx / 4].push_back(c);
         }
     }
-    
+
     let instructions = instructions
         .trim_ascii_end()
         .lines()
@@ -42,9 +45,7 @@ fn parse_input(input: &str) -> Input {
 }
 
 fn top(stacks: &[VecDeque<char>]) -> Output {
-    stacks.iter()
-        .filter_map(|stack| stack.front())
-        .collect()
+    stacks.iter().filter_map(|stack| stack.front()).collect()
 }
 
 fn part1(input: Input) -> Output {

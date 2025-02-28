@@ -1,7 +1,10 @@
 use advent::utilities::get_input::get_input;
 use lazy_regex::Regex;
-use utilities::{parsing::get_numbers::ContainsNumbers, structs::stopwatch::{ReportDuration, Stopwatch}};
 use std::ops::Mul;
+use utilities::{
+    parsing::get_numbers::ContainsNumbers,
+    structs::stopwatch::{ReportDuration, Stopwatch},
+};
 
 type Input<'a> = &'a str;
 type Output = usize;
@@ -27,9 +30,7 @@ fn part2(input: Input) -> Output {
     let rx = Regex::new(r"(?s)don't\(\).*?(?:do\(\)|$)|mul\((\d{1,3}),(\d{1,3})\)").unwrap();
     rx.captures_iter(input)
         .filter(|cap| cap.get(1).is_some())
-        .map(|cap| {
-            cap[1].parse::<usize>().unwrap() * cap[2].parse::<usize>().unwrap()
-        })
+        .map(|cap| cap[1].parse::<usize>().unwrap() * cap[2].parse::<usize>().unwrap())
         .sum()
 }
 
@@ -42,8 +43,10 @@ fn default() {
 
 #[test]
 fn examples() {
-    let inputs = [r"xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))", 
-    r"xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))",];
+    let inputs = [
+        r"xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))",
+        r"xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))",
+    ];
     assert_eq!(161, part1(inputs[0]));
     assert_eq!(48, part2(inputs[1]));
 }

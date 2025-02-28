@@ -3,7 +3,13 @@ use std::{cmp::max, iter::successors};
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
 use rustc_hash::FxHashSet;
-use utilities::{parsing::get_numbers::ContainsNumbers, structs::{coord::Coord2, stopwatch::{ReportDuration, Stopwatch}}};
+use utilities::{
+    parsing::get_numbers::ContainsNumbers,
+    structs::{
+        coord::Coord2,
+        stopwatch::{ReportDuration, Stopwatch},
+    },
+};
 
 type Input = (Cavern, i64);
 type Output = usize;
@@ -34,30 +40,28 @@ fn parse_input(input: &str) -> Input {
             let y_delta = (next.y() - prev.y()).signum();
             let delta = Pos::new2d(x_delta, y_delta);
             let steps = max((next.x() - prev.x()).abs(), (next.y() - prev.y()).abs()) as usize + 1;
-            for pos in successors(Some(prev), |&state| {
-                Some(state + delta)
-            })
-                .take(steps) 
-            {
+            for pos in successors(Some(prev), |&state| Some(state + delta)).take(steps) {
                 cavern.insert(pos);
             }
         }
     }
 
     let depth = cavern.iter().map(|pos| pos.y()).max().unwrap();
-        
+
     (cavern, depth)
 }
 
 fn solve<F>(cavern: &mut Cavern, depth: i64, predicate: F) -> usize
-    where
-        F: Fn(Pos) -> bool
+where
+    F: Fn(Pos) -> bool,
 {
     let mut index = 0usize;
     let options: Vec<Pos> = vec![Pos::new2d(0, 1), Pos::new2d(-1, 1), Pos::new2d(1, 1)];
     loop {
         let grain = settle(cavern, depth, &options);
-        if predicate(grain) { return index; }
+        if predicate(grain) {
+            return index;
+        }
         cavern.insert(grain);
         index += 1;
     }
@@ -71,10 +75,12 @@ fn fall(cavern: &Cavern, grain: Pos, options: &Vec<Pos>) -> Option<Pos> {
 }
 
 fn settle(cavern: &Cavern, depth: i64, options: &Vec<Pos>) -> Pos {
-    successors(Some(Pos::new2d(500, 0)), |&grain| fall(cavern, grain, options))
-        .take_while(|grain| grain.y() <= depth + 1)
-        .last()
-        .unwrap()
+    successors(Some(Pos::new2d(500, 0)), |&grain| {
+        fall(cavern, grain, options)
+    })
+    .take_while(|grain| grain.y() <= depth + 1)
+    .last()
+    .unwrap()
 }
 
 fn part1((mut cavern, depth): Input) -> Output {

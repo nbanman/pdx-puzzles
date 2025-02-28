@@ -3,7 +3,13 @@ use std::{collections::VecDeque, ops::RangeInclusive};
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
 use rustc_hash::FxHashSet;
-use utilities::{parsing::get_numbers::ContainsNumbers, structs::{coord::Coord, stopwatch::{ReportDuration, Stopwatch}}};
+use utilities::{
+    parsing::get_numbers::ContainsNumbers,
+    structs::{
+        coord::Coord,
+        stopwatch::{ReportDuration, Stopwatch},
+    },
+};
 
 type Input = FxHashSet<Cube>;
 type Output = usize;
@@ -45,8 +51,9 @@ fn surface_area<F>(cubes: &FxHashSet<Cube>, predicate: F) -> usize
 where
     F: Fn(&Cube) -> bool,
 {
-    cubes.iter()
-        .map(|&cube| { 
+    cubes
+        .iter()
+        .map(|&cube| {
             adjacent(cube)
                 .filter(|neighbor| predicate(neighbor))
                 .count()
@@ -64,17 +71,17 @@ fn get_bounds(cubes: &Input) -> [RangeInclusive<i64>; 3] {
     for cube in cubes {
         for dim in 0..3 {
             let v = cube.0[dim];
-            if v > maximums[dim] { 
-                maximums[dim] = v; 
-            } else if v < minimums[dim]  {
+            if v > maximums[dim] {
+                maximums[dim] = v;
+            } else if v < minimums[dim] {
                 minimums[dim] = v;
             }
         }
     }
     [
-        minimums[0] - 1..=maximums[0] + 1, 
-        minimums[1] - 1..=maximums[2] + 1, 
-        minimums[1] - 1..=maximums[2] + 1, 
+        minimums[0] - 1..=maximums[0] + 1,
+        minimums[1] - 1..=maximums[2] + 1,
+        minimums[1] - 1..=maximums[2] + 1,
     ]
 }
 

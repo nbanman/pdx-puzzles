@@ -9,12 +9,11 @@ enum GridRotation {
 }
 
 impl<T: Clone> Grid<T, 2> {
-    fn rotate(&self, rotation: GridRotation) -> Grid<T, 2> 
-    {
+    fn rotate(&self, rotation: GridRotation) -> Grid<T, 2> {
         let mut rotated = Vec::with_capacity(self.len());
         let width = self.width();
         let height = self.height();
-        
+
         match rotation {
             GridRotation::Left => {
                 for x in (0..width).rev() {
@@ -22,43 +21,46 @@ impl<T: Clone> Grid<T, 2> {
                         rotated.push(self.data[y * width + x].clone());
                     }
                 }
-            },
+            }
             GridRotation::Right => {
                 for x in 0..width {
                     for y in (0..height).rev() {
                         rotated.push(self.data[y * width + x].clone());
                     }
                 }
-            },
+            }
             GridRotation::OneEighty => {
                 for y in (0..height).rev() {
                     for x in (0..width).rev() {
                         rotated.push(self.data[y * width + x].clone());
                     }
                 }
-            },
+            }
             GridRotation::FlipX => {
                 for y in 0..height {
                     for x in (0..width).rev() {
                         rotated.push(self.data[y * width + x].clone());
                     }
                 }
-            },
+            }
             GridRotation::FlipY => {
                 for y in (0..height).rev() {
                     for x in 0..width {
                         rotated.push(self.data[y * width + x].clone());
                     }
                 }
-            },
+            }
         }
 
         let dimensions: [usize; 2] = match rotation {
             GridRotation::Left | GridRotation::Right => [self.dimensions[1], self.dimensions[0]],
             _ => self.dimensions,
         };
-        
-        Grid { data: rotated, dimensions }
+
+        Grid {
+            data: rotated,
+            dimensions,
+        }
     }
 }
 

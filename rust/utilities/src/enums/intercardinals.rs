@@ -43,23 +43,18 @@ impl Intercardinal {
     pub fn entries() -> [Self; 8] {
         [
             Self::Northwest,
-            Self::North, 
+            Self::North,
             Self::Northeast,
-            Self::East, 
+            Self::East,
             Self::Southeast,
-            Self::South, 
+            Self::South,
             Self::Southwest,
             Self::West,
         ]
     }
 
     pub fn cardinal_entries() -> [Self; 4] {
-        [
-            Self::North,
-            Self::East,
-            Self::South,
-            Self::West,
-        ]
+        [Self::North, Self::East, Self::South, Self::West]
     }
 
     pub fn left(&self) -> Self {

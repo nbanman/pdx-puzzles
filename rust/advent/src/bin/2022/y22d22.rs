@@ -2,7 +2,14 @@ use advent::utilities::get_input::get_input;
 use itertools::Itertools;
 use lazy_regex::regex;
 use rustc_hash::{FxHashMap, FxHashSet};
-use utilities::{enums::cardinals::Cardinal, structs::{coord::{Coord, Coord2, Coord2U}, grid::{Grid, Grid2, GridIterator}, stopwatch::{ReportDuration, Stopwatch}}};
+use utilities::{
+    enums::cardinals::Cardinal,
+    structs::{
+        coord::{Coord, Coord2, Coord2U},
+        grid::{Grid, Grid2, GridIterator},
+        stopwatch::{ReportDuration, Stopwatch},
+    },
+};
 
 type Input<'a> = (Grid2<Terrain>, Vec<Command>);
 type Output = usize;
@@ -35,21 +42,20 @@ enum Terrain {
 
 fn parse_input(input: &str) -> Input {
     let (grove, path_str) = input.split_once("\n\n").unwrap();
-    
+
     let grove: Vec<&str> = grove.trim_end().lines().collect();
-    let width = grove.iter()
-        .map(|line| line.len())
-        .max()
-        .unwrap();
-    let grove: Vec<Vec<Terrain>> = grove.into_iter()
+    let width = grove.iter().map(|line| line.len()).max().unwrap();
+    let grove: Vec<Vec<Terrain>> = grove
+        .into_iter()
         .map(|line| {
-            line.as_bytes().into_iter()
-                .map(|&b| {
-                    match b {
-                        b' ' => Terrain::Space,
-                        b'#' => Terrain::Wall,
-                        b'.' => Terrain::Path,
-                        b => { panic!("Cannot interpret '{b}'"); },
+            line.as_bytes()
+                .into_iter()
+                .map(|&b| match b {
+                    b' ' => Terrain::Space,
+                    b'#' => Terrain::Wall,
+                    b'.' => Terrain::Path,
+                    b => {
+                        panic!("Cannot interpret '{b}'");
                     }
                 })
                 .pad_using(width, |_| Terrain::Space)
@@ -61,34 +67,32 @@ fn parse_input(input: &str) -> Input {
     let mut path = Vec::new();
     regex!(r"\d+|[LR]")
         .find_iter(path_str)
-        .for_each(|command| {
-            match command.as_str() {
-                "L" => { path.push(Command::Left); },
-                "R" => { path.push(Command::Right); },
-                n => for _ in 0..n.parse::<usize>().unwrap() {
+        .for_each(|command| match command.as_str() {
+            "L" => {
+                path.push(Command::Left);
+            }
+            "R" => {
+                path.push(Command::Right);
+            }
+            n => {
+                for _ in 0..n.parse::<usize>().unwrap() {
                     path.push(Command::Forward);
-                },
+                }
             }
         });
-
 
     (grove, path)
 }
 
-fn solve<F>(
-    grove: &Grid2<Terrain>, 
-    path: &[Command], 
-    movement: F,
-) -> Output 
-where 
-    F: Fn(Pos, Cardinal) -> (Pos, Cardinal)
+fn solve<F>(grove: &Grid2<Terrain>, path: &[Command], movement: F) -> Output
+where
+    F: Fn(Pos, Cardinal) -> (Pos, Cardinal),
 {
     let start = {
-        let x = grove.row(0)
+        let x = grove
+            .row(0)
             .unwrap()
-            .position(|t| {
-                matches!(t, Terrain::Path)
-            })
+            .position(|t| matches!(t, Terrain::Path))
             .unwrap();
         Pos::new2d(x as i64, 0)
     };
@@ -108,12 +112,14 @@ where
             dir = match command {
                 Command::Left => dir.left(),
                 Command::Right => dir.right(),
-                Command::Forward => { panic!("Should only be turning"); },
+                Command::Forward => {
+                    panic!("Should only be turning");
+                }
             };
             pos
         }
     });
-    
+
     let facing = match dir {
         Cardinal::North => 3,
         Cardinal::East => 0,
@@ -125,36 +131,44 @@ where
 }
 
 fn part1((grove, path): &Input) -> Output {
-    let row_bounds: Vec<_> = grove.rows()
+    let row_bounds: Vec<_> = grove
+        .rows()
         .map(|row| {
-            let start = row.iter()
+            let start = row
+                .iter()
                 .position(|&t| !matches!(t, Terrain::Space))
                 .unwrap();
-            let end = row[start + 1..].iter()
+            let end = row[start + 1..]
+                .iter()
                 .position(|&t| matches!(t, Terrain::Space))
-                .unwrap_or(grove.width() - 1 - start) + start;
+                .unwrap_or(grove.width() - 1 - start)
+                + start;
             start as i64..end as i64
         })
         .collect();
-    let col_bounds: Vec<_> = grove.columns()
+    let col_bounds: Vec<_> = grove
+        .columns()
         .map(|column| {
-            let start = column.iter()
+            let start = column
+                .iter()
                 .position(|t| !matches!(t, Terrain::Space))
                 .unwrap();
             let end = column[start + 1..]
                 .iter()
                 .position(|t| matches!(t, Terrain::Space))
-                .unwrap_or(column.len() - 1 - start) + start;
+                .unwrap_or(column.len() - 1 - start)
+                + start;
             start as i64..end as i64
         })
         .collect();
-    
+
     let movement = |pos: Pos, dir: Cardinal| {
         let prospect = pos.move_direction(dir, 1).unwrap();
         let Coord([x, y]) = prospect;
-        if !(0..grove.height() as i64).contains(&y) ||
-                !(0..grove.width() as i64).contains(&x) ||
-                matches!(grove.get([x, y]), Some(Terrain::Space)) {
+        if !(0..grove.height() as i64).contains(&y)
+            || !(0..grove.width() as i64).contains(&x)
+            || matches!(grove.get([x, y]), Some(Terrain::Space))
+        {
             match dir {
                 Cardinal::North | Cardinal::South => {
                     let bounds = &col_bounds[x as usize];
@@ -164,7 +178,7 @@ fn part1((grove, path): &Input) -> Output {
                         bounds.start
                     };
                     (Pos::new2d(x, new_y), dir)
-                },
+                }
                 Cardinal::East | Cardinal::West => {
                     let bounds = &row_bounds[y as usize];
                     let new_x = if x < bounds.start {
@@ -173,7 +187,7 @@ fn part1((grove, path): &Input) -> Output {
                         bounds.start
                     };
                     (Pos::new2d(new_x, y), dir)
-                },
+                }
             }
         } else {
             (prospect, dir)
@@ -182,15 +196,13 @@ fn part1((grove, path): &Input) -> Output {
     solve(grove, path, movement)
 }
 
-
-
 fn part2((grove, path): &Input) -> Output {
     // get the length of each side
-    let space = grove.iter()
+    let space = grove
+        .iter()
         .filter(|&terrain| matches!(terrain, Terrain::Space))
         .count();
     let side_length = ((grove.len() - space) as f64 / 6.0).sqrt() as usize;
-    
 
     // make mini-grid, one pixel per side
     let mini_width = grove.width() / side_length;
@@ -202,35 +214,70 @@ fn part2((grove, path): &Input) -> Output {
         .unwrap();
 
     fn hash(shape: &[Coord2U]) -> usize {
-        shape.iter()
-            .map(|pos| pos.x() + pos.y() * 4)
-            .sum()
+        shape.iter().map(|pos| pos.x() + pos.y() * 4).sum()
     }
 
     // map of various shapes
     let shapes: FxHashMap<usize, _> = vec![
-        (vec![(0, 0), (0, 1), (1, 1)], (Cardinal::East, Cardinal::South)),
-        (vec![(0, 0), (0, 1), (0, 2), (1, 2)], (Cardinal::East, Cardinal::West)),
-        (vec![(0, 0), (0, 1), (1, 1), (2, 1)], (Cardinal::North, Cardinal::South)),
-        (vec![(0, 0), (0, 1), (0, 2), (0, 3)], (Cardinal::South, Cardinal::South)),
-        (vec![(0, 0), (0, 1), (0, 2), (0, 3), (1, 3)], (Cardinal::West, Cardinal::South)),
-        (vec![(0, 0), (0, 1), (1, 1), (2, 1), (3, 1)], (Cardinal::East, Cardinal::East)),
-        (vec![(0, 0), (0, 1), (0, 2), (1, 2), (1, 3)], (Cardinal::North, Cardinal::West)),
-        (vec![(0, 0), (0, 1), (1, 1), (1, 2), (1, 3)], (Cardinal::West, Cardinal::North)),
-        (vec![(0, 0), (0, 1), (1, 1), (1, 2), (2, 2)], (Cardinal::South, Cardinal::East)),
-        (vec![(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3)], (Cardinal::East, Cardinal::East)),
-        (vec![(0, 0), (0, 1), (1, 1), (1, 2), (1, 3), (2, 3)], (Cardinal::North, Cardinal::North)),
-        (vec![(0, 0), (0, 1), (1, 1), (2, 1), (2, 2), (3, 2)], (Cardinal::West, Cardinal::West)),
-        (vec![(0, 0), (0, 1), (0, 2), (1, 2), (1, 3), (1, 4)], (Cardinal::East, Cardinal::East)),
+        (
+            vec![(0, 0), (0, 1), (1, 1)],
+            (Cardinal::East, Cardinal::South),
+        ),
+        (
+            vec![(0, 0), (0, 1), (0, 2), (1, 2)],
+            (Cardinal::East, Cardinal::West),
+        ),
+        (
+            vec![(0, 0), (0, 1), (1, 1), (2, 1)],
+            (Cardinal::North, Cardinal::South),
+        ),
+        (
+            vec![(0, 0), (0, 1), (0, 2), (0, 3)],
+            (Cardinal::South, Cardinal::South),
+        ),
+        (
+            vec![(0, 0), (0, 1), (0, 2), (0, 3), (1, 3)],
+            (Cardinal::West, Cardinal::South),
+        ),
+        (
+            vec![(0, 0), (0, 1), (1, 1), (2, 1), (3, 1)],
+            (Cardinal::East, Cardinal::East),
+        ),
+        (
+            vec![(0, 0), (0, 1), (0, 2), (1, 2), (1, 3)],
+            (Cardinal::North, Cardinal::West),
+        ),
+        (
+            vec![(0, 0), (0, 1), (1, 1), (1, 2), (1, 3)],
+            (Cardinal::West, Cardinal::North),
+        ),
+        (
+            vec![(0, 0), (0, 1), (1, 1), (1, 2), (2, 2)],
+            (Cardinal::South, Cardinal::East),
+        ),
+        (
+            vec![(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3)],
+            (Cardinal::East, Cardinal::East),
+        ),
+        (
+            vec![(0, 0), (0, 1), (1, 1), (1, 2), (1, 3), (2, 3)],
+            (Cardinal::North, Cardinal::North),
+        ),
+        (
+            vec![(0, 0), (0, 1), (1, 1), (2, 1), (2, 2), (3, 2)],
+            (Cardinal::West, Cardinal::West),
+        ),
+        (
+            vec![(0, 0), (0, 1), (0, 2), (1, 2), (1, 3), (1, 4)],
+            (Cardinal::East, Cardinal::East),
+        ),
     ]
-        .into_iter()
-        .map(|(shape, directions)| {
-            let shape: Vec<Coord2U> = shape.into_iter()
-                .map(|(x, y)| Coord::new2d(x, y))
-                .collect();
-            (hash(&shape), (shape, directions))
-        })
-        .collect();
+    .into_iter()
+    .map(|(shape, directions)| {
+        let shape: Vec<Coord2U> = shape.into_iter().map(|(x, y)| Coord::new2d(x, y)).collect();
+        (hash(&shape), (shape, directions))
+    })
+    .collect();
 
     // map representing the sides of the cube and how the sides of the cube line up with each other.
     // the key is the position in the miniGrove, the value is another map
@@ -239,9 +286,9 @@ fn part2((grove, path): &Input) -> Output {
     // let mut sides = FxHashMap::default();
     // for (start, &terrain) in mini_grove.coords()
     //     .zip(mini_grove.iter())
-    //     .filter(|(_, &terrain)| !matches!(Terrain::Space, terrain)) 
+    //     .filter(|(_, &terrain)| !matches!(Terrain::Space, terrain))
     // {
-        
+
     // }
 
     15410
