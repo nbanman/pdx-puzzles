@@ -39,13 +39,13 @@ impl<'a, N: PrimInt+FromStr> Iterator for NumberIterator<'a, N> {
             } else if self.start_position != -1 {
                 if let Ok(sub_str) =
                     std::str::from_utf8(&self.s[self.start_position as usize..self.position as usize]) {
-                    if let Ok(parsed) = sub_str.parse::<N>() {
+                    match sub_str.parse::<N>() { Ok(parsed) => {
                         self.start_position = -1;
                         self.position += 1;
                         return Some(parsed);
-                    } else {
+                    } _ => {
                         self.start_position = -1;
-                    }
+                    }}
                 }
             }
             self.position += 1;

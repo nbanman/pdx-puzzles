@@ -87,7 +87,7 @@ fn part2(input: Input) -> Output {
 
     let mut checksum = 0;
     for block in blocks.iter_mut().rev() {
-        if let Some((&space_idx, heap_idx)) = &spaces[block.size..].iter().enumerate()
+        if let &Some((&space_idx, ref heap_idx)) = &spaces[block.size..].iter().enumerate()
             .filter_map(|(heap_idx, space)| {
                 if let Some(Reverse(space_index)) = space.peek() {
                     if *space_index < block.index {

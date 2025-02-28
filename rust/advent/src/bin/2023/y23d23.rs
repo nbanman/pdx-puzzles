@@ -23,7 +23,7 @@ impl<'a> Input<'a> {
         let trails = StrGrid::new(s).unwrap();
         let start = s.find('.').unwrap();
         let end = trails.s.iter().enumerate().rev()
-            .find(|(_, &c)| c == b'.')
+            .find(|&(_, &c)| c == b'.')
             .unwrap()
             .0;
         let mut vertices = Vertices::new();

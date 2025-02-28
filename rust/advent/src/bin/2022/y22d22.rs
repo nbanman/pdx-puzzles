@@ -236,13 +236,13 @@ fn part2((grove, path): &Input) -> Output {
     // the key is the position in the miniGrove, the value is another map
     // this second map takes the current direction and provides the destination coordinate in the miniGrove
     // and the new direction.
-    let mut sides = FxHashMap::default();
-    for (start, &terrain) in mini_grove.coords()
-        .zip(mini_grove.iter())
-        .filter(|(_, &terrain)| !matches!(Terrain::Space, terrain)) 
-    {
+    // let mut sides = FxHashMap::default();
+    // for (start, &terrain) in mini_grove.coords()
+    //     .zip(mini_grove.iter())
+    //     .filter(|(_, &terrain)| !matches!(Terrain::Space, terrain)) 
+    // {
         
-    }
+    // }
 
     15410
 }

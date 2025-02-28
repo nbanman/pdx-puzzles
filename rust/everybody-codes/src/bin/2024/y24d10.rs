@@ -88,12 +88,12 @@ fn deduce_runes(wall: &mut [Vec<u8>], samples: &[Sample]) {
                 if !(rune as char).is_ascii_alphabetic() {
                     let hz_set: HashSet<u8> = hz_symbols.iter().copied().collect();
                     let vt_set: HashSet<u8> = vt_symbols.iter().copied().collect();
-                    if let Some(&intersection) = hz_set.intersection(&vt_set)
-                        .find(|c| c.is_ascii_alphabetic()) {
+                    match hz_set.intersection(&vt_set)
+                        .find(|c| c.is_ascii_alphabetic()) { Some(&intersection) => {
                         
                         wall[rs_concrete.y()][rs_concrete.x()] = intersection;
                         changed = true;
-                    } else if hz_symbols.iter().all(|c| c.is_ascii_alphabetic()) 
+                    } _ => if hz_symbols.iter().all(|c| c.is_ascii_alphabetic()) 
                         && vt_symbols.iter().filter(|c| c.is_ascii_alphabetic()).count() == 3 {
                         
                         let rune_row: HashSet<u8> = (0..4)
@@ -107,7 +107,7 @@ fn deduce_runes(wall: &mut [Vec<u8>], samples: &[Sample]) {
                                 wall[rs_concrete.y()][rs_concrete.x()] = rune;
                                 wall[rs_concrete.y()][rs_concrete.x()] = rune;
                                 let cross = vt_symbols.iter().enumerate()
-                                    .find(|(_, &c)| c == b'?')
+                                    .find(|&(_, &c)| c == b'?')
                                     .unwrap()
                                     .0;
                                 let wall_pos = &sample.vt[rune_spot.x()][cross];
@@ -128,7 +128,7 @@ fn deduce_runes(wall: &mut [Vec<u8>], samples: &[Sample]) {
                             if let Some(&rune) = rune {
                                 wall[rs_concrete.y()][rs_concrete.x()] = rune;
                                 let cross = hz_symbols.iter().enumerate()
-                                    .find(|(_, &c)| c == b'?')
+                                    .find(|&(_, &c)| c == b'?')
                                     .unwrap()
                                     .0;
                                 let wall_pos = &sample.hz[rune_spot.y()][cross];
@@ -136,7 +136,7 @@ fn deduce_runes(wall: &mut [Vec<u8>], samples: &[Sample]) {
                                 changed = true;
                             }
                         }
-                    }
+                    }}
                 }
             }
         }

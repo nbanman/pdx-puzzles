@@ -27,7 +27,7 @@ fn is_safe(level: &[isize]) -> bool {
 
 fn is_somewhat_safe(level: &[isize]) -> bool {
     let diffs = level.iter().tuple_windows()
-        .filter(|(&a, &b)| b - a > 0)
+        .filter(|&(&a, &b)| b - a > 0)
         .count();
     let last_index = level.len() - 1;
     let penultimate_index = last_index - 1;

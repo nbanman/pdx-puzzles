@@ -13,7 +13,7 @@ fn solve(input: &str, diagonals: bool) -> usize {
     let width = input.find('\n').unwrap() + 1;
     let blocks: HashSet<Coord2> = input.as_bytes().iter()
         .enumerate()
-        .filter(|(_, &c)| c == b'#') 
+        .filter(|&(_,  &c)| c == b'#') 
         .map(|(idx, _)| {
             let x = (idx % width) as i64;
             let y = (idx / width) as i64;

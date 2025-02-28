@@ -32,7 +32,7 @@ impl<'a> StrGrid<'a> {
             return Err(StrGridError::ContainsCarriageReturns);
         }
         let breaks: Vec<usize> = s.iter().enumerate()
-            .filter(|(_, &c)| c == b'\n')
+            .filter(|&(_, &c)| c == b'\n')
             .map(|(idx, _)| idx)
             .collect();
         let width = *breaks.first().ok_or(StrGridError::NoLineBreak)? + 1;
@@ -74,20 +74,20 @@ impl<'a> StrGrid<'a> {
     }
     
     pub fn try_get<T: TryInto<usize>>(&self, idx: T) -> Option<u8> {
-        if let Ok(idx) = idx.try_into() {
+        match idx.try_into() { Ok(idx) => {
             self.get(idx)
-        } else {
+        } _ => {
             None
-        }
+        }}
     }
     
     pub fn try_get_coord<T: TryInto<Pos>>(&self, pos: T) -> Option<u8> {
-        if let Ok(pos) = pos.try_into() {
+        match pos.try_into() { Ok(pos) => {
             let idx = self.coord_to_idx(&pos);
             self.try_get(idx)
-        } else {
+        } _ => {
             None
-        }
+        }}
         
     }
     
