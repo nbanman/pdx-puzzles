@@ -17,6 +17,26 @@ bit-set = "0.8.0"
 bit-vec = "0.8.0"
 
 [[bin]]
+name = "advent-y21d01"
+path = "src/bin/2021/y21d01.rs"
+
+[[bin]]
+name = "advent-y21d02"
+path = "src/bin/2021/y21d02.rs"
+
+[[bin]]
+name = "advent-y21d03"
+path = "src/bin/2021/y21d03.rs"
+
+[[bin]]
+name = "advent-y21d04"
+path = "src/bin/2021/y21d04.rs"
+
+#[[bin]]
+#name = "advent-y21d05"
+#path = "src/bin/2021/y21d05.rs"
+
+[[bin]]
 name = "advent-y22d01"
 path = "src/bin/2022/y22d01.rs"
 
