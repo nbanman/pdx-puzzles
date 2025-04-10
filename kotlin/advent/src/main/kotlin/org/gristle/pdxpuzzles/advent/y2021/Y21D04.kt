@@ -7,10 +7,9 @@ import org.gristle.pdxpuzzles.utilities.objects.toGrid
 class Y21D04(input: String) : Day {
 
     data class BingoCard(val grid: Grid<Int>) {
-        private val winConditions = (grid.rows() + grid.columns())
-            .map { it.toSet() }
+        private val winConditions = (grid.rows() + grid.columns()).map { it.toSet() }
 
-        fun bingo(calledNumbers: List<Int>) = winConditions.any { it.intersect(calledNumbers.toSet()) == it }
+        fun bingo(calledNumbers: List<Int>) = winConditions.any { it.intersect(calledNumbers).size == it.size }
 
         fun score(calledNumbers: List<Int>) = grid.sum() - calledNumbers.intersect(grid).sum()
     }
