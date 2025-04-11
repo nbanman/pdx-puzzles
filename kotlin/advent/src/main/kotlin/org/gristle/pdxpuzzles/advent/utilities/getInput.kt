@@ -14,7 +14,6 @@ fun getInput(year: Int, day: Int): String {
         .resolve("inputs/advent/20$year/y${year}d${String.format("%02d", day)}.txt")
 
     val inputFile = File(path.toUri())
-
     if (!inputFile.exists()) {
         inputFile.parentFile.mkdirs()
         val url = URI("https://adventofcode.com/20$year/day/$day/input").toURL()
