@@ -19,6 +19,12 @@ object Y24D15 : Day {
         HERB,
     }
 
+    enum class PathStatus {
+        NONE,
+        HERBLESS,
+        COMPLETE,
+    }
+
     data class State(
         val pos: Int,
         val herbsCollected: List<Int>,
@@ -33,30 +39,51 @@ object Y24D15 : Day {
         val herbs: Int,
         val direction: Nsew,
     ) {
+        val segmentWidth = if (forest.width < 100) {
+            forest.width
+        } else {
+            forest.width / 3
+        }
         fun makeMap() = buildMap<Int, MutableMap<Int, MutableList<Double>>> {
             val tl = Coord(
-                y * forest.width,
+                x * segmentWidth,
                 if (direction == Nsew.SOUTH) {
                     forest.coordOf(from.first()).y
                 } else {
-                    to.firstOrNull()
-                        ?.let { forest.coordOf(it).y }
-                        ?: 0
+                    if (to == from) {
+                        0
+                    } else {
+                        to.firstOrNull()
+                            ?.let { forest.coordOf(it).y }
+                            ?: 0
+                    }
                 }
             )
             val br = Coord(
-                (y + 1) * forest.width - 1,
+                (x + 1) * segmentWidth,
                 if (direction == Nsew.NORTH) {
                     forest.coordOf(from.first()).y
                 } else {
-                    to.firstOrNull()
-                        ?.let { forest.coordOf(it).y }
-                        ?: forest.height
+                    if (to == from) {
+                        forest.height - 1
+                    } else {
+                        to.firstOrNull()
+                            ?.let { forest.coordOf(it).y }
+                            ?: (forest.height - 1)
+                    }
                 },
             )
             val bounds = tl to br
-            val exits = mutableListOf<Int>()
             for (start in from) {
+                val exits = getOrPut(start) { mutableMapOf() }
+                val paths = to
+                    .associateWith {
+                        if (exits.containsKey(it)) {
+                            PathStatus.COMPLETE
+                        } else {
+                            PathStatus.NONE
+                        }
+                    }.toMutableMap()
                 val q = ArrayDeque<Graph.Vertex<State>>()
                 q.addLast(Graph.StdVertex(
                     State(start, emptyList()),
@@ -65,23 +92,56 @@ object Y24D15 : Day {
                 val visited = mutableSetOf<State>()
                 while (q.isNotEmpty()) {
                     val (state, weight) = q.removeFirst()
-                    if (!visited.add(state) || state.pos in exits) {
+                    if (!visited.add(state)) {
                         continue
                     }
-                    if (state.pos in to) {
-                        getOrPut(start) { mutableMapOf() }
-                            .getOrPut(state.pos) { mutableListOf() }
-                            .add(weight)
-                        getOrPut(state.pos) { mutableMapOf() }
-                            .getOrPut(start) { mutableListOf() }
-                            .add(weight)
-                        if (state.herbsCollected.size == herbs) {
-                            exits.add(state.pos)
-                            if (exits.size == to.size) {
-                                break
+                    if (state.pos in to && paths.getValue(state.pos) != PathStatus.COMPLETE) {
+                        when {
+                            from == to -> {
+                                if (state.herbsCollected.size == herbs) {
+                                    paths[state.pos] = PathStatus.COMPLETE
+                                    exits.getOrPut(state.pos) { mutableListOf() }
+                                        .add(weight)
+                                    if (paths.values.all { it == PathStatus.COMPLETE }) {
+                                        break
+                                    } else {
+                                        continue
+                                    }
+                                }
+                            }
+                            paths[state.pos] == PathStatus.NONE -> {
+                                paths[state.pos] = if (state.herbsCollected.size == herbs) {
+                                    PathStatus.COMPLETE
+                                } else {
+                                    PathStatus.HERBLESS
+                                }
+                                exits.getOrPut(state.pos) { mutableListOf() }
+                                    .add(weight)
+                                getOrPut(state.pos) { mutableMapOf() }
+                                    .getOrPut(start) { mutableListOf() }
+                                    .add(weight)
+                                if (paths.values.all { it == PathStatus.COMPLETE }) {
+                                    break
+                                } else {
+                                    continue
+                                }
+                            }
+                            else -> {
+                                if (state.herbsCollected.size == herbs) {
+                                    paths[state.pos] = PathStatus.COMPLETE
+                                    exits.getOrPut(state.pos) { mutableListOf() }
+                                        .add(weight)
+                                    getOrPut(state.pos) { mutableMapOf() }
+                                        .getOrPut(start) { mutableListOf() }
+                                        .add(weight)
+                                }
+                                if (paths.values.all { it == PathStatus.COMPLETE }) {
+                                    break
+                                } else {
+                                    continue
+                                }
                             }
                         }
-                        continue
                     }
                     val neighbors = forest
                         .getNeighborsIndexedValue(state.pos)
@@ -89,8 +149,12 @@ object Y24D15 : Day {
                             nT != Terrain.BARRIER && forest.coordOf(nPos) in bounds
                         }
                     for ((nPos, nT) in neighbors) {
-                        val newHerb = nT == Terrain.HERB && state.pos !in state.herbsCollected
-                        val herbsCollected = state.herbsCollected + if (newHerb) 1 else 0
+                        val newHerb = state.herbsCollected.size < herbs && nT == Terrain.HERB && state.pos !in state.herbsCollected
+                        val herbsCollected = if (newHerb) {
+                            state.herbsCollected + state.pos
+                        } else {
+                            state.herbsCollected
+                        }
                         q.addLast(Graph.StdVertex(
                             State(nPos, herbsCollected),
                             weight + 1
@@ -108,9 +172,14 @@ object Y24D15 : Day {
     private fun solve(input: String, rows: Int, cols: Int): Int {
         val segments = processMap(input, rows, cols)
         val starts = if (cols == 1) listOf(0) else listOf(1, 12, 14)
-        val maps = segments
-            .mapToGrid(Segment::makeMap)
-        maps.forEach { println(it) }
+        val maps = segments.mapToGrid(Segment::makeMap)
+        return starts.sumOf { start -> navigate(maps, start) }
+    }
+
+    private fun navigate(
+        maps: Grid<Map<Int, MutableMap<Int, MutableList<Double>>>>,
+        start: Int
+    ): Int {
         return 3
     }
 
@@ -160,7 +229,7 @@ object Y24D15 : Day {
                     val start = rowIdx * forest.width + x * colWidth
                     val openSpots = (start until start + colWidth)
                         .filter { forest[it] == Terrain.FREE }
-                    if (cols != 1 && y != 0 && openSpots.isEmpty()) {
+                    if (cols != 1 && y != 0 && x != 1 && openSpots.isEmpty()) {
                         val offset = (rowIdx - 1) * forest.width + x * colWidth
                         listOf(offset, offset + colWidth - 1).filter { forest[it] == Terrain.FREE }
                     } else {
@@ -187,13 +256,15 @@ object Y24D15 : Day {
                 else -> 1
             }
 
-            Segment(forest, y, x, from, to, herbs, direction)
+            val toFixed = if (to.isEmpty()) from else to
+
+            Segment(forest, x, y, from, toFixed, herbs, direction)
         }
     }
 
-    override fun part1(input: String) = 3//solve(input, 1, 1)
+    override fun part1(input: String) = solve(input, 1, 1)
     override fun part2(input: String) = solve(input, 5, 1)
-    override fun part3(input: String) = solve(input, 5, 3)
+    override fun part3(input: String) = 3//solve(input, 5, 3)
 }
 
 fun main() = Day.runDay(Y24D15::class)
