@@ -41,6 +41,10 @@ name = "advent-y21d06"
 path = "src/bin/2021/y21d06.rs"
 
 [[bin]]
+name = "advent-y21d07"
+path = "src/bin/2021/y21d07.rs"
+
+[[bin]]
 name = "advent-y22d01"
 path = "src/bin/2022/y22d01.rs"
 
