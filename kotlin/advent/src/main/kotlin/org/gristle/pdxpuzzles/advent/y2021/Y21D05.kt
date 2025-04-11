@@ -11,26 +11,18 @@ class Y21D05(input: String) : Day {
         fun straightRange(includeDiagonals: Boolean): List<Coord> =
             if (start.x == end.x) {
                 val (small, large) = minMax(start.y, end.y)
-                (small..large).fold(emptyList()) { acc, i ->
-                    acc + Coord(start.x, i)
-                }
+                (small..large).map { y -> Coord(start.x, y) }
             } else if (start.y == end.y) {
                 val (small, large) = minMax(start.x, end.x)
-                (small..large).fold(emptyList()) { acc, i ->
-                    acc + Coord(i, start.y)
-                }
+                (small..large).map { x -> Coord(x, start.y) }
             } else if (includeDiagonals) {
                 val xRange = if (start.x < end.x) {
                     start.x..end.x
                 } else {
                     start.x downTo end.x
                 }
-
                 val yIncrement = if (start.y < end.y) 1 else -1
-
-                xRange.foldIndexed(emptyList()) { index, acc, i ->
-                    acc + Coord(i, start.y + index * yIncrement)
-                }
+                xRange.mapIndexed { i, x -> Coord(x, start.y + i * yIncrement) }
             } else {
                 emptyList()
             }
@@ -56,7 +48,7 @@ class Y21D05(input: String) : Day {
 
 fun main() = Day.runDay(Y21D05::class)
 
-//    Class creation: 78ms
-//    Part 1: 5774 (154ms)
-//    Part 2: 18423 (148ms)
-//    Total time: 381ms   
+//    Class creation: 5ms
+//    Part 1: 5774 (31ms)
+//    Part 2: 18423 (32ms)
+//    Total time: 70ms
