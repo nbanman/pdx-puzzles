@@ -4,3 +4,4 @@ pub mod graphs;
 pub mod math;
 pub mod parsing;
 pub mod structs;
+pub mod minmax;
