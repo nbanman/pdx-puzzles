@@ -54,9 +54,7 @@ fn part1((crabs, min, max): &Input) -> Output {
 }
 
 fn part2((crabs, min, max): &Input) -> Output {
-    optimal_alignment_cost(crabs, *min, *max, |it| {
-        (1..=it).sum()
-    })
+    optimal_alignment_cost(crabs, *min, *max, |it| (1..=it).sum())
 }
 
 #[test]

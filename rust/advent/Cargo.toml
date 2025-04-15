@@ -20,7 +20,7 @@ bit-vec = "0.8.0"
 name = "advent-y21d01"
 path = "src/bin/2021/y21d01.rs"
 
-[[bin]]
+[[bin]] 
 name = "advent-y21d02"
 path = "src/bin/2021/y21d02.rs"
 
@@ -43,6 +43,78 @@ path = "src/bin/2021/y21d06.rs"
 [[bin]]
 name = "advent-y21d07"
 path = "src/bin/2021/y21d07.rs"
+
+[[bin]]
+name = "advent-y21d08"
+path = "src/bin/2021/y21d08.rs"
+
+#[[bin]]
+#name = "advent-y21d09"
+#path = "src/bin/2021/y21d09.rs"
+
+#[[bin]]
+#name = "advent-y21d10"
+#path = "src/bin/2021/y21d10.rs"
+
+#[[bin]]
+#name = "advent-y21d11"
+#path = "src/bin/2021/y21d11.rs"
+
+#[[bin]]
+#name = "advent-y21d12"
+#path = "src/bin/2021/y21d12.rs"
+
+#[[bin]]
+#name = "advent-y21d13"
+#path = "src/bin/2021/y21d13.rs"
+
+#[[bin]]
+#name = "advent-y21d14"
+#path = "src/bin/2021/y21d14.rs"
+
+#[[bin]]
+#name = "advent-y21d15"
+#path = "src/bin/2021/y21d15.rs"
+
+#[[bin]]
+#name = "advent-y21d16"
+#path = "src/bin/2021/y21d16.rs"
+
+#[[bin]]
+#name = "advent-y21d17"
+#path = "src/bin/2021/y21d17.rs"
+
+#[[bin]]
+#name = "advent-y21d18"
+#path = "src/bin/2021/y21d18.rs"
+
+#[[bin]]
+#name = "advent-y21d19"
+#path = "src/bin/2021/y21d19.rs"
+
+#[[bin]]
+#name = "advent-y21d20"
+#path = "src/bin/2021/y21d20.rs"
+
+#[[bin]]
+#name = "advent-y21d21"
+#path = "src/bin/2021/y21d21.rs"
+
+#[[bin]]
+#name = "advent-y21d22"
+#path = "src/bin/2021/y21d22.rs"
+
+#[[bin]]
+#name = "advent-y21d23"
+#path = "src/bin/2021/y21d23.rs"
+
+#[[bin]]
+#name = "advent-y21d24"
+#path = "src/bin/2021/y21d24.rs"
+
+#[[bin]]
+#name = "advent-y21d25"
+#path = "src/bin/2021/y21d25.rs"
 
 [[bin]]
 name = "advent-y22d01"
