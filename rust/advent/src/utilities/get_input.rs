@@ -15,7 +15,8 @@ pub fn get_input(year: u8, day: u8) -> io::Result<String> {
             file.read_to_string(&mut contents)?;
             Ok(contents)
         }
-        Err(_) => {
+        Err(err) => {
+            println!("{:?}\n{}", err, path);
             // If local file doesn't exist, attempt to download
             download_input(year, day, &path)
         }
