@@ -1,4 +1,4 @@
-use std::ops::{Index, IndexMut};
+use std::{ops::{Index, IndexMut}, slice::IterMut};
 
 use crate::{
     enums::intercardinals::Intercardinal,
@@ -46,6 +46,10 @@ impl<T, const N: usize> IndexMut<Coord<usize, N>> for Grid<T, N> {
 impl<T, const N: usize> Grid<T, N> {
     pub fn iter(&self) -> std::slice::Iter<'_, T> {
         self.data.iter()
+    }
+
+    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
+        self.data.iter_mut()
     }
 
     pub fn len(&self) -> usize {

@@ -1,3 +1,5 @@
+use std::slice::IterMut;
+
 use super::Grid;
 
 impl<T, const N: usize> IntoIterator for Grid<T, N> {
@@ -7,6 +9,16 @@ impl<T, const N: usize> IntoIterator for Grid<T, N> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.data.into_iter()
+    }
+}
+
+impl<'a, T, const N: usize> IntoIterator for &'a mut Grid<T, N> {
+    type Item = &'a mut T;
+
+    type IntoIter = IterMut<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.iter_mut()
     }
 }
 
@@ -63,5 +75,18 @@ mod tests {
             ],
             no_copy.into_iter().collect::<Vec<_>>(),
         )
+    }
+
+    #[test]
+    fn iter_mut() {
+        let mut num_pad = num_pad();
+        for num in num_pad.iter_mut() { 
+            *num -= 1; 
+        }
+        let num_pad: Vec<_> = num_pad.iter().collect();
+        assert_eq!(
+            vec![&0, &1, &2, &3, &4, &5, &6, &7, &8],
+            num_pad,
+        );
     }
 }
