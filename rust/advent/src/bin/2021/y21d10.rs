@@ -1,4 +1,4 @@
-use std::{collections::VecDeque, iter::Rev};
+use std::collections::VecDeque;
 
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
@@ -40,7 +40,7 @@ fn score<F, G>(
 ) -> Option<usize>
 where 
     F: Fn(char) -> Option<usize>,
-    G: Fn(Rev<std::collections::vec_deque::IntoIter<char>>) -> Option<usize>,
+    G: Fn(&mut dyn Iterator<Item = char>) -> Option<usize>,
 {
     let mut stack = VecDeque::new();
     for candidate in line.chars() {
@@ -52,7 +52,7 @@ where
             } 
         }
     }
-    on_finish(stack.into_iter().rev())
+    on_finish(&mut stack.into_iter().rev())
 }
 
 fn part1(input: Input, counterparts: &FxHashMap<char, char>) -> Output {
@@ -77,7 +77,7 @@ fn part2(input: Input, counterparts: &FxHashMap<char, char>) -> Output {
     ];
     let point_value: FxHashMap<char, usize> = point_value.into_iter().collect();
     
-    let stack_score = |iter: Rev<std::collections::vec_deque::IntoIter<char>>| {
+    let stack_score = |iter: &mut dyn Iterator<Item = char>| {
         Some(iter.fold(0, |acc, c| acc * 5 + point_value[&c]))
     };
     
