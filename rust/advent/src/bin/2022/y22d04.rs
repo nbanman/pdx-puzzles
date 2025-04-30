@@ -29,8 +29,9 @@ fn parse_input(input: &str) -> Input {
         .collect()
 }
 
-fn contains_all(a: &RangeInclusive<Int>, b: &RangeInclusive<Int>) -> bool {
-    a.start() <= b.start() && a.end() >= b.end()
+fn contained(a: &RangeInclusive<Int>, b: &RangeInclusive<Int>) -> bool {
+    (a.start() <= b.start() && a.end() >= b.end()) ||
+        (b.start() <= a.start() && b.end() >= a.end())
 }
 
 fn overlaps(a: &RangeInclusive<Int>, b: &RangeInclusive<Int>) -> bool {
@@ -42,7 +43,7 @@ fn overlaps(a: &RangeInclusive<Int>, b: &RangeInclusive<Int>) -> bool {
 }
 
 fn solve<F>(ranges: &Input, predicate: F) -> Output 
-where F: Fn(&RangeInclusive<i16>, &RangeInclusive<i16>) -> bool
+where F: Fn(&RangeInclusive<Int>, &RangeInclusive<Int>) -> bool
 {
     ranges
         .iter()
@@ -51,13 +52,11 @@ where F: Fn(&RangeInclusive<i16>, &RangeInclusive<i16>) -> bool
 }
 
 fn part1(ranges: &Input) -> Output {
-    solve(ranges, |left, right| {
-        contains_all(left, right) || contains_all(right, left)
-    })
+    solve(ranges, contained)
 }
 
 fn part2(ranges: &Input) -> Output {
-    solve(ranges, |left, right| overlaps(left, right))
+    solve(ranges, overlaps)
 }
 
 #[test]
