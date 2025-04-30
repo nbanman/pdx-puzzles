@@ -38,22 +38,27 @@ class Y22D02(input: String) : Day {
     // between 0 and 2
     private val rounds = input.lines().map { it[0] - 'A' to it[2] - 'X' }
 
+    private fun solve(f: (Int, Int) -> Pair<Int, Int>) = rounds.sumOf { (opponentThrow, my) ->
+        val (myOutcome, myThrow) = f(opponentThrow, my)
+        outcomeScore(myOutcome) + throwScore((myThrow))
+    }
+
     // Part 1 tells us to interpret my number as my throw. So the task is to derive the outcome, then score accordingly.
-    override fun part1() = rounds.sumOf { (opponentThrow, myThrow) ->
+    override fun part1() = solve { opponentThrow, myThrow ->
         val myOutcome = myOutcome(myThrow, opponentThrow)
-        outcomeScore(myOutcome) + throwScore(myThrow)
+        myOutcome to myThrow
     }
 
     // Part 2 tells us to interpret my number as my outcome. So the task is to derive my throw, then score accordingly.
-    override fun part2() = rounds.sumOf { (opponentThrow, myOutcome) ->
+    override fun part2() = solve { opponentThrow, myOutcome ->
         val myThrow = myThrow(myOutcome, opponentThrow)
-        outcomeScore(myOutcome) + throwScore(myThrow)
+        myOutcome to myThrow
     }
 }
 
 fun main() = Day.runDay(Y22D02::class)
 
-//    Class creation: 23ms
-//    Part 1: 9241 (0ms)
-//    Part 2: 14610 (0ms)
-//    Total time: 24ms
+//    Class creation: 2ms
+//    Part 1: 9241 (2ms)
+//    Part 2: 14610 (2ms)
+//    Total time: 8ms
