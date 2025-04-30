@@ -41,18 +41,23 @@ fn overlaps(a: &RangeInclusive<Int>, b: &RangeInclusive<Int>) -> bool {
     }
 }
 
-fn part1(ranges: &Input) -> Output {
+fn solve<F>(ranges: &Input, predicate: F) -> Output 
+where F: Fn(&RangeInclusive<i16>, &RangeInclusive<i16>) -> bool
+{
     ranges
         .iter()
-        .filter(|(left, right)| contains_all(left, right) || contains_all(right, left))
+        .filter(|(left, right)| predicate(left, right))
         .count()
 }
 
+fn part1(ranges: &Input) -> Output {
+    solve(ranges, |left, right| {
+        contains_all(left, right) || contains_all(right, left)
+    })
+}
+
 fn part2(ranges: &Input) -> Output {
-    ranges
-        .iter()
-        .filter(|(left, right)| overlaps(left, right))
-        .count()
+    solve(ranges, |left, right| overlaps(left, right))
 }
 
 #[test]
