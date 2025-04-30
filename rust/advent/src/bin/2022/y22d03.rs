@@ -2,17 +2,22 @@ use advent::utilities::get_input::get_input;
 use itertools::Itertools;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
-type Input<'a> = &'a str;
+type Input<'a> = Vec<&'a [u8]>;
 type Int = u64;
 
 fn main() {
     let mut stopwatch = Stopwatch::new();
     stopwatch.start();
     let input = get_input(22, 3).unwrap();
+    let input = parse_input(&input);
     println!("Input parsed ({})", stopwatch.lap().report());
     println!("1. {} ({})", part1(&input), stopwatch.lap().report());
     println!("2. {} ({})", part2(&input), stopwatch.lap().report());
     println!("Total: {}", stopwatch.stop().report());
+}
+
+fn parse_input(rucksacks: &str) -> Input {
+    rucksacks.trim_end().as_bytes().split(|&b| b == b'\n').collect()
 }
 
 fn priority(b: u8) -> u8 {
@@ -28,11 +33,9 @@ fn bitset(sack: &[u8]) -> Int {
         .fold(0, |acc, &b| acc | (1 << (priority(b) as Int)))
 }
 
-fn part1(rucksacks: Input) -> Int {
+fn part1(rucksacks: &Input) -> Int {
     rucksacks
-        .trim_end()
-        .as_bytes()
-        .split(|&b| b == b'\n')
+        .iter()
         .map(|sack| {
             let (a, b) = sack.split_at(sack.len() / 2);
             (bitset(a) & bitset(b)).trailing_zeros() as u64
@@ -40,11 +43,9 @@ fn part1(rucksacks: Input) -> Int {
         .sum()
 }
 
-fn part2(rucksacks: Input) -> Int {
+fn part2(rucksacks: &Input) -> Int {
     rucksacks
-        .trim_end()
-        .as_bytes()
-        .split(|&b| b == b'\n')
+        .iter()
         .map(|sack| bitset(sack))
         .chunks(3)
         .into_iter()
@@ -60,6 +61,7 @@ fn part2(rucksacks: Input) -> Int {
 #[test]
 fn default() {
     let input = get_input(22, 3).unwrap();
+    let input = parse_input(&input);
     assert_eq!(7428, part1(&input));
     assert_eq!(2650, part2(&input));
 }
