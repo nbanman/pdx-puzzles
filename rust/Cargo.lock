@@ -146,6 +146,7 @@ dependencies = [
  "itertools",
  "num-traits",
  "rayon",
+ "rustc-hash",
  "utilities",
 ]
 
