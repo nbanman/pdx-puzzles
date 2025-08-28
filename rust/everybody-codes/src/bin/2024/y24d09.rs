@@ -1,4 +1,4 @@
-use everybody_codes::utilities::inputs::get_inputs;
+use everybody_codes::utilities::inputs::get_event_inputs;
 use utilities::{
     parsing::{get_numbers::ContainsNumbers, try_get::TryGet},
     structs::stopwatch::{ReportDuration, Stopwatch},
@@ -7,7 +7,7 @@ use utilities::{
 fn main() {
     let mut stopwatch = Stopwatch::new();
     stopwatch.start();
-    let (input1, input2, input3) = get_inputs(24, 9);
+    let (input1, input2, input3) = get_event_inputs(24, 9);
     println!("Inputs loaded ({})", stopwatch.lap().report());
     println!("1. {} ({})", part1(&input1), stopwatch.lap().report());
     println!("2. {} ({})", part2(&input2), stopwatch.lap().report());

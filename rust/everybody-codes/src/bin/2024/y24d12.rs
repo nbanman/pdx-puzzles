@@ -1,4 +1,4 @@
-use everybody_codes::utilities::inputs::get_inputs;
+use everybody_codes::utilities::inputs::get_event_inputs;
 use itertools::Itertools;
 use utilities::{
     parsing::get_numbers::ContainsNumbers,
@@ -13,7 +13,7 @@ type Pos = Coord<isize, 2>;
 fn main() {
     let mut stopwatch = Stopwatch::new();
     stopwatch.start();
-    let (input1, input2, input3) = get_inputs(24, 12);
+    let (input1, input2, input3) = get_event_inputs(24, 12);
     println!("Inputs loaded ({})", stopwatch.lap().report());
     println!(
         "1. {} ({})",

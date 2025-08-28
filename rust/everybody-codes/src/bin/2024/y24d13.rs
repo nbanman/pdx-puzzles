@@ -3,7 +3,7 @@ use std::{
     collections::{BinaryHeap, HashSet},
 };
 
-use everybody_codes::utilities::inputs::get_inputs;
+use everybody_codes::utilities::inputs::get_event_inputs;
 use utilities::{
     enums::cardinals::Cardinal,
     structs::stopwatch::{ReportDuration, Stopwatch},
@@ -12,7 +12,7 @@ use utilities::{
 fn main() {
     let mut stopwatch = Stopwatch::new();
     stopwatch.start();
-    let (input1, input2, input3) = get_inputs(24, 13);
+    let (input1, input2, input3) = get_event_inputs(24, 13);
     println!("Inputs loaded ({})", stopwatch.lap().report());
     println!("1. {} ({})", solve(&input1), stopwatch.lap().report());
     println!("2. {} ({})", solve(&input2), stopwatch.lap().report());

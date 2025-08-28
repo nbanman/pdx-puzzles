@@ -1,7 +1,7 @@
-use everybody_codes::utilities::inputs::get_inputs;
+use everybody_codes::utilities::inputs::get_event_inputs;
 
 fn main() {
-    let (input1, input2, input3) = get_inputs(24, 1);
+    let (input1, input2, input3) = get_event_inputs(24, 1);
     println!("1. {}", solve(&input1, 1));
     println!("2. {}", solve(&input2, 2));
     println!("3. {}", solve(&input3, 3));
@@ -32,7 +32,7 @@ fn solve(input: &str, group_size: usize) -> usize {
 
 #[test]
 fn default() {
-    let (input1, input2, input3) = get_inputs(24, 1);
+    let (input1, input2, input3) = get_event_inputs(24, 1);
     assert_eq!(1354, solve(&input1, 1));
     assert_eq!(5639, solve(&input2, 2));
     assert_eq!(28180, solve(&input3, 3));

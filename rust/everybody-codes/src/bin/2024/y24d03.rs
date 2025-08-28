@@ -1,9 +1,9 @@
-use everybody_codes::utilities::inputs::get_inputs;
+use everybody_codes::utilities::inputs::get_event_inputs;
 use std::{collections::HashSet, iter::successors};
 use utilities::structs::coord::Coord2;
 
 fn main() {
-    let (input1, input2, input3) = get_inputs(24, 3);
+    let (input1, input2, input3) = get_event_inputs(24, 3);
     println!("1. {}", solve(&input1, false));
     println!("2. {}", solve(&input2, false));
     println!("3. {}", solve(&input3, true));
@@ -40,7 +40,7 @@ fn solve(input: &str, diagonals: bool) -> usize {
 
 #[test]
 fn default() {
-    let (input1, input2, input3) = get_inputs(24, 3);
+    let (input1, input2, input3) = get_event_inputs(24, 3);
     assert_eq!(134, solve(&input1, false));
     assert_eq!(2810, solve(&input2, false));
     assert_eq!(10443, solve(&input3, true));

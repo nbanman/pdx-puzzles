@@ -1,4 +1,4 @@
-use everybody_codes::utilities::inputs::get_inputs;
+use everybody_codes::utilities::inputs::get_event_inputs;
 use itertools::Itertools;
 use std::collections::HashMap;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
@@ -8,7 +8,7 @@ type Branches<'a> = HashMap<&'a str, Vec<&'a str>>;
 fn main() {
     let mut stopwatch = Stopwatch::new();
     stopwatch.start();
-    let (input1, input2, input3) = get_inputs(24, 6);
+    let (input1, input2, input3) = get_event_inputs(24, 6);
     println!("Inputs loaded ({})", stopwatch.lap().report());
     println!(
         "1. {} ({})",

@@ -1,12 +1,12 @@
 use core::str;
 use std::{cmp::min, collections::HashSet};
 
-use everybody_codes::utilities::inputs::get_inputs;
+use everybody_codes::utilities::inputs::get_event_inputs;
 use itertools::Itertools;
 use utilities::structs::coord::Coord;
 
 fn main() {
-    let (input1, input2, input3) = get_inputs(24, 2);
+    let (input1, input2, input3) = get_event_inputs(24, 2);
     println!("1. {}", part1(&input1));
     println!("2. {}", part2(&input2));
     println!("3. {}", part3(&input3));
@@ -189,7 +189,7 @@ TRODEOAL";
 
 #[test]
 fn challenge() {
-    let (input1, input2, input3) = get_inputs(24, 2);
+    let (input1, input2, input3) = get_event_inputs(24, 2);
     assert_eq!(30, part1(&input1));
     assert_eq!(4992, part2(&input2));
     assert_eq!(11816, part3(&input3));

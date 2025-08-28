@@ -1,7 +1,7 @@
-use everybody_codes::utilities::inputs::get_inputs;
+use everybody_codes::utilities::inputs::get_event_inputs;
 
 fn main() {
-    let (input1, input2, input3) = get_inputs(24, 4);
+    let (input1, input2, input3) = get_event_inputs(24, 4);
     println!("1. {}", solve(&input1, lowest));
     println!("2. {}", solve(&input2, lowest));
     println!("3. {}", solve(&input3, least));

@@ -1,11 +1,11 @@
-use everybody_codes::utilities::inputs::get_inputs;
+use everybody_codes::utilities::inputs::get_event_inputs;
 use itertools::Itertools;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 fn main() {
     let mut stopwatch = Stopwatch::new();
     stopwatch.start();
-    let (input1, input2, input3) = get_inputs(24, 8);
+    let (input1, input2, input3) = get_event_inputs(24, 8);
     let input1 = input1.parse().unwrap();
     let input2 = input2.parse().unwrap();
     let input3 = input3.parse().unwrap();

@@ -1,13 +1,13 @@
 use std::{array::from_fn, cmp::min, collections::HashSet};
 
-use everybody_codes::utilities::inputs::get_inputs;
+use everybody_codes::utilities::inputs::get_event_inputs;
 use utilities::parsing::get_numbers::ContainsNumbers;
 
 const NUMBER_OF_COLUMNS: usize = 4;
 type Formation = [Vec<usize>; NUMBER_OF_COLUMNS];
 
 fn main() {
-    let (input1, input2, input3) = get_inputs(24, 5);
+    let (input1, input2, input3) = get_event_inputs(24, 5);
     println!("1. {}", part1(&input1));
     println!("2. {}", part2(&input2));
     println!("3. {}", part3(&input3));
