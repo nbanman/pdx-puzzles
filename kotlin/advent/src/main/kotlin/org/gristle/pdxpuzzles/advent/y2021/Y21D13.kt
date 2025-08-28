@@ -48,7 +48,7 @@ class Y21D13(input: String) : Day {
         ) = List(larger.size) { i ->
             val lCoord = larger.coordOf(i)
             val sCoord = lCoord + adjustment
-            larger[lCoord] or if (smaller.validCoord(sCoord)) smaller[sCoord] else false
+            larger[lCoord] || if (smaller.validCoord(sCoord)) smaller[sCoord] else false
         }.toGrid(larger.width)
     }
 
