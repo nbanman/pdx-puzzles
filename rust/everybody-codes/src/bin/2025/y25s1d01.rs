@@ -1,8 +1,8 @@
-use rayon::iter::ParallelIterator;
-use std::cmp::min;
 use everybody_codes::utilities::inputs::get_story_inputs;
 use itertools::Itertools;
 use rayon::iter::ParallelBridge;
+use rayon::iter::ParallelIterator;
+use std::cmp::min;
 use utilities::parsing::get_numbers::ContainsNumbers;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
@@ -30,7 +30,7 @@ fn solve(input: &str, max_width: usize) -> usize {
         .unwrap()
 }
 fn eni(n: usize, exp: usize, modulus: usize, values: usize) -> usize {
-    let (set, index_of_first_repeated, cycle_length, turns_in_cycle) = prep(n, exp, modulus);
+    let (remainders, index_of_first_repeated, cycle_length, turns_in_cycle) = prep(n, exp, modulus);
     let keep_in_cycle = min(values, turns_in_cycle);
     let last_place_in_cycle =
         ((turns_in_cycle.checked_sub(1).unwrap_or_default()) % cycle_length) as isize;
@@ -40,7 +40,7 @@ fn eni(n: usize, exp: usize, modulus: usize, values: usize) -> usize {
         .map(|i| {
             let index = (last_place_in_cycle - i).rem_euclid(cycle_length as isize) as usize
                 + index_of_first_repeated;
-            set[index]
+            remainders[index]
         })
         .fold(0, |score, remainder: usize| {
             let score = score * 10usize.pow(get_width(remainder)) + remainder;
@@ -49,45 +49,14 @@ fn eni(n: usize, exp: usize, modulus: usize, values: usize) -> usize {
 
     // handle the prefix part of the score
     let keep_in_prefix = min(values, exp) - keep_in_cycle;
-    let score= (index_of_first_repeated - keep_in_prefix..index_of_first_repeated)
+    let score = (index_of_first_repeated - keep_in_prefix..index_of_first_repeated)
         .rev()
-        .map(|index| set[index])
+        .map(|index| remainders[index])
         .fold(cycle_score, |score, remainder: usize| {
             score * 10usize.pow(get_width(remainder)) + remainder
         });
-    // println!("n: {n}, exp: {exp}, mod: {modulus}, score: {score}");
     score
 }
-
-fn prep(n: usize, exp: usize, modulus: usize) -> (Vec<usize>, usize, usize, usize) {
-    let mut set = Vec::with_capacity(modulus);
-    let mut seen = vec![false; modulus];
-    let mut remainder = 1;
-    let capacity = min(exp, modulus);
-    let mut index_of_first_repeated = capacity; // aka prefix length
-    let mut cycle_length = capacity;
-
-    for i in 0..capacity {
-        remainder = remainder * n % modulus;
-        if !seen[remainder] {
-            set.push(remainder);
-            seen[remainder] = true;
-        } else {
-            index_of_first_repeated = set
-                .iter()
-                .enumerate()
-                .find(|&(_, &value)| value == remainder)
-                .expect("Already confirmed it's there.")
-                .0;
-            cycle_length = i - index_of_first_repeated;
-            break;
-        }
-    }
-
-    let turns_in_cycle = exp - index_of_first_repeated;
-    (set, index_of_first_repeated, cycle_length, turns_in_cycle)
-}
-
 fn part3(input: &str) -> usize {
     input
         .lines()
@@ -101,15 +70,48 @@ fn part3(input: &str) -> usize {
 }
 
 fn eni2(n: usize, exp: usize, modulus: usize) -> usize {
-    let (set, index_of_first_repeated, cycle_length, turns_in_cycle) = prep(n, exp, modulus);
+    let (remainders, index_of_first_repeated, cycle_length, turns_in_cycle) = prep(n, exp, modulus);
     let cycle_split = turns_in_cycle % cycle_length;
-    let mut set_iter = set.iter();
+    let mut set_iter = remainders.iter();
     let prefix_score: usize = set_iter.by_ref().take(index_of_first_repeated).sum();
     let incomplete: usize = set_iter.by_ref().take(cycle_split).sum();
     let cycle_sum = incomplete + set_iter.sum::<usize>();
     prefix_score + incomplete + cycle_sum * (turns_in_cycle / cycle_length)
 }
 
+fn prep(n: usize, exp: usize, modulus: usize) -> (Vec<usize>, usize, usize, usize) {
+    let mut remainders = Vec::with_capacity(modulus);
+    let mut seen = vec![false; modulus];
+    let mut remainder = 1;
+    let capacity = min(exp, modulus);
+    let mut index_of_first_repeated = capacity; // aka prefix length
+    let mut cycle_length = capacity;
+
+    for i in 0..capacity {
+        remainder = remainder * n % modulus;
+        if !seen[remainder] {
+            remainders.push(remainder);
+            seen[remainder] = true;
+        } else {
+            index_of_first_repeated = remainders
+                .iter()
+                .enumerate()
+                .find(|&(_, &value)| value == remainder)
+                .expect("Already confirmed it's there.")
+                .0;
+            cycle_length = i - index_of_first_repeated;
+            break;
+        }
+    }
+
+    let turns_in_cycle = exp - index_of_first_repeated;
+    (
+        remainders,
+        index_of_first_repeated,
+        cycle_length,
+        turns_in_cycle,
+    )
+}
 fn get_width(n: usize) -> u32 {
     let mut width = 1;
     let mut n = n;
@@ -117,7 +119,7 @@ fn get_width(n: usize) -> u32 {
         n /= 10;
         width += 1;
     }
-    return width;
+    width
 }
 
 #[test]
