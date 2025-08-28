@@ -4,12 +4,19 @@ use everybody_codes::utilities::inputs::get_story_inputs;
 use indexmap::IndexSet;
 use itertools::Itertools;
 use utilities::parsing::get_numbers::ContainsNumbers;
+use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 fn main() {
+    let mut stopwatch = Stopwatch::new();
+    stopwatch.start();
+
     let (input1, input2, input3) = get_story_inputs(25, 1, 1);
-    println!("1. {}", solve(&input1, 100));
-    println!("2. {}", solve(&input2, 5));
-    println!("3. {}", part3(&input3));
+    println!("Input parsed ({})", stopwatch.lap().report());
+
+    println!("1. {} ({})", solve(&input1, 100), stopwatch.lap().report());
+    println!("2. {} ({})", solve(&input2, 5), stopwatch.lap().report());
+    println!("3. {} ({})", part3(&input3), stopwatch.lap().report());
+    println!("Total: {}", stopwatch.stop().report());
 }
 
 fn solve(input: &str, max_width: usize) -> usize {
@@ -108,7 +115,7 @@ fn get_width(n: usize) -> u32 {
 }
 
 #[test]
-fn default() {
+fn example() {
     // let (input1, input2, input3) = get_story_inputs(24, 1);
     let input1 = r"A=4 B=4 C=6 X=3 Y=4 Z=5 M=11
 A=8 B=4 C=7 X=8 Y=4 Z=6 M=12
@@ -145,3 +152,17 @@ A=7334 B=9016 C=8524 X=297284338 Y=1565962337 Z=86750102612 M=145";
     assert_eq!(7276515438396, part3(input5));
     // assert_eq!(28180, solve(&input3, 3));
 }
+
+#[test]
+fn default() {
+    let (input1, input2, input3) = get_story_inputs(25, 1, 1);
+    assert_eq!(1281421558, solve(&input1, 100));
+    assert_eq!(165117476211886, solve(&input2, 5));
+    assert_eq!(670944509842136, part3(&input3));
+}
+
+// Input parsed (58μs)
+// 1. 1281421558 (25μs)
+// 2. 165117476211886 (194μs)
+// 3. 670944509842136 (46ms)
+// Total: 46ms
