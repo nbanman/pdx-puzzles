@@ -1,8 +1,6 @@
 use rayon::iter::ParallelIterator;
 use std::cmp::min;
-
 use everybody_codes::utilities::inputs::get_story_inputs;
-use indexmap::IndexSet;
 use itertools::Itertools;
 use rayon::iter::ParallelBridge;
 use utilities::parsing::get_numbers::ContainsNumbers;
@@ -61,8 +59,9 @@ fn eni(n: usize, exp: usize, modulus: usize, values: usize) -> usize {
     score
 }
 
-fn prep(n: usize, exp: usize, modulus: usize) -> (IndexSet<usize>, usize, usize, usize) {
-    let mut set = IndexSet::with_capacity(modulus);
+fn prep(n: usize, exp: usize, modulus: usize) -> (Vec<usize>, usize, usize, usize) {
+    let mut set = Vec::with_capacity(modulus);
+    let mut seen = vec![false; modulus];
     let mut remainder = 1;
     let capacity = min(exp, modulus);
     let mut index_of_first_repeated = capacity; // aka prefix length
@@ -70,12 +69,16 @@ fn prep(n: usize, exp: usize, modulus: usize) -> (IndexSet<usize>, usize, usize,
 
     for i in 0..capacity {
         remainder = remainder * n % modulus;
-        if !set.contains(&remainder) {
-            set.insert(remainder);
+        if !seen[remainder] {
+            set.push(remainder);
+            seen[remainder] = true;
         } else {
             index_of_first_repeated = set
-                .get_index_of(&remainder)
-                .expect("Set already checked, so will always have index.");
+                .iter()
+                .enumerate()
+                .find(|&(_, &value)| value == remainder)
+                .expect("Already confirmed it's there.")
+                .0;
             cycle_length = i - index_of_first_repeated;
             break;
         }
@@ -163,8 +166,8 @@ fn default() {
     assert_eq!(670944509842136, part3(&input3));
 }
 
-// Input parsed (57μs)
-// 1. 1281421558 (34μs)
-// 2. 165117476211886 (278μs)
-// 3. 670944509842136 (6ms)
-// Total: 7ms
+// Input parsed (54μs)
+// 1. 1281421558 (10μs)
+// 2. 165117476211886 (82μs)
+// 3. 670944509842136 (1ms)
+// Total: 1ms
