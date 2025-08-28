@@ -1,8 +1,10 @@
+use rayon::iter::ParallelIterator;
 use std::cmp::min;
 
 use everybody_codes::utilities::inputs::get_story_inputs;
 use indexmap::IndexSet;
 use itertools::Itertools;
+use rayon::iter::ParallelBridge;
 use utilities::parsing::get_numbers::ContainsNumbers;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
@@ -86,6 +88,7 @@ fn prep(n: usize, exp: usize, modulus: usize) -> (IndexSet<usize>, usize, usize,
 fn part3(input: &str) -> usize {
     input
         .lines()
+        .par_bridge()
         .map(|line| {
             let (a, b, c, x, y, z, m) = line.get_numbers().collect_tuple().unwrap();
             eni2(a, x, m) + eni2(b, y, m) + eni2(c, z, m)
@@ -160,8 +163,8 @@ fn default() {
     assert_eq!(670944509842136, part3(&input3));
 }
 
-// Input parsed (58μs)
-// 1. 1281421558 (25μs)
-// 2. 165117476211886 (194μs)
-// 3. 670944509842136 (46ms)
-// Total: 46ms
+// Input parsed (57μs)
+// 1. 1281421558 (34μs)
+// 2. 165117476211886 (278μs)
+// 3. 670944509842136 (6ms)
+// Total: 7ms
