@@ -5,11 +5,9 @@ edition = "2024"
 
 [dependencies]
 utilities = { path = "../utilities" }
-num-traits = { workspace = true }
 itertools = { workspace = true }
 rayon = { workspace = true }
 rustc-hash = { workspace = true }
-indexmap = { workspace = true }
 
 [[bin]]
 name = "ec-y24d01"
