@@ -4,3 +4,5 @@ template.kt
 template.txt
 .idea/*
 .idea/vcs.xml
+.vscode/*
+rust/.zed/*
