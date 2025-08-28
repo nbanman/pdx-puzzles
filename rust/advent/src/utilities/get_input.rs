@@ -5,8 +5,7 @@ use std::{
 };
 
 pub fn get_input(year: u8, day: u8) -> io::Result<String> {
-    let manifest_dir =
-        std::env::var("CARGO_MANIFEST_DIR").expect("Failed to find manifest directory");
+    let manifest_dir = env!("CARGO_MANIFEST_DIR").to_string();
     let path = manifest_dir + &format!("/../../inputs/advent/20{}/y{}d{:02}.txt", year, year, day);
     // Try to open local file first
     match File::open(&path) {
