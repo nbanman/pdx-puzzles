@@ -150,7 +150,6 @@ A=7334 B=9016 C=8524 X=297284338 Y=1565962337 Z=86750102612 M=145";
     assert_eq!(1507702060886, solve(input3, 5));
     assert_eq!(3279640, part3(input4));
     assert_eq!(7276515438396, part3(input5));
-    // assert_eq!(28180, solve(&input3, 3));
 }
 
 #[test]
