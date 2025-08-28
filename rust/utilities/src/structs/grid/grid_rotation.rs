@@ -1,6 +1,6 @@
 use super::Grid;
 
-enum GridRotation {
+pub enum GridRotation {
     Left,
     Right,
     OneEighty,
@@ -9,7 +9,7 @@ enum GridRotation {
 }
 
 impl<T: Clone> Grid<T, 2> {
-    fn rotate(&self, rotation: GridRotation) -> Grid<T, 2> {
+    pub fn rotate(&self, rotation: GridRotation) -> Grid<T, 2> {
         let mut rotated = Vec::with_capacity(self.len());
         let width = self.width();
         let height = self.height();

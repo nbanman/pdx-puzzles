@@ -1,4 +1,8 @@
-use std::{ops::{Index, IndexMut}, slice::IterMut};
+use std::{
+    cmp::min,
+    ops::{Index, IndexMut},
+    slice::IterMut,
+};
 
 use crate::{
     enums::intercardinals::Intercardinal,
@@ -138,6 +142,37 @@ where
     }
 }
 
+impl<T, const N: usize> Grid<T, N>
+where
+    T: Clone,
+{
+    pub fn sub_grid(
+        &self,
+        start: Coord<usize, N>,
+        size: Coord<usize, N>,
+    ) -> Result<Self, GridError> {
+        self.index_of(start).ok_or(GridError::OutOfRange)?;
+        let adjusted_size: [usize; N] = std::array::from_fn(|n| {
+            min(
+                self.dimensions[n]
+                    .checked_sub(start.0[n])
+                    .unwrap_or_default(),
+                size.0[n],
+            )
+        });
+        if adjusted_size.iter().any(|dim| *dim == 0) {
+            return Err(GridError::OutOfRange);
+        }
+        let dummy = Grid {
+            data: vec![false; self.len()],
+            dimensions: self.dimensions,
+        };
+        let sub = Self::new_with_fn(adjusted_size, |i| {
+            self[i.as_coord(&dummy).unwrap() + start].clone()
+        });
+        Ok(sub)
+    }
+}
 /// 2D Grid methods
 impl<T> Grid<T, 2> {
     pub fn height(&self) -> usize {
@@ -198,7 +233,7 @@ impl<T> Grid<T, 2> {
         &self,
         index: I,
         include_intercardinals: bool,
-    ) -> Option<impl Iterator<Item = GridAdjacent<T>>>
+    ) -> Option<impl Iterator<Item = GridAdjacent<'_, T>>>
     where
         I: GridIndex<2>,
     {
@@ -212,7 +247,7 @@ impl<T> Grid<T, 2> {
         Some(dirs.filter_map(move |dir| self.single_adjacent(pos, dir)))
     }
 
-    fn single_adjacent(&self, pos: Coord2U, dir: Intercardinal) -> Option<GridAdjacent<T>> {
+    fn single_adjacent(&self, pos: Coord2U, dir: Intercardinal) -> Option<GridAdjacent<'_, T>> {
         let pos = pos.move_intercardinal(dir, 1)?;
         let value = self.get(pos)?;
         let index = pos.as_usize(self)?;

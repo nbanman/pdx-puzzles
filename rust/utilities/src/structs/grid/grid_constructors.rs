@@ -54,6 +54,17 @@ impl<T, const N: usize> Grid<T, N> {
             Err(GridError::UnevenDimensions)
         }
     }
+    
+    pub fn new_with_fn<F>(dimensions: [usize; N], f: F) -> Self 
+    where F: Fn(usize) -> T
+    {
+        let new_len = dimensions.into_iter().fold(1, |acc, n| acc * n);
+        let vec = (0..new_len).map(|i| f(i)).collect();
+        Grid {
+            data: vec,
+            dimensions,
+        }
+    }
 }
 
 impl<T> Grid<T, 2> {
