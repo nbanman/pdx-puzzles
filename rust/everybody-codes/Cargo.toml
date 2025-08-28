@@ -8,6 +8,8 @@ utilities = { path = "../utilities" }
 num-traits = { workspace = true }
 itertools = { workspace = true }
 rayon = { workspace = true }
+rustc-hash = { workspace = true }
+indexmap = { workspace = true }
 
 [[bin]]
 name = "ec-y24d01"
@@ -65,3 +67,10 @@ path = "src/bin/2024/y24d13.rs"
 name = "ec-y24d14"
 path = "src/bin/2024/y24d14.rs"
 
+[[bin]]
+name = "ec-y24d16"
+path = "src/bin/2024/y24d16.rs"
+
+[[bin]]
+name = "ec-y25s1d01"
+path = "src/bin/2025/y25s1d01.rs"
