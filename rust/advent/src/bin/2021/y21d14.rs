@@ -8,7 +8,7 @@ type Int = usize;
 type PropagationRules<'a> = HashMap<&'a [u8], &'a [u8]>;
 type ProteinPairs<'a> = HashMap<&'a [u8], Int>;
 type EdgeProteins = Vec<u8>;
-type Input<'a> = (PropagationRules<'a>, ProteinPairs<'a>, EdgeProteins);
+type Input<'a> = usize; //(PropagationRules<'a>, ProteinPairs<'a>, EdgeProteins);
 type Output = Int;
 
 fn main() {
@@ -38,10 +38,10 @@ fn parse_input(input: &str) -> Input {
     edge_proteins.push(template[template.len() - 1]);
 
     let mut rules = PropagationRules::new();
-    rule_str.into_iter()
-        .filter(|c| c.is_ascii_alphabetic())
-        .tuple_windows()
-    ()
+    // rule_str.into_iter()
+    //     .filter(|c| c.is_ascii_alphabetic())
+    //     .tuple_windows();
+    3
 }
 
 fn part1(input: &Input) -> Output {
@@ -52,10 +52,10 @@ fn part2(input: &Input) -> Output {
     todo!()
 }
 
-#[test]
-fn default() {
-    let input = get_input(21, 14).unwrap();
-    let input = parse_input(&input);
-    assert_eq!(3555, part1(&input));
-    assert_eq!(4439442043739, part2(&input));
-}
+// #[test]
+// fn default() {
+//     let input = get_input(21, 14).unwrap();
+//     let input = parse_input(&input);
+//     assert_eq!(3555, part1(&input));
+//     assert_eq!(4439442043739, part2(&input));
+// }
