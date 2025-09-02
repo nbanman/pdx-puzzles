@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 utilities = { path = "../utilities" }
 ureq = "2.11.0"
-lazy-regex = "3.3.0"
+lazy-regex = { workspace = true }
 itertools = { workspace = true }
 rayon = { workspace = true }
 indexmap = { workspace = true }

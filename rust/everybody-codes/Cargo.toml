@@ -8,6 +8,9 @@ utilities = { path = "../utilities" }
 itertools = { workspace = true }
 rayon = { workspace = true }
 rustc-hash = { workspace = true }
+lazy-regex = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
 
 [[bin]]
 name = "ec-y24d01"
@@ -72,3 +75,7 @@ path = "src/bin/2024/y24d16.rs"
 [[bin]]
 name = "ec-y25s1d01"
 path = "src/bin/2025/y25s1d01.rs"
+
+[[bin]]
+name = "ec-y25s1d02"
+path = "src/bin/2025/y25s1d02.rs"
