@@ -1,8 +1,8 @@
-use everybody_codes::utilities::inputs::get_story_input;
-use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
-use lazy_regex::{regex, Captures};
 use anyhow::{anyhow, Error, Result};
+use everybody_codes::utilities::inputs::get_story_inputs;
 use itertools::Itertools;
+use lazy_regex::{regex, Captures};
+use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 #[derive(Debug, Copy, Clone)]
 enum Command {
@@ -14,7 +14,7 @@ impl TryFrom<&str> for Command {
     type Error = Error;
 
     fn try_from(value: &str) -> Result<Self> {
-        match value.split_whitespace().next().unwrap() {
+        match value.split_whitespace().next().ok_or_else(|| anyhow!("Empty command"))? {
             "ADD" => {
                 let pattern = regex!(r"id=(?<id>\d+) left=\[(?<leftrank>\d+),(?<leftsymbol>.)\] right=\[(?<rightrank>\d+),(?<rightsymbol>.)\]");
                 let groups = pattern
@@ -76,7 +76,6 @@ struct Node {
     id: usize,
     index: usize,
     side: Side,
-    level: usize,
     parent: Option<usize>,
     left: Option<usize>,
     right: Option<usize>,
@@ -97,15 +96,12 @@ fn main() -> Result<()>{
     let mut stopwatch = Stopwatch::new();
     stopwatch.start();
 
-    // let (input1, input2, input3) = get_story_inputs(25, 1, 1);
-    let input1 = get_story_input(25, 1, 2, 1);
-    let input2 = get_story_input(25, 1, 2, 2);
+    let (input1, input2, input3) = get_story_inputs(25, 1, 2);
     println!("Input parsed ({})", stopwatch.lap().report());
 
     println!("1. {} ({})", solve(&input1, false)?, stopwatch.lap().report());
     println!("2. {} ({})", solve(&input2, false)?, stopwatch.lap().report());
-    // println!("2. {} ({})", solve(&input2, 5), stopwatch.lap().report());
-    // println!("3. {} ({})", part3(&input3), stopwatch.lap().report());
+    println!("3. {} ({})", solve(&input3, true)?, stopwatch.lap().report());
     println!("Total: {}", stopwatch.stop().report());
     Ok(())
 }
@@ -131,7 +127,6 @@ fn solve(input: &str, swap_entire_node: bool) -> Result<String> {
                 id,
                 index: 0,
                 side: Side::Left,
-                level: 0,
                 parent: None,
                 left: None,
                 right: None,
@@ -142,7 +137,6 @@ fn solve(input: &str, swap_entire_node: bool) -> Result<String> {
                 id,
                 index: 1,
                 side: Side::Right,
-                level: 0,
                 parent: None,
                 left: None,
                 right: None,
@@ -176,8 +170,7 @@ fn solve(input: &str, swap_entire_node: bool) -> Result<String> {
                 let left_node = Node {
                     id,
                     index,
-                    side: Side::Left,
-                    level: left_parent.level + 1,
+                    side: left_side,
                     parent: Some(left_parent.index),
                     left: None,
                     right: None,
@@ -199,8 +192,7 @@ fn solve(input: &str, swap_entire_node: bool) -> Result<String> {
                 let right_node = Node {
                     id,
                     index,
-                    side: Side::Right,
-                    level: right_parent.level + 1,
+                    side: right_side,
                     parent: Some(right_parent.index),
                     left: None,
                     right: None,
@@ -211,20 +203,34 @@ fn solve(input: &str, swap_entire_node: bool) -> Result<String> {
             },
             Command::Swap(id) => {
                 if swap_entire_node {
-                    if id == 1 {
+                    if id == 1 { // if it's the head nodes, just swap head markers
                         let swap_head = tree.left_head;
                         tree.left_head = tree.right_head;
                         tree.right_head = swap_head;
-                    } else {
-                        let temp_left = tree.nodes[tree.left_head].clone();
-                        
+                    } else { // if it's a child node, more complicated
+                        let (a, b) = nodes_at_id(&tree, id)?; // get the nodes
+
+                        // clone some values to make things easier
+                        let a_node = tree.nodes[a].clone();
+                        let b_node = tree.nodes[b].clone();
+
+                        // swap parents and sides
+                        tree.nodes[a_node.index].parent = b_node.parent;
+                        tree.nodes[a_node.index].side = b_node.side;
+                        tree.nodes[b_node.index].parent = a_node.parent;
+                        tree.nodes[b_node.index].side = a_node.side;
+
+                        // swap child links
+                        let a_parent_index = a_node.parent
+                            .ok_or_else(|| anyhow!("Missing parent index"))?;
+                        swap_children(&mut tree, a_node, b_node, a_parent_index);
+
+                        let b_parent_index = b_node.parent
+                            .ok_or_else(|| anyhow!("Missing parent index"))?;
+                        swap_children(&mut tree, b_node, a_node, b_parent_index);
                     }
                 } else {
-                    let (a, b) = tree.nodes.iter()
-                        .filter(|node| node.id == id)
-                        .map(|node| node.index)
-                        .collect_tuple()
-                        .ok_or_else(|| anyhow!("Can't find two nodes with id {}", id))?;
+                    let (a, b) = nodes_at_id(&tree, id)?;
                     let swap_rank = tree.nodes[a].rank;
                     let swap_symbol = tree.nodes[a].symbol;
                     tree.nodes[a].rank = tree.nodes[b].rank;
@@ -235,32 +241,53 @@ fn solve(input: &str, swap_entire_node: bool) -> Result<String> {
             },
         }
     }
-    let left_message = sort_by_rank(0, &tree.nodes)?;
-    let right_message = sort_by_rank(1, &tree.nodes)?;
+    let left_message = sort_by_rank(tree.left_head, &tree.nodes)?;
+    let right_message = sort_by_rank(tree.right_head, &tree.nodes)?;
 
     Ok(left_message + &right_message)
 }
 
+fn swap_children(tree: &mut TangledTree, first: Node, second: Node, parent_index: usize) {
+    match first.side {
+        Side::Left => {
+            tree.nodes[parent_index].left = Some(second.index);
+        },
+        Side::Right => {
+            tree.nodes[parent_index].right = Some(second.index);
+        },
+    }
+}
+
+fn nodes_at_id(tree: &TangledTree, id: usize) -> Result<(usize, usize), Error> {
+    let (a, b) = tree.nodes.iter()
+        .filter(|node| node.id == id)
+        .map(|node| node.index)
+        .collect_tuple()
+        .ok_or_else(|| anyhow!("Can't find two nodes with id {}", id))?;
+    Ok((a, b))
+}
+
 fn sort_by_rank(index: usize, nodes: &[Node]) -> Result<String> {
     let mut levels: Vec<String> = Vec::new();
-    traverse(&mut levels, index, nodes);
+    traverse(&mut levels, index, 0, nodes);
+    let longest = levels.iter().map(|level| level.len()).max().unwrap();
     let s = levels.into_iter()
-        .max_by_key(String::len)
+        .find(|level| level.len() == longest)
         .ok_or_else(|| anyhow!("Empty levels"))?;
     Ok(s)
 }
 
-fn traverse(levels: &mut Vec<String>, index: usize, nodes: &[Node]) {
+fn traverse(levels: &mut Vec<String>, index: usize, level: usize, nodes: &[Node]) {
     let node = &nodes[index];
-    if levels.len() == node.level {
+    if levels.len() == level {
         levels.push(String::new());
     }
-    levels[node.level].push(node.symbol);
+    levels[level].push(node.symbol);
     if let Some(left_index) = node.left {
-        traverse(levels, left_index, nodes);
+        traverse(levels, left_index, level + 1, nodes);
     }
     if let Some(right_index) = node.right {
-        traverse(levels, right_index, nodes);
+        traverse(levels, right_index, level + 1, nodes);
     }
 }
 
@@ -349,10 +376,16 @@ SWAP 5";
     assert_eq!("DJCGL".to_string(), solve(input5, true).unwrap());
 }
 
-// #[test]
-// fn default() {
-//     let (input1, input2, input3) = get_story_inputs(25, 1, 1);
-//     assert_eq!(1281421558, solve(&input1, 100));
-//     assert_eq!(165117476211886, solve(&input2, 5));
-//     assert_eq!(670944509842136, part3(&input3));
-// }
+#[test]
+fn default() {
+    let (input1, input2, input3) = get_story_inputs(25, 1, 2);
+    assert_eq!("QUACK!LWXRVSGG", solve(&input1, false).unwrap());
+    assert_eq!("QUACK!VPFSJYPGYNTVPY", solve(&input2, false).unwrap());
+    assert_eq!("QUACK!GMRZLRSZFLPLZJRYTSJWPRZYZLJW", solve(&input3, true).unwrap());
+}
+
+// Input parsed (44μs)
+// 1. QUACK!LWXRVSGG (548μs)
+// 2. QUACK!VPFSJYPGYNTVPY (78μs)
+// 3. QUACK!GMRZLRSZFLPLZJRYTSJWPRZYZLJW (184μs)
+// Total: 857μs
