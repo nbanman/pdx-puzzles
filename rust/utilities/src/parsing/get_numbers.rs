@@ -3,7 +3,7 @@ use num_traits::PrimInt;
 use std::str::FromStr;
 
 pub fn get_numbers<N: PrimInt + FromStr>(s: &str) -> Vec<N> {
-    s.get_numbers().collect()
+    s.get_numbers::<N>().collect()
 }
 
 pub struct NumberIterator<'a, N: PrimInt + FromStr> {
@@ -74,11 +74,11 @@ impl<'a, N: PrimInt + FromStr> Iterator for NumberIterator<'a, N> {
 }
 
 pub trait ContainsNumbers {
-    fn get_numbers<N: PrimInt + FromStr>(&self) -> NumberIterator<'_, N>;
+    fn get_numbers<'a, N: PrimInt + FromStr>(&'a self) -> NumberIterator<'a, N>;
 }
 
-impl<'a> ContainsNumbers for &'a str {
-    fn get_numbers<N: PrimInt + FromStr>(&self) -> NumberIterator<'_, N> {
+impl ContainsNumbers for str {
+    fn get_numbers<'a, N: PrimInt + FromStr>(&'a self) -> NumberIterator<'a, N> {
         NumberIterator::new(self)
     }
 }
