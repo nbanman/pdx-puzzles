@@ -14,6 +14,18 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
+fn get_balloons(input: Input) -> Vec<usize> {
+    input.as_bytes().into_iter()
+        .map(|&b| {
+            match b {
+                b'R' => 0,
+                b'G' => 1,
+                b'B' => 2,
+                c => panic!("{} is not a valid input", c as char),
+            }
+        })
+        .collect()
+}
 fn linear_shots(input: Input) -> usize {
     let balloons = get_balloons(input);
     (0..)
@@ -28,40 +40,47 @@ fn linear_shots(input: Input) -> usize {
         .count()
 }
 
-fn get_balloons(input: Input) -> Vec<usize> {
-    input.as_bytes().into_iter()
-        .map(|&b| {
-            match b {
-                b'R' => 0,
-                b'G' => 1,
-                b'B' => 2,
-                c => panic!("{} is not a valid input", c as char),
-            }
-        })
-        .collect()
-}
-
 fn circular_shots(input: Input, repeats: usize) -> usize {
     let balloons = get_balloons(input).repeat(repeats);
     let len = balloons.len();
-    let mut killed = vec![false; len];
+    let half_len = (len + 1) / 2;
+
+    // tracks indices corresponding to balloons that were shot opposite the circle
+    let mut already_shot = vec![false; half_len];
+
+    // tracks total number of shots
     let mut shots = 0;
-    let mut doubles = 0;
+
+    // tracks the number of shots that also shot an opposite balloon. Needed to calculate the
+    // number of remaining balloons.
+    let mut double_shots = 0;
+
+    // tracks the number of indices that need to be skipped because they were already opposite-shot.
+    // Needed to find the front-facing balloon.
     let mut skips = 0;
-    let mut opposite_index = (len + 1) / 2;
+
+    // tracks the index of the opposite balloon
+    let mut opposite_index = half_len;
+
     'outer: while shots + skips < len {
-        // tracks if shots counter has reached an index that has already been killed, needing to up
+
+        // tracks if shots counter has reached an index that has already been shot, needing to up
         // the skip counter
-        while killed[shots + skips] {
-            skips += 1;
-            if shots + skips == len { break 'outer; }
+        if shots + skips >= half_len {
+            while already_shot[shots + skips - half_len] {
+                skips += 1;
+                if shots + skips == len { break 'outer; }
+            }
         }
 
-        if (len - (shots + doubles)) & 1 == 0 { // if even
-            if balloons[shots + skips] == shots % 3 {
-                killed[opposite_index] = true;
-                doubles += 1;
+        if (len - (shots + double_shots)) & 1 == 0 { // if even...
+            if balloons[shots + skips] == shots % 3 { // if bolt color matches balloon...
+                already_shot[opposite_index - half_len] = true; // mark opposite balloon killed
+                double_shots += 1;
             }
+
+            // opposite index increases when balloons are even regardless of whether the balloon is
+            // killed
             opposite_index += 1;
         }
         shots += 1;
@@ -87,8 +106,8 @@ fn examples() {
     assert_eq!(2955, circular_shots(inputs[2], 100));
 }
 
-// Input parsed (31μs)
-// 1. 131 (9μs)
-// 2. 21665 (186μs)
-// 3. 21477463 (70ms)
-// Total: 70ms
+// Input parsed (32μs)
+// 1. 131 (6μs)
+// 2. 21665 (145μs)
+// 3. 21477463 (64ms)
+// Total: 64ms
