@@ -2,14 +2,11 @@ use everybody_codes::utilities::inputs::get_story_inputs;
 use itertools::Itertools;
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
-use rustc_hash::FxHashSet;
-use std::collections::VecDeque;
 use utilities::parsing::get_numbers::ContainsNumbers;
 use utilities::structs::grid::{Grid, Grid2, GridIterator};
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 type Input<'a> = &'a str;
-type State = (usize, usize);
 
 fn main() {
     let mut stopwatch = Stopwatch::new();
@@ -59,12 +56,19 @@ fn part3(input: Input) -> usize {
         .map(|c| c.to_digit(10).unwrap() as isize)
         .try_collect_grid(grid_width)
         .unwrap();
+
     dice.iter_mut()
         .par_bridge()
         .map(|die| die.bfs(&grid))
-        .flatten()
-        .collect::<FxHashSet<_>>()
-        .len()
+        .reduce(|| vec![0; grid.len()], |mut acc, die_rolls| {
+            for (x, y) in acc.iter_mut().zip(die_rolls) {
+                *x += y;
+            }
+            acc
+        })
+        .iter()
+        .filter(|v| **v != 0)
+        .count()
 }
 
 fn parse_dice(input: Input) -> Result<Vec<Die>, String> {
@@ -101,46 +105,43 @@ impl Die {
             .find(|turn| self.race_turn(*turn, track))
             .expect("infinite sequence so will never return None")
     }
-    fn bfs(&mut self, grid: &Grid2<isize>) -> FxHashSet<usize> {
+    fn bfs(&mut self, grid: &Grid2<isize>) -> Vec<usize> {
         let mut current_turn = 1;
         let mut result = self.spin(current_turn);
-        let mut visited: FxHashSet<State> = grid.iter().enumerate()
-            .filter(|(_, value)| **value == result)
-            .map(|(pos, _)| (pos, 2))
-            .collect();
-        let mut q: VecDeque<State> = visited.iter().copied().collect();
 
-        while let Some((pos, turn)) = q.pop_front() {
-            // rerolls the next result once per turn
-            if turn > current_turn {
-                current_turn = turn;
-                result = self.spin(current_turn);
+        let mut todo = Vec::with_capacity(100_000);
+        let mut next = Vec::with_capacity(100_000);
+        let mut visited = vec![0; grid.len()];
+
+        for (pos, value) in grid.iter().enumerate() {
+            if *value == result {
+                todo.push(pos);
+                visited[pos] = current_turn;
             }
-
-            let neighbors = grid
-                .adjacent(pos, false)
-                .expect("all positions should be in grid")
-                .map(|neighbor| (neighbor.index, neighbor.value.clone()))
-                .chain(std::iter::once((pos, grid[pos])))
-                .filter_map(|(pos, value)| {
-                    if value != result {
-                        None
-                    } else {
-                        let state = (pos, turn + 1);
-                        if visited.contains(&state) {
-                            None
-                        } else {
-                            visited.insert(state);
-                            Some(state)
-                        }
-                    }
-                });
-
-                for neighbor in neighbors {
-                    q.push_back(neighbor);
-                }
         }
-        visited.into_iter().map(|(pos, _)| pos).collect()
+
+        while !todo.is_empty() {
+            // rerolls the next result once per turn
+            current_turn += 1;
+            result = self.spin(current_turn);
+
+            for pos in todo.drain(..) {
+                let neighbors = grid
+                    .adjacent(pos, false)
+                    .expect("all positions should be in grid")
+                    .map(|neighbor| (neighbor.index, neighbor.value.clone()))
+                    .chain(std::iter::once((pos, grid[pos])));
+
+                for (n_pos, n_value) in neighbors {
+                    if n_value == result && visited[n_pos] != current_turn {
+                        visited[n_pos] = current_turn;
+                        next.push(n_pos);
+                    }
+                }
+            }
+            (todo, next) = (next, todo);
+        }
+        visited
     }
 }
 
@@ -254,8 +255,8 @@ fn examples() {
     assert_eq!(1125, part3(inputs[3]));
 }
 
-// Input parsed (187μs)
-// 1. 637 (19μs)
-// 2. 2,7,3,9,6,8,1,4,5 (577μs)
-// 3. 154381 (48ms)
-// Total: 49ms
+// Input parsed (185μs)
+// 1. 637 (18μs)
+// 2. 2,7,3,9,6,8,1,4,5 (564μs)
+// 3. 154381 (30ms)
+// Total: 31ms
