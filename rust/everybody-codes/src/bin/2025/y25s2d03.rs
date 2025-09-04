@@ -1,9 +1,9 @@
-use rayon::iter::ParallelIterator;
-use std::collections::{HashSet, VecDeque};
 use everybody_codes::utilities::inputs::get_story_inputs;
 use itertools::Itertools;
 use rayon::iter::ParallelBridge;
+use rayon::iter::ParallelIterator;
 use rustc_hash::FxHashSet;
+use std::collections::VecDeque;
 use utilities::parsing::get_numbers::ContainsNumbers;
 use utilities::structs::grid::{Grid, Grid2, GridIterator};
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
@@ -101,7 +101,7 @@ impl Die {
             .find(|turn| self.race_turn(*turn, track))
             .expect("infinite sequence so will never return None")
     }
-    fn bfs(&mut self, grid: &Grid2<isize>) -> HashSet<usize> {
+    fn bfs(&mut self, grid: &Grid2<isize>) -> FxHashSet<usize> {
         let mut current_turn = 1;
         let mut result = self.spin(current_turn);
         let mut visited: FxHashSet<State> = grid.iter().enumerate()
@@ -179,9 +179,9 @@ impl TryFrom<&str> for Die {
 #[test]
 fn default() {
     let (input1, input2, input3) = get_story_inputs(25, 2, 3);
-    // assert_eq!(ZZ, part1(&input1));
-    // assert_eq!(ZZ, part2(&input2));
-    // assert_eq!(ZZ, part3(&input3));
+    assert_eq!(637, part1(&input1));
+    assert_eq!("2,7,3,9,6,8,1,4,5".to_string(), part2(&input2));
+    assert_eq!(154381, part3(&input3));
 }
 
 #[test]
