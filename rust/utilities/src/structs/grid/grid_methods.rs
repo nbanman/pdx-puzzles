@@ -1,12 +1,13 @@
+use crate::{
+    enums::intercardinals::Intercardinal,
+    structs::coord::{Coord, Coord2U},
+};
+use std::iter::Zip;
+use std::slice::Iter;
 use std::{
     cmp::min,
     ops::{Index, IndexMut},
     slice::IterMut,
-};
-
-use crate::{
-    enums::intercardinals::Intercardinal,
-    structs::coord::{Coord, Coord2U},
 };
 
 use super::{Grid, GridAdjacent, GridError, GridIndex};
@@ -54,6 +55,12 @@ impl<T, const N: usize> Grid<T, N> {
 
     pub fn iter_mut(&mut self) -> IterMut<'_, T> {
         self.data.iter_mut()
+    }
+
+    pub fn iter_with_coords(
+        &self,
+    ) -> Zip<impl Iterator<Item = Coord<usize, { N }>> + use<'_, T, N>, Iter<'_, T>> {
+        self.coords().zip(self.iter())
     }
 
     pub fn len(&self) -> usize {
@@ -320,6 +327,42 @@ mod tests {
             "123\n456\n789".to_string(),
             num_pad().to_string(|&n| (b'0' + n as u8) as char)
         )
+    }
+
+    #[test]
+    fn iter() {
+        assert_eq!(
+            vec![&1, &2, &3, &4, &5, &6, &7, &8, &9],
+            num_pad().iter().collect::<Vec<_>>(),
+        );
+    }
+
+    #[test]
+    fn iter_mut() {
+        let mut num_pad = num_pad();
+        for num in num_pad.iter_mut() {
+            *num -= 1;
+        }
+        let num_pad: Vec<_> = num_pad.iter().collect();
+        assert_eq!(vec![&0, &1, &2, &3, &4, &5, &6, &7, &8], num_pad,);
+    }
+
+    #[test]
+    fn iter_with_coords() {
+        assert_eq!(
+            vec![
+                (Coord2U::new2d(0, 0), &1),
+                (Coord2U::new2d(1, 0), &2),
+                (Coord2U::new2d(2, 0), &3),
+                (Coord2U::new2d(0, 1), &4),
+                (Coord2U::new2d(1, 1), &5),
+                (Coord2U::new2d(2, 1), &6),
+                (Coord2U::new2d(0, 2), &7),
+                (Coord2U::new2d(1, 2), &8),
+                (Coord2U::new2d(2, 2), &9)
+            ],
+            num_pad().iter_with_coords().collect::<Vec<_>>(),
+        );
     }
 
     #[test]

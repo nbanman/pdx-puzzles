@@ -42,14 +42,6 @@ mod tests {
     }
 
     #[test]
-    fn iter() {
-        assert_eq!(
-            vec![&1, &2, &3, &4, &5, &6, &7, &8, &9],
-            num_pad().iter().collect::<Vec<_>>(),
-        );
-    }
-
-    #[test]
     fn into_iter() {
         let np = num_pad();
         let no_copy: Vec<_> = (1..=9).map(|n| vec![n]).collect();
@@ -75,18 +67,5 @@ mod tests {
             ],
             no_copy.into_iter().collect::<Vec<_>>(),
         )
-    }
-
-    #[test]
-    fn iter_mut() {
-        let mut num_pad = num_pad();
-        for num in num_pad.iter_mut() { 
-            *num -= 1; 
-        }
-        let num_pad: Vec<_> = num_pad.iter().collect();
-        assert_eq!(
-            vec![&0, &1, &2, &3, &4, &5, &6, &7, &8],
-            num_pad,
-        );
     }
 }
