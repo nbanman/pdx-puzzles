@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use itertools::Itertools;
 
-use super::{grid_errors::GridError, Grid};
+use super::{grid_errors::GridError, Grid, Grid2};
 
 impl<T: Clone, const N: usize> Clone for Grid<T, N> {
     fn clone(&self) -> Self {
@@ -92,6 +92,41 @@ impl<T> Grid<T, 2> {
             dimensions: [width, height],
         }
     }
+
+    pub fn new2d_map_str<F>(value: &str, f: F) -> Result<Self, GridError>
+    where
+        F: Fn(char) -> T,
+    {
+        if value.is_empty() {
+            return Err(GridError::Empty);
+        }
+        if value.contains('\r') {
+            return Err(GridError::ContainsCarriageReturns);
+        }
+        let mut breaks = vec![-1];
+        let crs = value
+            .chars()
+            .enumerate()
+            .filter(|(_, c)| *c == '\n')
+            .map(|(idx, _)| idx as i32);
+        breaks.extend(crs);
+        let width = *breaks[1..].first().ok_or(GridError::NoLineBreak)? as usize;
+        if breaks
+            .iter()
+            .tuple_windows()
+            .map(|(a, b)| b - a)
+            .collect::<HashSet<_>>()
+            .len()
+            > 1
+        {
+            return Err(GridError::UnevenLineBreaks);
+        }
+        let vec: Vec<T> = value.chars()
+            .filter(|&c| c != '\n')
+            .map(f)
+            .collect();
+        Grid::new2d(vec, width)
+    }
 }
 
 impl<T> Grid<T, 3> {
@@ -141,32 +176,7 @@ impl TryFrom<&str> for Grid<char, 2> {
     type Error = GridError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        if value.is_empty() {
-            return Err(GridError::Empty);
-        }
-        if value.contains('\r') {
-            return Err(GridError::ContainsCarriageReturns);
-        }
-        let mut breaks = vec![-1];
-        let crs = value
-            .chars()
-            .enumerate()
-            .filter(|(_, c)| *c == '\n')
-            .map(|(idx, _)| idx as i32);
-        breaks.extend(crs);
-        let width = *breaks[1..].first().ok_or(GridError::NoLineBreak)? as usize;
-        if breaks
-            .iter()
-            .tuple_windows()
-            .map(|(a, b)| b - a)
-            .collect::<HashSet<_>>()
-            .len()
-            > 1
-        {
-            return Err(GridError::UnevenLineBreaks);
-        }
-        let vec: Vec<char> = value.chars().filter(|&c| c != '\n').collect();
-        Grid::new2d(vec, width)
+        Grid2::new2d_map_str(value, |c| c)
     }
 }
 
@@ -252,6 +262,14 @@ mod tests {
         let empty_vec: Vec<usize> = Vec::new();
         let new = Grid::new2d(empty_vec, 4);
         assert_eq!(Err(GridError::Empty), new);
+    }
+
+    #[test]
+    fn new2d_map_str() {
+        let new =
+            Grid::new2d_map_str("123\n456\n", |c| c as usize - 48 );
+        let test = cromulent_vec();
+        assert_eq!(Grid::new2d(test, 3), new);
     }
 
     #[test]
