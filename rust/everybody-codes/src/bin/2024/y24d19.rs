@@ -136,3 +136,9 @@ D.H........"];
     assert_eq!("WIN".to_string(), part1(inputs[0]));
     assert_eq!("VICTORY".to_string(), part2(inputs[1]));
 }
+
+// Input parsed (44μs)
+// 1. 8762334189768578 (27μs)
+// 2. 6795785362142233 (533μs)
+// 3. 8629494914828132 (644ms)
+// Total: 645ms
