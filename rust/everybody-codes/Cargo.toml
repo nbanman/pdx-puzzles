@@ -9,8 +9,9 @@ itertools = { workspace = true }
 rayon = { workspace = true }
 rustc-hash = { workspace = true }
 lazy-regex = { workspace = true }
-thiserror = { workspace = true }
+#thiserror = { workspace = true }
 anyhow = { workspace = true }
+indexmap = { workspace = true }
 
 [[bin]]
 name = "ec-y24d01"
@@ -79,6 +80,10 @@ path = "src/bin/2024/y24d17.rs"
 [[bin]]
 name = "ec-y24d18"
 path = "src/bin/2024/y24d18.rs"
+
+[[bin]]
+name = "ec-y24d19"
+path = "src/bin/2024/y24d19.rs"
 
 [[bin]]
 name = "ec-y25s1d01"

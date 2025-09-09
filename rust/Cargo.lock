@@ -150,11 +150,11 @@ name = "everybody-codes"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "indexmap",
  "itertools",
  "lazy-regex",
  "rayon",
  "rustc-hash",
- "thiserror",
  "utilities",
 ]
 
