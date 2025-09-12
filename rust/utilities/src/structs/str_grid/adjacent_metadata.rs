@@ -2,6 +2,7 @@ use crate::enums::cardinals::Cardinal;
 
 use super::IndexesToGrid;
 
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct AdjacentMetadata<T>
 where
     T: IndexesToGrid,
@@ -16,3 +17,4 @@ impl<T: IndexesToGrid> AdjacentMetadata<T> {
         (self.pos, self.dir, self.b)
     }
 }
+
