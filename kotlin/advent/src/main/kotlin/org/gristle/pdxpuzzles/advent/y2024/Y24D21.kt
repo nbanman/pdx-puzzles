@@ -1,68 +1,167 @@
 package org.gristle.pdxpuzzles.advent.y2024
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
-import org.gristle.pdxpuzzles.utilities.algorithms.Graph
-import org.gristle.pdxpuzzles.utilities.algorithms.Graph.steps
-import org.gristle.pdxpuzzles.utilities.objects.Coord
-import org.gristle.pdxpuzzles.utilities.objects.Grid
 import org.gristle.pdxpuzzles.utilities.objects.toGrid
+import kotlin.math.abs
+import kotlin.math.sign
 
-class Y24D21(input: String) : Day {
-    private val codes = input.lines()
-    private val doorKeys = "789456123-0E".toGrid(3)
-    private val robotKeys = "-UALDR".toGrid(3)
-    private val locations = buildMap {
-        insertLocations(doorKeys)
-        insertLocations(robotKeys)
+class Y24D21(private val input: String) : Day {
+
+    private val numPad = "789456123#0A".toGrid(3)
+    private val dirPad = "#^A<v>".toGrid(3)
+    private val actions: Map<Char, Map<Char, List<Char>>> = buildMap<Char, MutableMap<Char, List<Char>>> {
+        numPad.withIndex()
+            .filter { it.value != '#' }
+            .flatMap { a ->
+                numPad.withIndex()
+                    .filter { it.value != '#' }
+                    .map { b -> a to b }
+            }.forEach { (a, b) ->
+                val (aP, aC) = a
+                val (bP, bC) = b
+                val aPos = numPad.coordOf(aP)
+                val bPos = numPad.coordOf(bP)
+                val yDelta = bPos.y - aPos.y
+                val ySign = yDelta.sign
+                val yLine = let {
+                    val yDir: Char? = if (ySign < 0) {
+                       '^'
+                    } else if (ySign > 0) {
+                        'v'
+                    } else null
+
+                    if (yDir == null) {
+                        emptyList()
+                    } else {
+                        List(abs(yDelta)) { yDir }
+                    }
+                }
+                val xDelta = bPos.x - aPos.x
+                val xSign = xDelta.sign
+                val xLine = let {
+                    val xDir: Char? = if (xSign < 0) {
+                        '<'
+                    } else if (xSign > 0) {
+                        '>'
+                    } else null
+
+                    if (xDir == null) {
+                        emptyList()
+                    } else {
+                        List(abs(xDelta)) { xDir }
+                    }
+                }
+
+                val actions = if (xSign < 0) {
+                    if (aPos.y == 3 && bPos.x == 0) {
+                        yLine + xLine
+                    } else {
+                        xLine + yLine
+                    }
+                }  else if (aPos.x == 0 && bPos.y == 3) {
+                    xLine + yLine
+                } else {
+                    yLine + xLine
+                }
+
+                this.getOrPut(aC) { mutableMapOf() }[bC] = actions + 'A'
+            }
+
+        dirPad.withIndex()
+            .filter { it.value != '#' }
+            .flatMap { a ->
+                dirPad.withIndex()
+                    .filter { it.value != '#' }
+                    .map { b -> a to b }
+            }.forEach { (a, b) ->
+                val (aP, aC) = a
+                val (bP, bC) = b
+                val aPos = numPad.coordOf(aP)
+                val bPos = numPad.coordOf(bP)
+                val yDelta = bPos.y - aPos.y
+                val ySign = yDelta.sign
+                val yLine = let {
+                    val yDir: Char? = if (ySign < 0) {
+                        '^'
+                    } else if (ySign > 0) {
+                        'v'
+                    } else null
+
+                    if (yDir == null) {
+                        emptyList()
+                    } else {
+                        List(abs(yDelta)) { yDir }
+                    }
+                }
+                val xDelta = bPos.x - aPos.x
+                val xSign = xDelta.sign
+                val xLine = let {
+                    val xDir: Char? = if (xSign < 0) {
+                        '<'
+                    } else if (xSign > 0) {
+                        '>'
+                    } else null
+
+                    if (xDir == null) {
+                        emptyList()
+                    } else {
+                        List(abs(xDelta)) { xDir }
+                    }
+                }
+
+                val actions = if (xSign < 0) {
+                    if (aPos.y == 0 && bPos.x == 0) {
+                        yLine + xLine
+                    } else {
+                        xLine + yLine
+                    }
+                } else if (aPos.x == 0 && bPos.y == 0) {
+                    xLine + yLine
+                } else {
+                    yLine + xLine
+                }
+
+                this.getOrPut(aC) { mutableMapOf() }[bC] = actions + 'A'
+            }
     }
 
-    private fun MutableMap<Char, Coord>.insertLocations(keys: Grid<Char>) {
-        for ((idx, key) in keys.withIndex()) {
-            this[key] = keys.coordOf(idx)
+    private fun solve(robots: Int): Long = input
+        .lines()
+        .sumOf { code ->
+            val n = code.dropLast(1).toInt()
+            val presses = keyPresses(code, robots)
+            n * presses
+        }
+
+    private data class State(val from: Char, val to: Char, val level: Int)
+
+    private val cache: MutableMap<State, Long> = mutableMapOf<State, Long>().apply {
+        for ((a, bActions) in actions) {
+            for ((b, actions) in bActions) {
+                put(State(a, b, 0), actions.size.toLong())
+            }
         }
     }
 
-    data class State(
-        val positions: List<Coord>,
-        val level: Int,
-        val goal: Int,
-        val heuristic: Int
-    ) : Comparable<State> {
-        override fun compareTo(other: State): Int = this.heuristic - other.heuristic
-    }
-
-    private fun solve(robots: Int): Int =
-        codes.sumOf { code -> code.dropLast(1).toInt() * code.presses(robots) }
-
-    private fun String.presses(robots: Int): Int {
-        val start = State(
-            List(robots) { if (it == 0) locations.getValue('E') else locations.getValue('A') },
-            0,
-            0,
-            0
-        )
-        val heuristic = { state: State ->
-            0.0
-        }
-        val endCondition = { state: State -> state.goal == length }
-        val edges = { state: State ->
-            emptyList<Graph.Edge<State>>()
+    private fun keyPresses(code: String, robots: Int): Long = "A$code"
+        .zipWithNext()
+        .sumOf { (a, b) ->
+            val test = search(State(a, b, robots))
+            test
         }
 
-        return Graph
-            .aStar(
-                start,
-                heuristic,
-                endCondition,
-                defaultEdges = edges,
-            ).steps()
+    private fun search(state: State): Long = cache.getOrPut(state) {
+        val (a, b, level) = state
+        val next = (listOf('A') + actions.getValue(a).getValue(b)).zipWithNext()
+        next.sumOf { (aa, bb) -> search(State(aa, bb, level - 1)) }
     }
 
+    override fun part1() = solve(2)
 
-    override fun part1() = solve(3)
-
-    override fun part2() = 3
+    override fun part2() = solve(25)
 }
+
+// 379A: <v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
 
 fun main() = Day.runDay(Y24D21::class)
 
@@ -73,3 +172,9 @@ private val test = listOf("""029A
 456A
 379A
 """)
+
+//    [24 Day 21]
+//    Class creation: 6ms
+//    Part 1: 169390 (2ms)
+//    Part 2: 210686850124870 (3ms)
+//    Total time: 12ms
