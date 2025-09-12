@@ -145,10 +145,7 @@ class Y24D21(private val input: String) : Day {
 
     private fun keyPresses(code: String, robots: Int): Long = "A$code"
         .zipWithNext()
-        .sumOf { (a, b) ->
-            val test = search(State(a, b, robots))
-            test
-        }
+        .sumOf { (a, b) -> search(State(a, b, robots)) }
 
     private fun search(state: State): Long = cache.getOrPut(state) {
         val (a, b, level) = state
