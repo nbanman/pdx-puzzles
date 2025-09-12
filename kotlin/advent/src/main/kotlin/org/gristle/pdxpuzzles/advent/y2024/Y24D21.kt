@@ -1,15 +1,15 @@
 package org.gristle.pdxpuzzles.advent.y2024
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
-import org.gristle.pdxpuzzles.utilities.objects.toGrid
+import org.gristle.pdxpuzzles.utilities.objects.Coord
 import kotlin.math.abs
 import kotlin.math.sign
 
 class Y24D21(private val input: String) : Day {
+    private data class State(val from: Char, val to: Char, val level: Int)
 
-    private val numPad = "789456123#0A".toGrid(3)
-    private val dirPad = "#^A<v>".toGrid(3)
     private val actions: Map<Char, Map<Char, List<Char>>> = buildMap<Char, MutableMap<Char, List<Char>>> {
+        val numPad = "789456123#0A"
         numPad.withIndex()
             .filter { it.value != '#' }
             .flatMap { a ->
@@ -19,8 +19,8 @@ class Y24D21(private val input: String) : Day {
             }.forEach { (a, b) ->
                 val (aP, aC) = a
                 val (bP, bC) = b
-                val aPos = numPad.coordOf(aP)
-                val bPos = numPad.coordOf(bP)
+                val aPos = Coord(aP % 3, aP / 3)
+                val bPos = Coord(bP % 3, bP / 3)
                 val yDelta = bPos.y - aPos.y
                 val ySign = yDelta.sign
                 val yLine = let {
@@ -67,6 +67,7 @@ class Y24D21(private val input: String) : Day {
                 this.getOrPut(aC) { mutableMapOf() }[bC] = actions + 'A'
             }
 
+        val dirPad = "#^A<v>"
         dirPad.withIndex()
             .filter { it.value != '#' }
             .flatMap { a ->
@@ -76,8 +77,8 @@ class Y24D21(private val input: String) : Day {
             }.forEach { (a, b) ->
                 val (aP, aC) = a
                 val (bP, bC) = b
-                val aPos = numPad.coordOf(aP)
-                val bPos = numPad.coordOf(bP)
+                val aPos = Coord(aP % 3, aP / 3)
+                val bPos = Coord(bP % 3, bP / 3)
                 val yDelta = bPos.y - aPos.y
                 val ySign = yDelta.sign
                 val yLine = let {
@@ -125,16 +126,6 @@ class Y24D21(private val input: String) : Day {
             }
     }
 
-    private fun solve(robots: Int): Long = input
-        .lines()
-        .sumOf { code ->
-            val n = code.dropLast(1).toInt()
-            val presses = keyPresses(code, robots)
-            n * presses
-        }
-
-    private data class State(val from: Char, val to: Char, val level: Int)
-
     private val cache: MutableMap<State, Long> = mutableMapOf<State, Long>().apply {
         for ((a, bActions) in actions) {
             for ((b, actions) in bActions) {
@@ -142,6 +133,14 @@ class Y24D21(private val input: String) : Day {
             }
         }
     }
+
+    private fun solve(robots: Int): Long = input
+        .lines()
+        .sumOf { code ->
+            val n = code.dropLast(1).toInt()
+            val presses = keyPresses(code, robots)
+            n * presses
+        }
 
     private fun keyPresses(code: String, robots: Int): Long = "A$code"
         .zipWithNext()
