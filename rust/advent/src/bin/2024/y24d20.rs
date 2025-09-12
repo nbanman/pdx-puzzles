@@ -34,7 +34,7 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse_input(input: &str) -> Input {
+fn parse_input(input: &'_ str) -> Input<'_> {
     let racetrack = StrGrid::new(input).unwrap();
     let start = input.find('S').unwrap();
     let end = input.find('E').unwrap();
