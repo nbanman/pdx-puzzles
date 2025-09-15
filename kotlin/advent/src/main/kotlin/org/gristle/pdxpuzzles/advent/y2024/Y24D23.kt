@@ -31,34 +31,34 @@ class Y24D23(input: String) : Day {
             .size
     }
 
-    override fun part2(): String { // = runBlocking {
+    override fun part2(): String = runBlocking {
         val toBeat = AtomicInteger(0)
         val previous = mutableListOf<String>()
-        // withContext(Dispatchers.Default) {
-        return    lan.keys
-                .map { pc ->
-                    previous.add(pc)
-                    searchParty(pc, toBeat, previous.toSet())
-//                    async { searchParty(pc, toBeat, previous.toSet()) }
-                }
-//                .awaitAll()
-                .maxBy { it.size }
-                .sorted()
-                .joinToString(",")
+         withContext(Dispatchers.Default) {
+             lan.keys
+                 .map { pc ->
+                     previous.add(pc)
+//                     searchParty(pc, toBeat, previous.toSet())
+                    async { searchParty(pc, toBeat, previous.toSet()) }
+                 }
+                .awaitAll()
+                 .maxBy { it.size }
+                 .sorted()
+                 .joinToString(",")
+         }
     }
 
     private fun searchParty(pc: String, toBeat: AtomicInteger, ignore: Set<String>): Set<String> {
         var localCandidate = emptySet<String>()
-        val current = mutableSetOf(pc)
+        val current = setOf(pc)
         val permitted = (lan.getValue(pc) - ignore - pc).toMutableSet()
         for (nextPc in permitted.toList()) {
-            current.add(nextPc)
+            val nextCurrent = current + nextPc
             permitted.remove(nextPc)
-            val next = dfs(nextPc, toBeat, current, permitted)
+            val next = dfs(nextPc, toBeat, nextCurrent, permitted)
             if (next.size > localCandidate.size) {
                 localCandidate = next
             }
-            current.remove(nextPc)
         }
         return localCandidate
     }
@@ -66,7 +66,7 @@ class Y24D23(input: String) : Day {
     private fun dfs(
         pc: String,
         toBeat: AtomicInteger,
-        current: MutableSet<String>,
+        current: Set<String>,
         permitted: Set<String>
     ): Set<String> {
         val nextPermitted = (permitted.intersect(lan.getValue(pc)) as HashSet)
@@ -74,17 +74,16 @@ class Y24D23(input: String) : Day {
         if (current.size + permitted.size <= toBeat.get()) return emptySet()
         for (nextPc in nextPermitted.toList()) {
             if (lan.getValue(nextPc).intersect(current) != current) continue
-            current.add(nextPc)
+            val nextCurrent = current + nextPc
             nextPermitted.remove(nextPc)
             if (nextPermitted.isEmpty()) {
-                val oldMax = toBeat.getAndUpdate { max(it, current.size) }
-                if (oldMax < current.size) {
-                    return current
+                val oldMax = toBeat.getAndUpdate { max(it, nextCurrent.size) }
+                if (oldMax < nextCurrent.size) {
+                    return nextCurrent
                 }
             }
-            val next = dfs(nextPc, toBeat, current, permitted)
+            val next = dfs(nextPc, toBeat, nextCurrent, permitted)
             if (next.size > localCandidate.size) localCandidate = next
-            current.remove(nextPc)
         }
         return localCandidate
     }
@@ -93,7 +92,7 @@ class Y24D23(input: String) : Day {
 // todo
 // the issue here is that when
 
-fun main() = Day.runDay(Y24D23::class, test)
+fun main() = Day.runDay(Y24D23::class)
 
 @Suppress("unused")
 private val test = listOf("""kh-tc
