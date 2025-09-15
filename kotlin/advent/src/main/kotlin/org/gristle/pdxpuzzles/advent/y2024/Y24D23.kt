@@ -31,68 +31,29 @@ class Y24D23(input: String) : Day {
             .size
     }
 
-    override fun part2(): String = runBlocking {
-        val toBeat = AtomicInteger(0)
-        val previous = mutableListOf<String>()
-         withContext(Dispatchers.Default) {
-             lan.keys
-                 .map { pc ->
-                     previous.add(pc)
-//                     searchParty(pc, toBeat, previous.toSet())
-                    async { searchParty(pc, toBeat, previous.toSet()) }
-                 }
-                .awaitAll()
-                 .maxBy { it.size }
-                 .sorted()
-                 .joinToString(",")
-         }
-    }
-
-    private fun searchParty(pc: String, toBeat: AtomicInteger, ignore: Set<String>): Set<String> {
-        var localCandidate = emptySet<String>()
-        val current = setOf(pc)
-        val permitted = (lan.getValue(pc) - ignore - pc).toMutableSet()
-        for (nextPc in permitted.toList()) {
-            val nextCurrent = current + nextPc
-            permitted.remove(nextPc)
-            val next = dfs(nextPc, toBeat, nextCurrent, permitted)
-            if (next.size > localCandidate.size) {
-                localCandidate = next
-            }
-        }
-        return localCandidate
-    }
-
-    private fun dfs(
-        pc: String,
-        toBeat: AtomicInteger,
-        current: Set<String>,
-        permitted: Set<String>
-    ): Set<String> {
-        val nextPermitted = (permitted.intersect(lan.getValue(pc)) as HashSet)
-        var localCandidate = current.toSet()
-        if (current.size + permitted.size <= toBeat.get()) return emptySet()
-        for (nextPc in nextPermitted.toList()) {
-            if (lan.getValue(nextPc).intersect(current) != current) continue
-            val nextCurrent = current + nextPc
-            nextPermitted.remove(nextPc)
-            if (nextPermitted.isEmpty()) {
-                val oldMax = toBeat.getAndUpdate { max(it, nextCurrent.size) }
-                if (oldMax < nextCurrent.size) {
-                    return nextCurrent
-                }
-            }
-            val next = dfs(nextPc, toBeat, nextCurrent, permitted)
-            if (next.size > localCandidate.size) localCandidate = next
-        }
-        return localCandidate
+    override fun part2(): String {
+        return lan.keys
+            .map { pc ->
+                val connections = lan.getValue(pc) + pc
+                connections
+                    .map { nextPc ->
+                        val intersect = lan.getValue(nextPc).intersect(connections) + nextPc
+                        nextPc to intersect
+                    }.fold(connections) { acc, (nextPc, intersect) ->
+                        val trial = acc.intersect(intersect)
+                        if (trial.size >= 13) trial else acc - nextPc
+                    }.sorted()
+            }.maxBy { it.size }
+            .joinToString(",")
     }
 }
 
-// todo
-// the issue here is that when
-
 fun main() = Day.runDay(Y24D23::class)
+
+//    Class creation: 7ms
+//    Part 1: 1253 (6ms)
+//    Part 2: ag,bt,cq,da,hp,hs,mi,pa,qd,qe,qi,ri,uq (22ms)
+//    Total time: 35ms
 
 @Suppress("unused")
 private val test = listOf("""kh-tc
