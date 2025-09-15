@@ -1,14 +1,7 @@
 package org.gristle.pdxpuzzles.advent.y2024
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.combinatorics.getPairs
-import java.util.concurrent.atomic.AtomicInteger
-import kotlin.math.max
 
 class Y24D23(input: String) : Day {
     private val lan: Map<String, Set<String>> = buildMap<String, MutableSet<String>> {
