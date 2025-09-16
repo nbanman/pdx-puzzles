@@ -196,6 +196,11 @@ class Y24D24(input: String) : Day {
 
 fun main() = Day.runDay(Y24D24::class)
 
+//    Class creation: 4ms
+//    Part 1: 51410244478064 (5ms)
+//    Part 2: gst,khg,nhn,tvb,vdc,z12,z21,z33 (4ms)
+//    Total time: 14ms
+
 @Suppress("unused")
 private val test = listOf("""x00: 1
 x01: 1
@@ -274,6 +279,3 @@ x03 AND y03 -> z03
 x04 AND y04 -> z04
 x05 AND y05 -> z00
 """)
-
-// manual solve
-//gst,khg,nhn,tvb,vdc,z12,z21,z33
