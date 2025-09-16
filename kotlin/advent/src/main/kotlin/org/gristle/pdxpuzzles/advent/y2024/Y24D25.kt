@@ -35,6 +35,10 @@ class Y24D25(private val input: String) : Day {
 
 fun main() = Day.runDay(Y24D25::class)
 
+//    Class creation: 1ms
+//    Part 1: 3287 (38ms)
+//    Total time: 40ms
+
 @Suppress("unused")
 private val test = listOf("""#####
 .####
