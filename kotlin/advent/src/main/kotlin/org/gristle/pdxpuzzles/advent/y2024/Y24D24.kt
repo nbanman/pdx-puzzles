@@ -114,10 +114,6 @@ class Y24D24(input: String) : Day {
         // generally. 1) 4 of the 8 errors are in assignment of the z outputs. And the circuits from A00 and
         // B00 to Z00 and C00 are correct.
 
-        // First get the four z errors. These are z assignments that where the circuit is not XOR.
-        val zErrors = wiring
-            .filter { (id, gate) -> id.startsWith('z') && gate !is Xor }
-
         // Next get the first carry value
         var carry = upstream
             .getValue("x00")
@@ -140,35 +136,59 @@ class Y24D24(input: String) : Day {
 
         val otherErrors = mutableListOf<String>()
 
-        for (i in 1..wiring.count { (_, gate) -> gate is Output } / 2) {
+        for (i in 1 until wiring.count { (_, gate) -> gate is Output } / 2) {
             val intString = String.format("%02d", i)
             val x = "x$intString"
             val y = "y$intString"
-            val (xor1, and1) = separate(x, y)
+            var (xor1, and1) = separate(x, y)
+
+            // check if xor1 is correct
+            if (xor1 != upstream.getValue(carry).keys.first()) {
+               xor1 = and1.also { and1 = xor1 }
+                otherErrors.add(xor1)
+                otherErrors.add(and1)
+            }
+            val (swap, and2) = separate(xor1, carry)
             if (and1.startsWith('z')) {
-                // and1 is swapped
-                println("$i: $and1 is swapped")
-                break
+                otherErrors.add(swap)
+                carry = upstream
+                    .getValue(and2)
+                    .values
+                    .first()
+                    .first()
+                    .first
+            } else if (and2.startsWith('z')) {
+                otherErrors.add(swap)
+                carry = upstream
+                    .getValue(and1)
+                    .values
+                    .first()
+                    .first()
+                    .first
+            } else {
+                val or = upstream
+                    .getValue(and1)
+                    .getValue(and2)
+                    .first()
+                    .first
+                if (or.startsWith('z') && or != "z45") {
+                    otherErrors.add(swap)
+                    carry = swap
+                } else {
+                    carry = or
+                }
             }
-            val (xor2, and2) = separate(xor1, carry)
-            if (wiring[and2] !is And) {
-                println("$i $and2 is not And")
-                break
-            }
-
-            val (or, orGate) = upstream
-                .getValue(and1)
-                .getValue(and2)
-                .first()
-
-            if (orGate !is Or || !or.startsWith('z')) {
-                println("i: $i, Or is misidentified: $or, $orGate")
-                break
-            }
-            carry = or
         }
 
-        return "hi"
+        val zErrors = wiring
+            .toList()
+            .filter { (id, gate) ->
+                id.startsWith('z') && gate !is Xor && id != "z45"
+            }.map { it.first }
+
+        val combined = (zErrors + otherErrors).sorted()
+
+        return combined.joinToString(",")
     }
 }
 
@@ -254,3 +274,6 @@ x03 AND y03 -> z03
 x04 AND y04 -> z04
 x05 AND y05 -> z00
 """)
+
+// manual solve
+//gst,khg,nhn,tvb,vdc,z12,z21,z33
