@@ -3,9 +3,9 @@ use lazy_regex::regex;
 use advent::utilities::get_input::get_input;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
-type Input = (Vec<Rule>, BagMap);
+type Input<'a> = (Vec<Rule<'a>>, BagMap<'a>);
 type Output = usize;
-type BagMap = HashMap<String, Rule>;
+type BagMap<'a> = HashMap<&'a str, Rule<'a>>;
 
 fn main() {
     let mut stopwatch = Stopwatch::new();
@@ -19,14 +19,14 @@ fn main() {
 }
 
 #[derive(Debug, Clone)]
-struct Rule {
-    color: String,
-    held_bags: Vec<HeldBag>,
+struct Rule<'a> {
+    color: &'a str,
+    held_bags: Vec<HeldBag<'a>>,
 }
 
-impl Rule {
+impl<'a> Rule<'a> {
     fn bags_inside(&self, bag_map: &BagMap) -> Output {
-        let held_bag = HeldBag { color: self.color.clone(), count: 1 };
+        let held_bag = HeldBag { color: self.color, count: 1 };
         held_bag.bags_inside(bag_map) - 1
     }
 
@@ -34,11 +34,11 @@ impl Rule {
         let mut visited: HashSet<&str> = HashSet::new();
         let mut q: VecDeque<&HeldBag> = self.held_bags.iter().collect();
         while let Some(bag) = q.pop_front() {
-            let current = bag.color.as_str();
+            let current = bag.color;
             if current == other { return true; }
             visited.insert(current);
             let next = bag_map[current].held_bags.iter()
-                .filter(|hb| !visited.contains(&hb.color.as_str()));
+                .filter(|hb| !visited.contains(&hb.color));
             q.extend(next);
         }
         false
@@ -46,12 +46,12 @@ impl Rule {
 }
 
 #[derive(Debug, Clone)]
-struct HeldBag {
-    color: String,
+struct HeldBag<'a> {
+    color: &'a str,
     count: Output,
 }
 
-impl HeldBag {
+impl<'a> HeldBag<'a> {
     fn bags_inside(&self, bag_map: &BagMap) -> Output {
         let inside_bags: Output = bag_map[&self.color].held_bags.iter()
             .map(|bag| bag.bags_inside(bag_map))
@@ -60,17 +60,17 @@ impl HeldBag {
     }
 }
 
-fn parse_input(input: &str) -> Input {
+fn parse_input(input: &'_ str) -> Input<'_> {
     let rule_rx = regex!(r"(\w+ \w+) bags contain ([^.]+)\.");
     let bag_rx = regex!(r"(\d+) (\w+ \w+) bag");
     let rules: Vec<Rule> = rule_rx.captures_iter(input)
         .map(|caps| {
-            let container = caps.get(1).unwrap().as_str().to_string();
+            let container = caps.get(1).unwrap().as_str();
             let contained = caps.get(2).unwrap().as_str();
             let held_bags = bag_rx.captures_iter(contained)
                 .map(|held_caps| {
                     let count = held_caps.get(1).unwrap().as_str().parse::<usize>().unwrap();
-                    let color = held_caps.get(2).unwrap().as_str().to_string();
+                    let color = held_caps.get(2).unwrap().as_str();
                     HeldBag { color, count }
                 })
                 .collect();
@@ -79,7 +79,7 @@ fn parse_input(input: &str) -> Input {
         .collect();
     let mut bag_map = BagMap::new();
     for rule in rules.iter() {
-        bag_map.insert(rule.color.clone(), rule.clone());
+        bag_map.insert(rule.color, rule.clone());
     }
     (rules, bag_map)
 }
