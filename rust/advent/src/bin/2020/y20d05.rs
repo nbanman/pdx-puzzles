@@ -17,6 +17,9 @@ fn main() {
 }
 
 fn parse_input(input: &str) -> Input {
+    // The seat id is Row * 8 + Column. Since there are 8 columns this means that the seatIDs are
+    // sequential from 0 to 1016, and the FBLR code is just a binary number with 'F' and 'L' meaning
+    // '0' and 'B' and 'R' meaning 1.
     input.lines()
         .map(|it| {
             it.as_bytes().iter().enumerate().fold(0, |acc, (idx, &b)| {
@@ -32,10 +35,12 @@ fn part1(seat_ids: &Input) -> Output {
 }
 
 fn part2(seat_ids: &Input) -> Output {
+    // The seatIds should all be contiguous. Yours is missing, so look for the first non-contiguous
+    // seatId in the sorted list of seatIds. Yours would be the seatId immediately below that.
     seat_ids.iter()
-        .tuple_windows()
-        .find(|&(prev, next)| *prev + 1 != *next)
-        .map(|(prev, _)| prev + 1)
+        .tuple_windows() // pair up previous seatId and the next seatId
+        .find(|&(prev, next)| *prev + 1 != *next)// find the first instance where the next seatId is not contiguous
+        .map(|(prev, _)| prev + 1) // add 1 since ticket is the missing seat_id
         .unwrap()
 }
 
