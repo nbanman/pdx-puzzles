@@ -24,53 +24,53 @@ path = "src/bin/2020/y20d01.rs"
 name = "advent-y20d02"
 path = "src/bin/2020/y20d02.rs"
 
-[[bin]]
-name = "advent-y20d03"
-path = "src/bin/2020/y20d03.rs"
-
-[[bin]]
-name = "advent-y20d04"
-path = "src/bin/2020/y20d04.rs"
-
-[[bin]]
-name = "advent-y20d05"
-path = "src/bin/2020/y20d05.rs"
-
-[[bin]]
-name = "advent-y20d06"
-path = "src/bin/2020/y20d06.rs"
-
-[[bin]]
-name = "advent-y20d07"
-path = "src/bin/2020/y20d07.rs"
-
-[[bin]]
-name = "advent-y20d08"
-path = "src/bin/2020/y20d08.rs"
-
-[[bin]]
-name = "advent-y20d09"
-path = "src/bin/2020/y20d09.rs"
-
-[[bin]]
-name = "advent-y20d10"
-path = "src/bin/2020/y20d10.rs"
-
-[[bin]]
-name = "advent-y20d11"
-path = "src/bin/2020/y20d11.rs"
-
-[[bin]]
-name = "advent-y20d12"
-path = "src/bin/2020/y20d12.rs"
-
-[[bin]]
-name = "advent-y20d13"
-path = "src/bin/2020/y20d13.rs"
-
-[[bin]]
-name = "advent-y20d14"
-path = "src/bin/2020/y20d14.rs"
+#[[bin]]
+#name = "advent-y20d03"
+#path = "src/bin/2020/y20d03.rs"
+#
+#[[bin]]
+#name = "advent-y20d04"
+#path = "src/bin/2020/y20d04.rs"
+#
+#[[bin]]
+#name = "advent-y20d05"
+#path = "src/bin/2020/y20d05.rs"
+#
+#[[bin]]
+#name = "advent-y20d06"
+#path = "src/bin/2020/y20d06.rs"
+#
+#[[bin]]
+#name = "advent-y20d07"
+#path = "src/bin/2020/y20d07.rs"
+#
+#[[bin]]
+#name = "advent-y20d08"
+#path = "src/bin/2020/y20d08.rs"
+#
+#[[bin]]
+#name = "advent-y20d09"
+#path = "src/bin/2020/y20d09.rs"
+#
+#[[bin]]
+#name = "advent-y20d10"
+#path = "src/bin/2020/y20d10.rs"
+#
+#[[bin]]
+#name = "advent-y20d11"
+#path = "src/bin/2020/y20d11.rs"
+#
+#[[bin]]
+#name = "advent-y20d12"
+#path = "src/bin/2020/y20d12.rs"
+#
+#[[bin]]
+#name = "advent-y20d13"
+#path = "src/bin/2020/y20d13.rs"
+#
+#[[bin]]
+#name = "advent-y20d14"
+#path = "src/bin/2020/y20d14.rs"
 
 #[[bin]]
 #name = "advent-y20d15"
