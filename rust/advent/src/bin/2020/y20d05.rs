@@ -35,8 +35,8 @@ fn part2(seat_ids: &Input) -> Output {
     seat_ids.iter()
         .tuple_windows()
         .find(|&(prev, next)| *prev + 1 != *next)
+        .map(|(prev, _)| prev + 1)
         .unwrap()
-        .0 + 1
 }
 
 #[test]
