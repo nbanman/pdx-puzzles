@@ -24,7 +24,11 @@ class Y20D09(input: String) : Day {
                 return current
             }
             for (l in (i - preamble + 1) until i) {
-                cache[numbers[l] + current] = max(cache[numbers[l] + current] ?: -1, l)
+                val next = numbers[l] + current
+                val existing = cache[next] ?: -1
+                if (l > existing) {
+                    cache[next] = l
+                }
             }
         }
         return -1L
@@ -59,7 +63,7 @@ class Y20D09(input: String) : Day {
 
 fun main() = Day.runDay(Y20D09::class)
 
-//    Class creation: 28ms
-//    Part 1: 552655238 (9ms)
-//    Part 2: 70672245 (8ms)
-//    Total time: 46ms
+//    Class creation: 2ms
+//    Part 1: 552655238 (5ms)
+//    Part 2: 70672245 (5ms)
+//    Total time: 13ms
