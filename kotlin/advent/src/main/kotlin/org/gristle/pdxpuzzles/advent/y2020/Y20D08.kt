@@ -42,7 +42,7 @@ class Y20D08(input: String) : Day {
             val fCurrent = if (parser == flippedIndex) {
                 when (current.operation) {
                     "nop" -> Instruction("jmp", current.argument)
-                    "jmp" -> Instruction("nop", instructions[parser].argument)
+                    "jmp" -> Instruction("nop", current.argument)
                     else -> current
                 }
             } else current
