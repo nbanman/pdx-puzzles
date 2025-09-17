@@ -33,11 +33,11 @@ class Y20D08(input: String) : Day {
         }.toList()
 
     private fun solve(flippedIndex: Int = -1): Int {
-        val pastStates = mutableSetOf<Int>()
+        val pastStates = BooleanArray(instructions.size)
 
         while (parser in instructions.indices) {
-            if (pastStates.contains(parser)) return acc
-            pastStates.add(parser)
+            if (pastStates[parser]) return acc
+            pastStates[parser] = true
             val current = instructions[parser]
             val fCurrent = if (parser == flippedIndex) {
                 when (current.operation) {
@@ -68,7 +68,7 @@ class Y20D08(input: String) : Day {
 
 fun main() = Day.runDay(Y20D08::class)
 
-//    Class creation: 29ms
-//    Part 1: 1915 (0ms)
-//    Part 2: 944 (10ms)
-//    Total time: 39ms
+//    Class creation: 3ms
+//    Part 1: 1915 (1ms)
+//    Part 2: 944 (5ms)
+//    Total time: 10ms
