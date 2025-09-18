@@ -281,6 +281,24 @@ impl<T: Coordinate + Signed + std::fmt::Debug, const N: usize> Neg for Coord<T, 
     }
 }
 
+impl<T: Coordinate + Signed> Coord<T, 2> {
+    pub fn all_adjacent() -> [Coord<T, 2>; 8] {
+        let one = T::one();
+        let zero = T::zero();
+        let neg = T::neg(one);
+        [
+            Coord::new2d(neg, neg),
+            Coord::new2d(zero, neg),
+            Coord::new2d(one, neg),
+            Coord::new2d(neg, zero),
+            Coord::new2d(one, zero),
+            Coord::new2d(neg, one),
+            Coord::new2d(zero, one),
+            Coord::new2d(one, one),
+        ]
+    }
+}
+
 impl<T: Coordinate> Coord<T, 2> {
     pub fn new2d(x: T, y: T) -> Self {
         let mut contents = [T::default(); 2];
