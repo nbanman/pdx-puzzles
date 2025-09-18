@@ -1,11 +1,13 @@
 pub mod grid_adjacent;
 pub mod grid_constructors;
+pub mod grid_display;
 pub mod grid_errors;
 pub mod grid_index;
 pub mod grid_iterators;
 pub mod grid_methods;
 pub mod grid_rotation;
-pub mod grid_display;
+
+use std::ops::Deref;
 
 #[allow(unused_imports)]
 pub use grid_adjacent::*;
@@ -25,4 +27,12 @@ pub type Grid2<T> = Grid<T, 2>;
 pub struct Grid<T, const N: usize> {
     data: Vec<T>,
     pub dimensions: [usize; N],
+}
+
+impl<T, const N: usize> Deref for Grid<T, N> {
+    type Target = [T];
+
+    fn deref(&self) -> &Self::Target {
+        &self.data
+    }
 }
