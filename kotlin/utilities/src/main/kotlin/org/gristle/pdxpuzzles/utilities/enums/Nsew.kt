@@ -47,8 +47,8 @@ enum class Nsew {
         }
     }
 
-    fun multiLeft(times: Int): Nsew = (1..times).fold(this) { acc, _ -> acc.left() }
-    fun multiRight(times: Int): Nsew = (1..times).fold(this) { acc, _ -> acc.right() }
+    fun multiLeft(times: Int): Nsew = (1..times % 4).fold(this) { acc, _ -> acc.left() }
+    fun multiRight(times: Int): Nsew = (1..times % 4).fold(this) { acc, _ -> acc.right() }
 
     companion object {
         fun of(c: Char): Nsew = when (c) {
