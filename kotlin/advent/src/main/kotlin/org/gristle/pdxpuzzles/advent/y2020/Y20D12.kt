@@ -39,8 +39,8 @@ class Y20D12(input: String) : Day {
             'S' -> copy(waypoint = waypoint.south(instruction.amount))
             'E' -> copy(waypoint = waypoint.east(instruction.amount))
             'W' -> copy(waypoint = waypoint.west(instruction.amount))
-            'L' -> copy(waypoint = (1..(instruction.amount / 90)).fold(waypoint) { acc, _ -> Coord(acc.y, -acc.x) })
-            'R' -> copy(waypoint = (1..(instruction.amount / 90)).fold(waypoint) { acc, _ -> Coord(-acc.y, acc.x) })
+            'L' -> copy(waypoint = (0 until (instruction.amount / 90) % 4).fold(waypoint) { acc, _ -> Coord(acc.y, -acc.x) })
+            'R' -> copy(waypoint = (0 until (instruction.amount / 90) % 4).fold(waypoint) { acc, _ -> Coord(-acc.y, acc.x) })
             'F' -> copy(pos = (1..instruction.amount).fold(pos) { acc, _ -> acc + waypoint })
             else -> throw IllegalArgumentException("Invalid Instruction: $instruction")
         }
