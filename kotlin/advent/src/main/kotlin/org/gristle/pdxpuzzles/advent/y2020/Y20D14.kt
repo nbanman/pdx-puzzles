@@ -15,21 +15,16 @@ class Y20D14(input: String) : Day {
                     ?: throw Exception("regex pattern not found in string")
                 return when (command) {
                     "mask" -> {
-                        val oneMask = value.foldRightIndexed(0L) { index, c, acc ->
-                            acc + if (c == '1') {
-                                1L.shl(value.length - index - 1)
-                            } else 0L
+                        val makeMask = { predicate: (Char) -> Boolean ->
+                            value.foldRightIndexed(0L) { index, c, acc ->
+                                acc + if (predicate(c)) {
+                                    1L.shl(value.length - index - 1)
+                                } else 0L
+                            }
                         }
-                        val zeroMask = value.foldRightIndexed(0L) { index, c, acc ->
-                            acc + if (c != '0') {
-                                1L.shl(value.length - index - 1)
-                            } else 0L
-                        }
-                        val xMask = value.foldRightIndexed(0L) { index, c, acc ->
-                            acc + if (c == 'X') {
-                                1L.shl(value.length - index - 1)
-                            } else 0L
-                        }
+                        val oneMask = makeMask { it == '1' }
+                        val zeroMask = makeMask { it != '0' }
+                        val xMask = makeMask { it == 'X' }
                         Mask(oneMask, zeroMask, xMask)
                     }
                     else -> {
@@ -110,7 +105,7 @@ class Y20D14(input: String) : Day {
     }
 }
 
-fun main() = Day.runDay(Y20D14::class)
+fun main() = Day.benchmarkDay(Y20D14::class)
 
 //    Class creation: 34ms
 //    Part 1: 11926135976176 (0ms)
