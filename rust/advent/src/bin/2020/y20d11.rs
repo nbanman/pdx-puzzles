@@ -108,37 +108,28 @@ fn part2(layout: &Input) -> Output {
     let width = layout.width();
     let get_neighbors = |layout: &Grid2<Seat>, index: Output| {
         let pos = Pos::new2d((index % width) as i32, (index / width) as i32);
-        vec![
-            Pos::new2d(-1, -1),
-            Pos::new2d(0, -1),
-            Pos::new2d(1, -1),
-            Pos::new2d(-1, 0),
-            Pos::new2d(1, 0),
-            Pos::new2d(-1, 1),
-            Pos::new2d(0, 1),
-            Pos::new2d(1, 1),
-        ]
-        .into_iter()
-        .filter(|&slope| {
-            let mut new_pos = pos + slope;
-            let mut keep = false;
-            while let Some(seat) = layout.get(new_pos) {
-                match seat {
-                    Seat::Occupied => {
-                        keep = true;
-                        break;
-                    }
-                    Seat::Unoccupied => {
-                        break;
-                    }
-                    Seat::EmptySpace => {
-                        new_pos += slope;
+        Pos::all_adjacent()
+            .into_iter()
+            .filter(|&slope| {
+                let mut new_pos = pos + slope;
+                let mut keep = false;
+                while let Some(seat) = layout.get(new_pos) {
+                    match seat {
+                        Seat::Occupied => {
+                            keep = true;
+                            break;
+                        }
+                        Seat::Unoccupied => {
+                            break;
+                        }
+                        Seat::EmptySpace => {
+                            new_pos += slope;
+                        }
                     }
                 }
-            }
-            keep
-        })
-        .count()
+                keep
+            })
+            .count()
     };
     solve(layout, 5, get_neighbors)
 }
