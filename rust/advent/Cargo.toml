@@ -17,6 +17,106 @@ bit-set = { workspace = true }
 bit-vec = { workspace = true }
 
 [[bin]]
+name = "advent-y19d01"
+path = "src/bin/2019/y19d01.rs"
+
+#[[bin]]
+#name = "advent-y19d02"
+#path = "src/bin/2019/y19d02.rs"
+
+#[[bin]]
+#name = "advent-y19d03"
+#path = "src/bin/2019/y19d03.rs"
+
+#[[bin]]
+#name = "advent-y19d04"
+#path = "src/bin/2019/y19d04.rs"
+
+#[[bin]]
+#name = "advent-y19d05"
+#path = "src/bin/2019/y19d05.rs"
+
+#[[bin]]
+#name = "advent-y19d06"
+#path = "src/bin/2019/y19d06.rs"
+
+#[[bin]]
+#name = "advent-y19d07"
+#path = "src/bin/2019/y19d07.rs"
+
+#[[bin]]
+#name = "advent-y19d08"
+#path = "src/bin/2019/y19d08.rs"
+
+#[[bin]]
+#name = "advent-y19d09"
+#path = "src/bin/2019/y19d09.rs"
+
+#[[bin]]
+#name = "advent-y19d10"
+#path = "src/bin/2019/y19d10.rs"
+
+#[[bin]]
+#name = "advent-y19d11"
+#path = "src/bin/2019/y19d11.rs"
+
+#[[bin]]
+#name = "advent-y19d12"
+#path = "src/bin/2019/y19d12.rs"
+
+#[[bin]]
+#name = "advent-y19d13"
+#path = "src/bin/2019/y19d13.rs"
+
+#[[bin]]
+#name = "advent-y19d14"
+#path = "src/bin/2019/y19d14.rs"
+
+#[[bin]]
+#name = "advent-y19d15"
+#path = "src/bin/2019/y19d15.rs"
+
+#[[bin]]
+#name = "advent-y19d16"
+#path = "src/bin/2019/y19d16.rs"
+
+#[[bin]]
+#name = "advent-y19d17"
+#path = "src/bin/2019/y19d17.rs"
+
+#[[bin]]
+#name = "advent-y19d18"
+#path = "src/bin/2019/y19d18.rs"
+
+#[[bin]]
+#name = "advent-y19d19"
+#path = "src/bin/2019/y19d19.rs"
+
+#[[bin]]
+#name = "advent-y19d20"
+#path = "src/bin/2019/y19d20.rs"
+
+#[[bin]]
+#name = "advent-y19d21"
+#path = "src/bin/2019/y19d21.rs"
+
+#[[bin]]
+#name = "advent-y19d22"
+#path = "src/bin/2019/y19d22.rs"
+
+#[[bin]]
+#name = "advent-y19d23"
+#path = "src/bin/2019/y19d23.rs"
+
+#[[bin]]
+#name = "advent-y19d24"
+#path = "src/bin/2019/y19d24.rs"
+
+#[[bin]]
+#name = "advent-y19d25"
+#path = "src/bin/2019/y19d25.rs"
+
+[[bin]]
 name = "advent-y20d01"
 path = "src/bin/2020/y20d01.rs"
 
