@@ -2,15 +2,15 @@ use std::{
     fmt::Display,
     ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign},
 };
-
+use std::fmt::Debug;
 use itertools::Itertools;
 use num_traits::{CheckedAdd, CheckedSub, NumCast, One, PrimInt, Signed, Zero};
 
 use crate::enums::{cardinals::Cardinal, intercardinals::Intercardinal};
 
-pub trait Coordinate: Default + PrimInt + Display + Zero + One + Mul {}
+pub trait Coordinate: Default + PrimInt + Display + Zero + One + Mul + Debug {}
 
-impl<T> Coordinate for T where T: Default + PrimInt + Display + Zero + One + Mul {}
+impl<T> Coordinate for T where T: Default + PrimInt + Display + Zero + One + Mul + Debug {}
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct Coord<T: Coordinate, const N: usize>(pub [T; N]);
@@ -75,6 +75,42 @@ impl<T: Coordinate, const N: usize> Coord<T, N> {
 
     pub fn get(&self, index: usize) -> Option<T> {
         self.0.get(index).cloned()
+    }
+
+    pub fn origin() -> Coord<T, N> {
+        Self([T::zero(); N])
+    }
+
+    pub fn get_neighbors(&self) -> impl Iterator<Item = Coord<T, N>> + '_ + Debug {
+        let mut neighbors: Vec<Self> = Vec::with_capacity(3.pow(N as u32) as usize);
+
+        // seed, need to remove later
+        neighbors.push(self.clone());
+
+        // expand
+        for dim in 0..N {
+            let left: Vec<_> = neighbors.iter()
+                .map(|pos| {
+                    let mut pos = pos.clone();
+                    pos.0[dim] = pos.0[dim] - T::one();
+                    pos
+                })
+                .collect();
+            let right: Vec<_> = neighbors.iter()
+                .map(|pos| {
+                    let mut pos = pos.clone();
+                    pos.0[dim] = pos.0[dim] + T::one();
+                    pos
+                })
+                .collect();
+            neighbors.extend(left.into_iter());
+            neighbors.extend(right.into_iter());
+        }
+
+        // remove seed
+        neighbors.into_iter()
+            .dropping(1)
+            .sorted_unstable_by(|a, b| a.partial_cmp(b).unwrap())
     }
 }
 
@@ -268,11 +304,11 @@ impl<T: Coordinate, const N: usize> PartialOrd for Coord<T, N> {
 
 impl<T: Coordinate, const N: usize> Ord for Coord<T, N> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.0.cmp(&other.0)
+        self.0.iter().rev().cmp(other.0.iter().rev())
     }
 }
 
-impl<T: Coordinate + Signed + std::fmt::Debug, const N: usize> Neg for Coord<T, N> {
+impl<T: Coordinate + Signed + Debug, const N: usize> Neg for Coord<T, N> {
     type Output = Self;
     fn neg(self) -> Self::Output {
         let iter = self.0.iter().map(|&n| -n);
@@ -317,9 +353,9 @@ impl<T: Coordinate> Coord<T, 2> {
         self.0[1]
     }
 
-    pub fn origin() -> Self {
-        Self([T::default(); 2])
-    }
+    // pub fn origin() -> Self {
+    //     Self([T::default(); 2])
+    // }
 
     pub fn adjacent(&self, diagonals: bool) -> Vec<Self> {
         let capacity = if diagonals { 8 } else { 4 };
@@ -434,9 +470,9 @@ impl<T: Coordinate> Coord<T, 3> {
         self.0[2]
     }
 
-    pub fn origin() -> Self {
-        Self([T::default(); 3])
-    }
+    // pub fn origin() -> Self {
+    //     Self([T::default(); 3])
+    // }
 }
 
 impl<T: Coordinate> From<(T, T, T)> for Coord<T, 3> {
@@ -481,6 +517,17 @@ fn signed_math_operations() {
     assert_eq!(Coord::new2d(-12, -42), pos1 * pos2);
     assert_eq!(Coord::new2d(-1, -1), pos1 / pos2);
     assert_eq!(20, pos1.manhattan_distance(&pos2));
+    let neighbors: Vec<Coord<i32, 2>> = vec![
+        Coord::new2d(-1, -1),
+        Coord::new2d(0, -1),
+        Coord::new2d(1, -1),
+        Coord::new2d(-1, 0),
+        Coord::new2d(1, 0),
+        Coord::new2d(-1, 1),
+        Coord::new2d(0, 1),
+        Coord::new2d(1, 1),
+    ];
+    assert_eq!(neighbors, Coord::<i32, 2>::origin().get_neighbors().collect_vec());
     // unsigned 3d
     let pos1 = Coord::new3d(-4isize, 7, -9);
     let pos2 = Coord::new3d(3isize, -6, 3);
@@ -491,4 +538,5 @@ fn signed_math_operations() {
     assert_eq!(Coord::new3d(-12, -42, -27), pos1 * pos2);
     assert_eq!(Coord::new3d(-1, -1, -3), pos1 / pos2);
     assert_eq!(32, pos1.manhattan_distance(&pos2));
+    assert_eq!(80, Coord::<i64, 4>::origin().get_neighbors().count());
 }
