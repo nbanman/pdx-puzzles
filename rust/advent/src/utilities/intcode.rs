@@ -8,17 +8,17 @@ const EXTRA_MEMORY: usize = 3_000;
 #[derive(Debug, Clone)]
 pub enum State {
     Input,
-    Output(usize),
+    Output(i64),
     Halted,
     Error(String),
 }
 
 #[derive(Debug, Clone)]
 pub struct IntCode {
-    cursor: usize,
-    base: usize,
-    pub code: Vec<usize>,
-    input: VecDeque<usize>,
+    cursor: i64,
+    base: i64,
+    pub code: Vec<i64>,
+    input: VecDeque<i64>,
 }
 
 impl From<&str> for IntCode {
@@ -29,7 +29,7 @@ impl From<&str> for IntCode {
 }
 
 impl IntCode {
-    pub fn new(initial_code: &[usize]) -> Self {
+    pub fn new(initial_code: &[i64]) -> Self {
         let mut code = Vec::with_capacity(initial_code.len() + EXTRA_MEMORY);
         code.extend(initial_code.iter());
         Self {
@@ -40,6 +40,14 @@ impl IntCode {
         }
     }
 
+    pub fn input(&mut self, value: i64) {
+        self.input.push_back(value);
+    }
+
+    pub fn input_ascii(&mut self, ascii: &str) {
+        self.input.extend(ascii.bytes().map(|b| b as i64));
+    }
+
     pub fn reset(&mut self) {
         self.cursor = 0;
         self.base = 0;
@@ -47,7 +55,7 @@ impl IntCode {
     }
 
     pub fn run(&mut self) -> State {
-        while let Some(&op) = self.code.get(self.cursor) {
+        while let Some(&op) = self.code.get(self.cursor as usize) {
             match op % 100 {
                 // add
                 1 => {
@@ -84,19 +92,21 @@ impl IntCode {
                 // jump true
                 5 => {
                     let first = self.address(op / 100, 1);
-                    self.cursor = if first == 0 {
+                    self.cursor = if self.code[first] == 0 {
                         self.cursor + 3
                     } else {
-                        self.address(op / 1_000, 2)
-                    }
+                        let second = self.address(op / 1_000, 2);
+                        self.code[second as usize]
+                    };
                 }
                 // jump false
                 6 => {
                     let first = self.address(op / 100, 1);
-                    self.cursor = if first != 0 {
+                    self.cursor = if self.code[first] != 0 {
                         self.cursor + 3
                     } else {
-                        self.address(op / 1_000, 2)
+                        let second = self.address(op / 1_000, 2);
+                        self.code[second as usize]
                     }
                 }
                 // less than
@@ -104,7 +114,7 @@ impl IntCode {
                     let first = self.address(op / 100, 1);
                     let second = self.address(op / 1_000, 2);
                     let third = self.address(op / 10_000, 3);
-                    let value = (self.code[first] < self.code[second]) as usize;
+                    let value = (self.code[first] < self.code[second]) as i64;
                     self.code[third] = value;
                     self.cursor += 4;
                 }
@@ -113,7 +123,7 @@ impl IntCode {
                     let first = self.address(op / 100, 1);
                     let second = self.address(op / 1_000, 2);
                     let third = self.address(op / 10_000, 3);
-                    let value = (self.code[first] == self.code[second]) as usize;
+                    let value = (self.code[first] == self.code[second]) as i64;
                     self.code[third] = value;
                     self.cursor += 4;
                 }
@@ -129,11 +139,11 @@ impl IntCode {
         State::Error(format!("cursor {} out of range", self.cursor))
     }
 
-    fn address(&self, mode: usize, offset: usize) -> usize {
+    fn address(&self, mode: i64, offset: i64) -> usize {
         match mode % 10 {
-            0 => self.code[self.cursor + offset],
-            1 => self.cursor + offset,
-            2 => self.base + self.code[self.cursor + offset],
+            0 => self.code[(self.cursor + offset) as usize] as usize,
+            1 => (self.cursor + offset) as usize,
+            2 => (self.base + self.code[(self.cursor + offset) as usize]) as usize,
             d => panic!("{d} is not a valid mode"),
         }
     }
