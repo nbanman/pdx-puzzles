@@ -18,36 +18,43 @@ fn main() {
 }
 
 fn parse_input(input: &'_ str) -> Input<'_> {
-    let mut children: HashMap<&str, Vec<&str>> = HashMap::new();
-    let mut paths: HashMap<&str, Vec<&str>> = HashMap::new();
+    // intermediate collection, mapping planet names with a Vec of child planet names
+    let mut child_registry: HashMap<&str, Vec<&str>> = HashMap::new();
     for line in input.lines() {
         let (parent, name) = line.split_once(')').unwrap();
-        children.entry(&parent)
+        child_registry.entry(&parent)
             .or_insert(Vec::new())
             .push(name);
     }
-    develop_paths("COM", Vec::new(), &mut paths, &children);
+
+    // from child_registry map, recursively develop the paths map as input
+    let mut paths: HashMap<&str, Vec<&str>> = HashMap::new();
+    develop_paths("COM", Vec::new(), &mut paths, &child_registry);
     paths
 }
 
 
 fn develop_paths<'a>(
     planet: &'a str,
-    prev: Vec<&'a str>,
+    mut current_path: Vec<&'a str>,
     paths: &mut HashMap<&'a str, Vec<&'a str>>,
-    register: &HashMap<&'a str, Vec<&'a str>>,
+    child_registry: &HashMap<&'a str, Vec<&'a str>>,
 ) {
-    let mut next = prev.clone();
-    next.push(planet);
-    paths.insert(planet, prev);
-    let Some(children) = register.get(planet) else { return; };
-    for child in children {
-        develop_paths(child, next.clone(), paths, register);
-    }
+    // populates paths map with the path for the particular planet
+    paths.insert(planet, current_path.clone());
+
+    // base case, stop if the child_registry shows no children
+    if let Some(children) = child_registry.get(planet) {
+        // otherwise update the path with planet and recurse with the children
+        current_path.push(planet);
+        for child in children {
+            develop_paths(child, current_path.clone(), paths, child_registry);
+        }
+    };
 }
 
 fn part1(paths: &Input) -> Output {
-    paths.values().map(|x| x.len()).sum()
+    paths.values().map(|path| path.len()).sum()
 }
 
 fn part2(paths: &Input) -> Output {
