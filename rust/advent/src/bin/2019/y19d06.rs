@@ -1,10 +1,9 @@
 use std::collections::HashMap;
 
 use advent::utilities::get_input::get_input;
-use itertools::Itertools;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
-type Input = HashMap<String, Vec<String>>;
+type Input<'a> = HashMap<&'a str, Vec<&'a str>>;
 type Output = usize;
 
 fn main() {
@@ -18,33 +17,30 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse_input(input: &str) -> Input {
-    let mut children: HashMap<String, Vec<String>> = HashMap::new();
-    let mut paths: HashMap<String, Vec<String>> = HashMap::new();
+fn parse_input(input: &'_ str) -> Input<'_> {
+    let mut children: HashMap<&str, Vec<&str>> = HashMap::new();
+    let mut paths: HashMap<&str, Vec<&str>> = HashMap::new();
     for line in input.lines() {
-        let (parent, name) = line.split(')')
-            .map(|s| s.to_string())
-            .collect_tuple()
-            .unwrap();
-        children.entry(parent.clone())
+        let (parent, name) = line.split_once(')').unwrap();
+        children.entry(&parent)
             .or_insert(Vec::new())
-            .push(name.clone());
+            .push(name);
     }
-    develop_paths("COM", Vec::new(), &mut paths, &children);
+    let &com = children.keys().find(|&&k| k == "COM").unwrap();
+    develop_paths(com, Vec::new(), &mut paths, &children);
     paths
 }
 
 
-fn develop_paths(
-    planet: &str,
-    prev: Vec<String>,
-    paths: &mut HashMap<String, Vec<String>>,
-    register: &HashMap<String, Vec<String>>,
+fn develop_paths<'a>(
+    planet: &'a str,
+    prev: Vec<&'a str>,
+    paths: &mut HashMap<&'a str, Vec<&'a str>>,
+    register: &HashMap<&'a str, Vec<&'a str>>,
 ) {
     let mut next = prev.clone();
-    let planet_string = planet.to_string();
-    next.push(planet_string.clone());
-    paths.insert(planet_string, prev);
+    next.push(planet);
+    paths.insert(planet, prev);
     let Some(children) = register.get(planet) else { return; };
     for child in children {
         develop_paths(child, next.clone(), paths, register);
@@ -70,7 +66,7 @@ fn default() {
     assert_eq!(481, part2(&input));
 }
 
-// Input parsed (21ms)
-// 1. 315757 (10μs)
-// 2. 481 (2μs)
-// Total: 21ms
+// Input parsed (3ms)
+// 1. 315757 (9μs)
+// 2. 481 (4μs)
+// Total: 3ms
