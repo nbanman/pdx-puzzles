@@ -3,7 +3,7 @@ use itertools::Itertools;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 type Input<'a> = &'a str;
-type Output = usize;
+type Output = i64;
 
 fn main() {
     let mut stopwatch = Stopwatch::new();
@@ -15,7 +15,7 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn compute(comp: &mut IntCode, noun: usize, verb: usize) -> Output {
+fn compute(comp: &mut IntCode, noun: i64, verb: i64) -> Output {
     comp.code[1] = noun;
     comp.code[2] = verb;
     comp.run();
