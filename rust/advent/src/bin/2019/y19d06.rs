@@ -26,8 +26,7 @@ fn parse_input(input: &'_ str) -> Input<'_> {
             .or_insert(Vec::new())
             .push(name);
     }
-    let &com = children.keys().find(|&&k| k == "COM").unwrap();
-    develop_paths(com, Vec::new(), &mut paths, &children);
+    develop_paths("COM", Vec::new(), &mut paths, &children);
     paths
 }
 
