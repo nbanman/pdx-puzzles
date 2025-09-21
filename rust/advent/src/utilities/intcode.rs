@@ -31,6 +31,7 @@ impl IntCode {
     pub fn new(initial_code: &[i64]) -> Self {
         let mut code = Vec::with_capacity(initial_code.len() + EXTRA_MEMORY);
         code.extend(initial_code.iter());
+        code.resize(initial_code.len() + EXTRA_MEMORY, 0);
         Self {
             cursor: 0,
             base: 0,
