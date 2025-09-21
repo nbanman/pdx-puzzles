@@ -12,3 +12,14 @@ impl Scannable for Grid<bool, 2> {
         image
     }
 }
+
+impl Scannable for Grid<char, 2> {
+    fn normalize(&self) -> String {
+        let mut image = String::new();
+        for row in self.rows() {
+            image.extend(row.iter().copied());
+            image.push('\n');
+        }
+        image
+    }
+}
