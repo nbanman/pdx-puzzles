@@ -10,7 +10,6 @@ pub enum State {
     Input,
     Output(i64),
     Halted,
-    Error(String),
 }
 
 #[derive(Debug, Clone)]
@@ -54,6 +53,14 @@ impl IntCode {
         self.input.clear();
     }
 
+    pub fn run_while_able(&mut self) -> Vec<i64> {
+        let mut output: Vec<i64> = Vec::new();
+        while let State::Output(value) = self.run() {
+            output.push(value);
+        }
+        output
+    }
+
     pub fn run(&mut self) -> State {
         while let Some(&op) = self.code.get(self.cursor as usize) {
             match op % 100 {
@@ -89,7 +96,7 @@ impl IntCode {
                     self.cursor += 2;
                     return State::Output(value);
                 }
-                // jump true
+                // jump if > 0
                 5 => {
                     let first = self.address(op / 100, 1);
                     self.cursor = if self.code[first] == 0 {
@@ -99,7 +106,7 @@ impl IntCode {
                         self.code[second as usize]
                     };
                 }
-                // jump false
+                // jump if 0
                 6 => {
                     let first = self.address(op / 100, 1);
                     self.cursor = if self.code[first] != 0 {
@@ -136,7 +143,7 @@ impl IntCode {
                 _ => return State::Halted,
             }
         }
-        State::Error(format!("cursor {} out of range", self.cursor))
+        unreachable!()
     }
 
     fn address(&self, mode: i64, offset: i64) -> usize {
