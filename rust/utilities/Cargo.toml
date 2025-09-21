@@ -11,3 +11,4 @@ rayon = { workspace = true }
 thiserror = { workspace = true }
 ordered-float = "4"
 rustc-hash = { workspace = true }
+advent-ocr = { workspace = true }
