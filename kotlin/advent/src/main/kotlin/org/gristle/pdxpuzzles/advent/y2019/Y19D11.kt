@@ -14,7 +14,7 @@ class Y19D11(input: String) : Day {
 
     enum class Paint { BLACK, WHITE }
 
-    data class Panel(val paint: Paint = Paint.BLACK, val numPainted: Int = 0)
+    data class Panel(val paint: Paint = Paint.BLACK)
 
     data class Robot(
         val grid: MutableMap<Coord, Panel>,
@@ -32,7 +32,7 @@ class Y19D11(input: String) : Day {
             if (input.size > 1) {
                 val panel = grid[coord] ?: Panel()
                 val newPaint = if (input.poll() == 0L) Paint.BLACK else Paint.WHITE
-                grid[coord] = panel.copy(paint = newPaint, numPainted = panel.numPainted + 1)
+                grid[coord] = panel.copy(paint = newPaint)
                 direction = if (input.poll() == 0L) direction.left() else direction.right()
                 coord = direction.forward(coord)
                 sendInstruction()
@@ -51,7 +51,7 @@ class Y19D11(input: String) : Day {
             intCode.run()
             robot.run()
         }
-        return grid.values.count { it.numPainted >= 1 }
+        return grid.values.count()
     }
 
     override fun part2(): String {
@@ -82,11 +82,8 @@ class Y19D11(input: String) : Day {
 }
 
 fun main() = Day.runDay(Y19D11::class)
-//    var time = System.nanoTime()
-//    val c = Y19D11(readRawInput("y2019/d11"))
-//    println("Class creation: ${elapsedTime(time)}ms")
-//    time = System.nanoTime()
-//    println("Part 1: ${c.part1()} (${elapsedTime(time)}ms)") // 2720
-//    time = System.nanoTime()
-//    println("Part 2: ${c.part2()} (${elapsedTime(time)}ms)") // JZPJRAGJ
-//}
+
+//    Class creation: 1ms
+//    Part 1: 2720 (23ms)
+//    Part 2: JZPJRAGJ (10ms)
+//    Total time: 35ms
