@@ -39,9 +39,7 @@ fn run_robot(mut robot: Input, first_panel: Panel) -> HashMap<Pos, Panel> {
         dir = if new_dir == 0 { dir.left() } else { dir.right() };
         pos = pos.move_direction(dir, 1).unwrap();
         let input = grid.get(&pos)
-            .map(|&panel| {
-                if panel == Panel::Black { 0 } else { 1 }
-            })
+            .map(|&panel| if panel == Panel::Black { 0 } else { 1 })
             .unwrap_or_default();
         robot.input(input);
     }

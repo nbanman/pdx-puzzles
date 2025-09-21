@@ -12,9 +12,7 @@ class Y19D11(input: String) : Day {
 
     private val initialData = input.split(',').map { it.toLong() }
 
-    enum class Paint { BLACK, WHITE }
-
-    data class Panel(val paint: Paint = Paint.BLACK)
+    enum class Panel { BLACK, WHITE }
 
     data class Robot(
         val grid: MutableMap<Coord, Panel>,
@@ -24,15 +22,14 @@ class Y19D11(input: String) : Day {
         val output: Deque<Long>
     ) {
         fun sendInstruction() {
-            val instruction = if (grid[coord]?.paint == Paint.WHITE) 1L else 0L
+            val instruction = if (grid[coord] == Panel.WHITE) 1L else 0L
             output.add(instruction)
         }
 
         fun run() {
             if (input.size > 1) {
-                val panel = grid[coord] ?: Panel()
-                val newPaint = if (input.poll() == 0L) Paint.BLACK else Paint.WHITE
-                grid[coord] = panel.copy(paint = newPaint)
+                val newPanel = if (input.poll() == 0L) Panel.BLACK else Panel.WHITE
+                grid[coord] = newPanel
                 direction = if (input.poll() == 0L) direction.left() else direction.right()
                 coord = direction.forward(coord)
                 sendInstruction()
@@ -56,7 +53,7 @@ class Y19D11(input: String) : Day {
 
     override fun part2(): String {
         val grid = mutableMapOf<Coord, Panel>()
-        grid[Coord(0, 0)] = Panel(Paint.WHITE)
+        grid[Coord(0, 0)] = Panel.WHITE
         val fromRobot = LinkedList<Long>()
         val fromComputer = LinkedList<Long>()
         val intCode = IntCode("B", initialData, null, fromRobot, fromComputer)
@@ -75,7 +72,7 @@ class Y19D11(input: String) : Day {
         val height = maxY - minY + 1
 
         val printGrid = List(width * height) { i ->
-            if (grid[Coord(i % width + minX, i / width + minY)]?.paint == Paint.WHITE) '#' else '.'
+            if (grid[Coord(i % width + minX, i / width + minY)] == Panel.WHITE) '#' else '.'
         }.toGrid(width)
         return printGrid.ocr()
     }
