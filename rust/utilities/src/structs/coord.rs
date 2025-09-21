@@ -289,6 +289,18 @@ impl<T: Coordinate, const N: usize> Div for Coord<T, N> {
     }
 }
 
+impl<T: Coordinate, const N: usize> Div<T> for Coord<T, N> {
+    type Output = Self;
+
+    fn div(self, rhs: T) -> Self::Output {
+        let mut sum = self.0;
+        for idx in 0usize..N {
+            sum[idx] = sum[idx] / rhs;
+        }
+        Self(sum)
+    }
+}
+
 impl<T: Coordinate, const N: usize> Display for Coord<T, N> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let output = self.0.iter().map(|pos| pos.to_string()).join(", ");
