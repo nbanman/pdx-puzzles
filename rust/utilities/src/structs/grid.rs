@@ -6,6 +6,7 @@ pub mod grid_index;
 pub mod grid_iterators;
 pub mod grid_methods;
 pub mod grid_rotation;
+mod grid_scannable;
 
 use std::ops::Deref;
 
@@ -20,6 +21,8 @@ pub use grid_iterators::*;
 pub use grid_methods::*;
 #[allow(unused_imports)]
 pub use grid_rotation::*;
+#[allow(unused_imports)]
+pub use grid_scannable::*;
 
 pub type Grid2<T> = Grid<T, 2>;
 
@@ -36,3 +39,4 @@ impl<T, const N: usize> Deref for Grid<T, N> {
         &self.data
     }
 }
+
