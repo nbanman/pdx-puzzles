@@ -54,12 +54,15 @@ impl IntCode {
         self.input.clear();
     }
 
-    pub fn run_while_able(&mut self) -> Vec<i64> {
-        let mut output: Vec<i64> = Vec::new();
-        while let State::Output(value) = self.run() {
-            output.push(value);
+    pub fn run_while_able(&mut self) -> (State, VecDeque<i64>) {
+        let mut output: VecDeque<i64> = VecDeque::new();
+        loop {
+            match self.run() {
+                State::Input => { return (State::Input, output); },
+                State::Output(value) => { output.push_back(value); },
+                State::Halted => { return (State::Halted, output); },
+            }
         }
-        output
     }
 
     pub fn run(&mut self) -> State {
