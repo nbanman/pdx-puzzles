@@ -1,5 +1,6 @@
+use rayon::iter::ParallelIterator;
 use std::collections::HashMap;
-
+use rayon::iter::ParallelBridge;
 use advent::utilities::get_input::get_input;
 use utilities::{
     math::formulae::lcm,
@@ -20,7 +21,7 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse_input(input: &str) -> Input {
+fn parse_input(input: &str) -> Input<'_> {
     let (directions, net_str) = input.split_once("\n\n").unwrap();
     let mut network: HashMap<String, (String, String)> = HashMap::new();
     for line in net_str.lines() {
@@ -77,9 +78,9 @@ fn part2(input: &Input) -> Output {
     network
         .keys()
         .filter(|node| node.ends_with('A'))
+        .par_bridge()
         .map(|node| traverse(directions, network, node, end_condition))
-        .reduce(|acc, cycle_length| lcm(acc as i64, cycle_length as i64) as usize)
-        .unwrap()
+        .reduce(|| 1, |acc, cycle_length| lcm(acc as i64, cycle_length as i64) as usize)
 }
 
 #[test]
@@ -89,3 +90,8 @@ fn default() {
     assert_eq!(19241, part1(&input));
     assert_eq!(9606140307013, part2(&input));
 }
+
+// Input parsed (185μs)
+// 1. 19241 (712μs)
+// 2. 9606140307013 (1ms)
+// Total: 2ms
