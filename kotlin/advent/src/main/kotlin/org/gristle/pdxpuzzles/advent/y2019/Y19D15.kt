@@ -5,6 +5,7 @@ import org.gristle.pdxpuzzles.advent.y2019.Intcode.IntCode
 import org.gristle.pdxpuzzles.utilities.enums.Nsew
 import org.gristle.pdxpuzzles.utilities.algorithms.Graph
 import org.gristle.pdxpuzzles.utilities.objects.Coord
+import org.gristle.pdxpuzzles.utilities.objects.Grid
 import org.gristle.pdxpuzzles.utilities.objects.MutableGrid
 import org.gristle.pdxpuzzles.utilities.objects.toMutableGrid
 import java.util.*
@@ -163,6 +164,20 @@ class Y19D15(private val input: String) : Day {
                     .getNeighborIndices(id)
                     .filter { grid[it] != Sector.WALL && grid[it] != Sector.UNEXPLORED }
             }
+
+//            val printGrid = Grid(maxX - minX, maxY - minY) { i ->
+//                val pos = Coord.fromIndex(i, maxX - minX) + Coord(minX, minY)
+//                when {
+//                    pos == Coord(500, 500) -> 'S'
+//                    grid[pos] == Sector.WALL -> '#'
+//                    grid[pos] == Sector.PATH -> '.'
+//                    grid[pos] == Sector.O2 -> 'O'
+//                    else -> '?'
+//                }
+//            }
+//
+//            println(printGrid.representation { it })
+
             return steppes to d2.maxOf { it.weight }.toInt()
         }
     }
