@@ -13,8 +13,8 @@ fn main() {
     let input = get_input(19, 15).unwrap();
     let input = parse_input(&input);
     println!("Input parsed ({})", stopwatch.lap().report());
-    println!("1. {} ({})", part1(&input), stopwatch.lap().report());
-    println!("2. {} ({})", part2(&input), stopwatch.lap().report());
+    println!("1. {} ({})", part1(input.clone()), stopwatch.lap().report());
+    println!("2. {} ({})", part2(input), stopwatch.lap().report());
     println!("Total: {}", stopwatch.stop().report());
 }
 
@@ -88,24 +88,22 @@ where
     steps - 1
 }
 
-fn part1(input: &Input) -> Output {
+fn part1(input: Input) -> Output {
     let (ship, o2) = input;
-    let ship = ship.clone();
-    solve(ship, Pos::origin(), |pos| pos == *o2)
+    solve(ship, Pos::origin(), |pos| pos == o2)
 }
 
-fn part2(input: &Input) -> Output {
+fn part2(input: Input) -> Output {
     let (ship, o2) = input;
-    let ship = ship.clone();
-    solve(ship, *o2, |_| false)
+    solve(ship, o2, |_| false)
 }
 
 #[test]
 fn default() {
     let input = get_input(19, 15).unwrap();
     let input = parse_input(&input);
-    assert_eq!(250, part1(&input));
-    assert_eq!(332, part2(&input));
+    assert_eq!(250, part1(input.clone()));
+    assert_eq!(332, part2(input));
 }
 
 // Input parsed (663μs)
