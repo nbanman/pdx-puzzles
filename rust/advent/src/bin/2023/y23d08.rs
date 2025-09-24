@@ -7,7 +7,7 @@ use utilities::{
     structs::stopwatch::{ReportDuration, Stopwatch},
 };
 
-type Input<'a> = (&'a str, HashMap<String, (String, String)>);
+type Input<'a> = (&'a str, HashMap<&'a str, (&'a str, &'a str)>);
 type Output = usize;
 
 fn main() {
@@ -23,19 +23,19 @@ fn main() {
 
 fn parse_input(input: &str) -> Input<'_> {
     let (directions, net_str) = input.split_once("\n\n").unwrap();
-    let mut network: HashMap<String, (String, String)> = HashMap::new();
+    let mut network= HashMap::new();
     for line in net_str.lines() {
         let (node, to) = line.split_once(" = (").unwrap();
         let (left, to) = to.split_once(", ").unwrap();
         let (right, _) = to.split_once(')').unwrap();
-        network.insert(node.to_string(), (left.to_string(), right.to_string()));
+        network.insert(node, (left, right));
     }
     (directions, network)
 }
 
 fn traverse<F>(
     directions: &str,
-    network: &HashMap<String, (String, String)>,
+    network: &HashMap<&str, (&str, &str)>,
     start_node: &str,
     end_condition: F,
 ) -> usize
@@ -47,12 +47,12 @@ where
         .cycle()
         .scan(start_node, |node, dir| {
             let new_node = network
-                .get(&node.to_string())
-                .map(|(left, right)| {
+                .get(node)
+                .map(|&(left, right)| {
                     if dir == 'L' {
-                        left.as_str()
+                        left
                     } else {
-                        right.as_str()
+                        right
                     }
                 })
                 .unwrap();
@@ -91,7 +91,7 @@ fn default() {
     assert_eq!(9606140307013, part2(&input));
 }
 
-// Input parsed (185μs)
-// 1. 19241 (712μs)
+// Input parsed (151μs)
+// 1. 19241 (429μs)
 // 2. 9606140307013 (1ms)
-// Total: 2ms
+// Total: 1ms
