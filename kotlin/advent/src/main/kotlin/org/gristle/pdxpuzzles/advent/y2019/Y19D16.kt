@@ -17,8 +17,7 @@ class Y19D16(private val input: String) : Day {
                 }.let { abs(it % 10) }
             }
         }.take(8)
-            .joinToString("")
-            .toInt()
+        .reduce { acc, i -> acc * 10 + i }
     }
 
     override fun part2(): Int {
@@ -33,12 +32,11 @@ class Y19D16(private val input: String) : Day {
         }
         return nosi
             .take(8)
-            .joinToString("")
-            .toInt()
+            .reduce { acc, i -> acc * 10 + i }
     }
 }
 
-fun main() = Day.runDay(Y19D16::class)
+fun main() = Day.benchmarkDay(Y19D16::class)
 
 //    Class creation: 11ms
 //    Part 1: 52611030 (206ms)
