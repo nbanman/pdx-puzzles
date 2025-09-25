@@ -44,6 +44,10 @@ impl IntCode {
         self.input.push_back(value);
     }
 
+    pub fn input_slice(&mut self, slice: &[i64]) {
+        self.input.extend(slice.iter());
+    }
+
     pub fn input_ascii(&mut self, ascii: &str) {
         self.input.extend(ascii.bytes().map(|b| b as i64));
     }
