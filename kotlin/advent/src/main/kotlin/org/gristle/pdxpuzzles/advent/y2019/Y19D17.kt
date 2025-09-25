@@ -18,52 +18,126 @@ class Y19D17(input: String) : Day {
         val intCode = IntCode("A", initialState, null, toComp, toDroid)
         intCode.run()
         val width = toDroid.indexOfFirst { it == 10L }
-        val grid = toDroid.mapNotNull { if (it != null && it != 10L) it else null }.toMutableGrid(width)
+        val grid = toDroid.filter { it != 10L }.toMutableGrid(width)
         val intersections = grid.mapIndexedNotNull { index, l ->
             if (l != 35L || grid.getNeighbors(index).any { it != 35L }) {
                 null
             } else {
-                grid.coordOf(index)
+                val pos = grid.coordOf(index)
+                pos.x * pos.y
             }
-        }.map { it.x * it.y}
+        }
         val p1 = intersections.sum()
 
         // Part 2
+        println(grid.representation { it.toInt().toChar() })
         var coord = grid.coordOfElement(94L)
         var dir = Nsew.NORTH
         var counter = 0
-        val path = mutableListOf<String>()
+        val pathBuilder = StringBuilder()
         while (true) {
             if (cromulent(grid, coord, dir)) {
                 counter++
                 coord = dir.forward(coord)
-            } else {
-                if (cromulent(grid, coord, dir.left())) {
-                    dir = dir.left()
-                    if (counter != 0) path.add(counter.toString())
-                    path.add("L")
+            } else if (cromulent(grid, coord, dir.left())) {
+                dir = dir.left()
+                if (counter != 0) {
+                    pathBuilder.append(counter)
+                    pathBuilder.append(',')
                     counter = 0
-                } else if (cromulent(grid, coord, dir.right())) {
-                    dir = dir.right()
-                    if (counter != 0) path.add(counter.toString())
-                    path.add("R")
-                    counter = 0
-                } else {
-                    path.add(counter.toString())
-                    break
                 }
+                pathBuilder.append("L,")
+            } else if (cromulent(grid, coord, dir.right())) {
+                dir = dir.right()
+                if (counter != 0) {
+                    pathBuilder.append(counter)
+                    pathBuilder.append(',')
+                    counter = 0
+                }
+                pathBuilder.append("R,")
+            } else {
+                pathBuilder.append(counter)
+                pathBuilder.append(',')
+                break
             }
         }
-        val formSeq = listOf('A', ',', 'B', ',', 'A', ',', 'C', ',', 'A', ',', 'A', ',', 'C', ',', 'B', ',', 'C', ',', 'B', '\n')
-        val aForm = listOf('L', ',', '1', '2', ',', 'L', ',', '8', ',', 'R', ',', '1', '2', '\n')
-        val bForm = listOf('L', ',', '1', '0', ',', 'L', ',', '8', ',', 'L', ',', '1', '2', ',', 'R', ',', '1', '2', '\n')
-        val cForm = listOf('R', ',', '1', '2', ',', 'L', ',', '8', ',', 'L', ',', '1', '0', '\n', 'n', '\n')
-        val commands = (formSeq + aForm + bForm + cForm).map { it.code.toLong() }
+        val path = pathBuilder.toString()
+        val matches = Regex("""[LR],\d+,""").findAll(path).toList()
+        val (formSeq, forms) = getCommands(path, matches)
+        val video = listOf('n', '\n')
+        val commands = (formSeq + forms[0] + forms[1] + forms[2] + video).map { it.code.toLong() }
         toComp.addAll(commands)
         val intCodeB = IntCode("B", listOf(2L) + initialState.drop(1), null, toComp, toDroid)
         toDroid.clear()
         intCodeB.run()
         return p1 to toDroid.last()
+    }
+
+    private fun getCommands(path: String, matches: List<MatchResult>): Pair<String, List<String>> {
+        val commands = mutableListOf<StringBuilder>()
+        splitCommands(path, matches, 0, commands, 3)
+        val formSequence = StringBuilder()
+        var cursor = 0
+        while (cursor < path.length) {
+            val position = commands.indexOfFirst { s -> path.drop(cursor).startsWith(s) }
+            val c = when (position) {
+                0 -> 'A'
+                1 -> 'B'
+                2 -> 'C'
+                else -> throw IllegalStateException()
+            }
+            formSequence.append(c)
+            formSequence.append(',')
+            cursor += commands[position].length
+        }
+        for (command in commands) {
+            command.setLength(command.length - 1)
+            command.append('\n')
+        }
+        formSequence.setLength(formSequence.length - 1)
+        formSequence.append('\n')
+        return formSequence.toString() to commands.map { it.toString() }
+    }
+
+    private fun splitCommands(
+        path: String,
+        matches: List<MatchResult>,
+        matchIndex: Int,
+        commands: MutableList<StringBuilder>,
+        level: Int
+    ): Boolean {
+        if (level == 0 && matches.size == 0) {
+            return true
+        }
+        var start = matches[matchIndex].range.first
+        outer@while (true) {
+            for (command in commands) {
+                if (path.drop(start).startsWith(command.toString())) {
+                    start += command.length
+                    continue@outer
+                }
+            }
+            break
+        }
+        if (level == 0) {
+            return start >= path.length
+        }
+        for ((index, match) in matches
+            .drop(matchIndex)
+            .withIndex()
+            .filter { (_, m) -> m.range.last <= start + 20 }
+            .asReversed())
+        {
+            val sb = StringBuilder()
+            sb.append(path.substring(start .. match.range.last))
+            commands.add(sb)
+            if (splitCommands(path, matches, matchIndex + index + 1, commands, level - 1)) {
+                return true
+            } else {
+                commands.removeLast()
+            }
+        }
+        return false
     }
 
     private fun cromulent(grid: Grid<Long>, coord: Coord, dir: Nsew): Boolean {
@@ -80,7 +154,7 @@ class Y19D17(input: String) : Day {
 
 fun main() = Day.runDay(Y19D17::class)
 
-//    Class creation: 115ms
-//    Part 1: 10632 (0ms)
-//    Part 2: 1356191 (0ms)
-//    Total time: 116ms
+//    Class creation: 56ms
+//    Part 1: 10632 (1ms)
+//    Part 2: 1356191 (1ms)
+//    Total time: 60ms
