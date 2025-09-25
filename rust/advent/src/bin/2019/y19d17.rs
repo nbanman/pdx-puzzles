@@ -95,7 +95,7 @@ fn part2(input: &Input) -> Output {
             break;
         }
     }
-    let matches: Vec<Match> = regex!(r"(?:L|R),\d+,").find_iter(&path).collect();
+    let matches: Vec<Match> = regex!(r"[LR],\d+,").find_iter(&path).collect();
     let (form_seq, forms) = get_commands(&path, &matches);
     let video = ['n', '\n'];
     let to_ic: Vec<i64> = form_seq.chars()
@@ -191,7 +191,7 @@ fn default() {
     let input = get_input(19, 17).unwrap();
     let input = parse_input(&input);
     assert_eq!(10632, part1(&input));
-    // assert_eq!(1356191, part2(&input));
+    assert_eq!(1356191, part2(&input));
 }
 
 // Input parsed (490μs)
