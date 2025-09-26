@@ -1,85 +1,79 @@
-// use std::cmp::Reverse;
-// use std::collections::BinaryHeap;
+use crate::structs::store::Store;
+use num_traits::{One, Zero};
+use rustc_hash::FxHashMap;
+use std::cmp::Reverse;
+use std::collections::BinaryHeap;
 use std::fmt::Debug;
 use std::{collections::VecDeque, hash::Hash};
 
-use num_traits::{One, Zero};
-
-use crate::structs::store::Store;
-
-pub fn bfs<S, C, FN, E, FS>(start: S, edges: FN, end_condition: Option<FS>) -> PathInfo<S, C>
+pub fn bfs<S, C, FN, FS>(start: S, edges: FN, end_condition: FS) -> PathInfo<S, C>
 where
     S: Debug + Eq + Hash + Clone,
     C: Debug + Zero + One + Copy + Hash + Eq,
-    FN: Fn(&S, EdgeInfo<C>) -> E,
-    E: IntoIterator<Item = S>,
-    FS: Fn(&S, EdgeInfo<C>) -> bool,
+    FN: Fn(EdgeInfo<C>, &S) -> Vec<S>,
+    FS: Fn(EdgeInfo<C>, &S) -> bool,
 {
-    let frontier: VecDeque<(S, EdgeInfo<C>)> = VecDeque::new();
+    let frontier: VecDeque<(EdgeInfo<C>, S)> = VecDeque::new();
     traverse_unweighted(start, edges, end_condition, frontier)
 }
 
-pub fn dfs<S, C, FN, E, FS>(start: S, edges: FN, end_condition: Option<FS>) -> PathInfo<S, C>
+pub fn dfs<S, C, FN, FS>(start: S, edges: FN, end_condition: FS) -> PathInfo<S, C>
 where
     S: Debug + Eq + Hash + Clone,
     C: Debug + Zero + One + Copy + Hash + Eq,
-    FN: Fn(&S, EdgeInfo<C>) -> E,
-    E: IntoIterator<Item = S>,
-    FS: Fn(&S, EdgeInfo<C>) -> bool,
+    FN: Fn(EdgeInfo<C>, &S) -> Vec<S>,
+    FS: Fn(EdgeInfo<C>, &S) -> bool,
 {
-    let frontier: Vec<(S, EdgeInfo<C>)> = Vec::new();
+    let frontier: Vec<(EdgeInfo<C>, S)> = Vec::new();
 
     traverse_unweighted(start, edges, end_condition, frontier)
 }
 
-fn traverse_unweighted<'a, S, C, FN, E, FS, FR>(
+fn traverse_unweighted<'a, S, C, FN, FS, FR>(
     start: S,
     edges: FN,
-    end_condition: Option<FS>,
+    end_condition: FS,
     mut frontier: FR,
 ) -> PathInfo<S, C>
 where
     S: Debug + Eq + Hash + Clone + 'a,
     C: Debug + Zero + One + Copy + Hash + Eq + 'a,
-    FN: Fn(&S, EdgeInfo<C>) -> E,
-    E: IntoIterator<Item = S>,
-    FS: Fn(&S, EdgeInfo<C>) -> bool,
-    FR: Frontier<(S, EdgeInfo<C>)>,
+    FN: Fn(EdgeInfo<C>, &S) -> Vec<S>,
+    FS: Fn(EdgeInfo<C>, &S) -> bool,
+    FR: Frontier<(EdgeInfo<C>, S)>,
 {
     frontier.push_node((
-        start,
         EdgeInfo {
             cost: C::zero(),
             parent: None,
         },
+        start,
     ));
     let mut visited = Store::new();
 
-    while let Some((node, info)) = frontier.pop_node() {
+    while let Some((info, node)) = frontier.pop_node() {
         // add to visited
         let Some(id) = visited.assign(node.clone(), info) else {
             continue;
         };
 
         // check end condition and exit if successful
-        if let Some(end_condition) = &end_condition {
-            if end_condition(&node, info) {
-                return PathInfo {
-                    nodes: visited,
-                    end_index: Some(id),
-                };
-            }
+        if end_condition(info, &node) {
+            return PathInfo {
+                nodes: visited,
+                end_index: Some(id),
+            };
         }
 
         // add connected nodes to frontier
         let cost = info.cost + C::one();
-        for edge in edges(&node, info).into_iter() {
+        for edge in edges(info, &node).into_iter() {
             frontier.push_node((
-                edge,
                 EdgeInfo {
                     cost,
                     parent: Some(id),
                 },
+                edge,
             ));
         }
     }
@@ -89,32 +83,93 @@ where
     }
 }
 
-// pub fn dijkstra<S, C, FN, E, FS>(
-//     start: S,
-//     edges: FN,
-//     end_condition: Option<FS>,
-// ) -> PathInfo<S, C>
-// where
-//     S: Debug + Eq + Hash + Clone,
-//     C: Debug + Zero + One + Copy + Hash + Eq + Ord,
-//     FN: Fn(&S, EdgeInfo<C>) -> E,
-//     E: IntoIterator<Item = (C, S)>,
-//     FS: Fn(&S, EdgeInfo<C>) -> bool,
-// {
-//     let frontier: BinaryHeap<Reverse<(S, EdgeInfo<C>)>> = BinaryHeap::new();
-//     traverse_weighted(start, edges, end_condition, frontier)
-// }
+pub fn dijkstra<S, C, FN, FS>(
+    start: S,
+    edges: FN,
+    end_condition: FS,
+) -> PathInfo<S, C>
+where
+    S: Debug + Eq + Hash + Ord + Clone,
+    C: Debug + Zero + One + Copy + Hash + Eq + Ord,
+    FN: Fn(EdgeInfo<C>, &S) -> Vec<(S, C)>,
+    FS: Fn(EdgeInfo<C>, &S) -> bool,
+{
+    let frontier: BinaryHeap<Reverse<(EdgeInfo<C>, S)>> = BinaryHeap::new();
+    traverse_weighted(start, edges, end_condition, frontier)
+}
+
+fn traverse_weighted<S, C, FN, FS>(
+    start: S,
+    edges: FN,
+    end_condition: FS,
+    mut frontier: BinaryHeap<Reverse<(EdgeInfo<C>, S)>>
+) -> PathInfo<S, C>
+where
+    C: Copy + Debug + Eq + Hash + One + Ord + Zero,
+    FN: Fn(EdgeInfo<C>, &S) -> Vec<(S, C)>,
+    FS: Fn(EdgeInfo<C>, &S) -> bool,
+    S: Clone + Debug + Eq + Hash + Ord,
+{
+    let mut costs = FxHashMap::default();
+    costs.insert(start.clone(), C::zero());
+
+    frontier.push_node(Reverse((
+        EdgeInfo {
+            cost: C::zero(),
+            parent: None,
+        },
+        start
+    )));
+    let mut visited = Store::new();
+    while let Some(Reverse((info, node))) = frontier.pop_node() {
+        let Some(id) = visited.assign(node.clone(), info) else {
+            continue;
+        };
+
+        // check end condition and exit if successful
+        if end_condition(info, &node) {
+            return PathInfo {
+                nodes: visited,
+                end_index: Some(id),
+            };
+        }
+
+        // add connected nodes to frontier
+        for (edge_state, edge_cost) in edges(info, &node).into_iter() {
+            let alternate_cost = info.cost + edge_cost;
+            let cost = *costs.get(&edge_state).unwrap_or(&(alternate_cost + C::one()));
+            if alternate_cost < cost {
+                costs.insert(edge_state.clone(), alternate_cost);
+                frontier.push_node(Reverse((
+                    EdgeInfo {
+                        cost: alternate_cost,
+                        parent: Some(id),
+                    },
+                    edge_state,
+                )));
+            }
+        }
+    }
+    PathInfo {
+        nodes: visited,
+        end_index: None,
+    }
+}
+
+pub fn no_end_condition<T, U>(_: T, _: &U) -> bool {
+    false
+}
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct EdgeInfo<C>
 where
     C: Debug + Zero + One + Copy + Hash + Eq,
 {
-    cost: C,
-    parent: Option<usize>,
+    pub cost: C,
+    pub parent: Option<usize>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PathInfo<S, C>
 where
     S: Debug + Eq + Hash + Clone,
@@ -173,15 +228,16 @@ where
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct Step<S, C>
 where
     S: Debug + Eq + Hash + Clone,
     C: Debug + Zero + One + Copy + Hash + Eq,
 {
-    id: usize,
-    state: S,
-    cost: C,
-    parent: Option<S>,
+    pub id: usize,
+    pub state: S,
+    pub cost: C,
+    pub parent: Option<S>,
 }
 
 trait Frontier<T> {
@@ -207,6 +263,14 @@ impl<T> Frontier<T> for VecDeque<T> {
     fn pop_node(&mut self) -> Option<T> {
         self.pop_front()
     }
+}
+
+impl<T> Frontier<T> for BinaryHeap<T>
+where
+    T: Ord,
+{
+    fn push_node(&mut self, value: T) { self.push(value); }
+    fn pop_node(&mut self) -> Option<T> { self.pop() }
 }
 
 #[test]
@@ -236,8 +300,8 @@ fn bfs_test() {
     static GOAL: Pos = Pos(OrderedFloat(4.0), OrderedFloat(6.0));
     let result = bfs(
         Pos(OrderedFloat(1.0), OrderedFloat(1.0)),
-        |p, _| p.successors(),
-        Some(|p: &Pos, _| *p == GOAL),
+        |_, p| p.successors(),
+        |_, p: &Pos| *p == GOAL,
     );
     assert_eq!(result.steps(), Some(OrderedFloat(4.0)))
 }
@@ -246,8 +310,11 @@ fn bfs_test() {
 fn dfs_test() {
     let result = dfs(
         1,
-        |&n, _: EdgeInfo<usize>| vec![n + 1, n * n].into_iter().filter(|&x| x <= 17),
-        Some(|n: &i32, _| *n == 17),
+        |_: EdgeInfo<usize>, &n| {
+            let edges = vec![n + 1, n * n].into_iter().filter(|&x| x <= 17);
+            edges.collect()
+        },
+        |_, _| false // |n: &i32, _| *n == 17,
     );
     assert_eq!(
         result
