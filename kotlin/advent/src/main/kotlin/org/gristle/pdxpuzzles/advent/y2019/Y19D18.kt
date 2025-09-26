@@ -11,7 +11,7 @@ class Y19D18(input: String) : Day {
 
     /**
      * Used for the edgemap, contains enhanced edge data. This includes the location of the edge, but also all
-     * keys needed to be collected to make the move (precedingKeys) as wall as all keys that are encountered while
+     * keys needed to be collected to make the move (precedingKeys) as well as all keys that are encountered while
      * traveling to the key (interveningKeys). precedingKeys is used to filter out moves that are not yet possible
      * due to not having the right key to pass through a door. interveningKeys is used to update the state so that
      * all keys are added in one swoop.
@@ -140,7 +140,7 @@ class Y19D18(input: String) : Day {
 
 fun main() = Day.runDay(Y19D18::class)
 
-//    Class creation: 7ms
-//    Part 1: 3918 (249ms)
-//    Part 2: 2004 (275ms)
-//    Total time: 532ms
+//    Class creation: 4ms
+//    Part 1: 3918 (123ms)
+//    Part 2: 2004 (141ms)
+//    Total time: 270ms
