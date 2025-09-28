@@ -21,9 +21,10 @@ class Y19D23(private val input: String) : Day {
         val nat = mutableListOf<Nat>()
         var lastYSent = -1L
         while (true) {
-            inputs.forEach { if (it.isEmpty()) it.add(-1L) }
-            nics.forEach { nic ->
-                val id = nic.name.toInt()
+            nics.forEachIndexed { id, nic ->
+                if (nic.input?.isEmpty() ?: false) {
+                    nic.input?.add(-1L)
+                }
                 nic.run()
                 for ((recipient, x, y) in outputs[id].chunked(3)) {
                     val recId = recipient.toInt()
@@ -37,7 +38,9 @@ class Y19D23(private val input: String) : Day {
                 outputs[id].clear()
             }
             if (inputs.all { it.isEmpty() }) {
-                if (nat.last().y == lastYSent) break
+                if (nat.last().y == lastYSent) {
+                    break
+                }
                 inputs[0].add(nat.last().x)
                 inputs[0].add(nat.last().y)
                 lastYSent = nat.last().y
