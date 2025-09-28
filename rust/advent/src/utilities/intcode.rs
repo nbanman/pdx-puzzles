@@ -17,7 +17,7 @@ pub struct IntCode {
     cursor: i64,
     base: i64,
     pub code: Vec<i64>,
-    input: VecDeque<i64>,
+    pub input: VecDeque<i64>,
 }
 
 impl From<&str> for IntCode {
