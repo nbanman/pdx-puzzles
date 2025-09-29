@@ -58,15 +58,39 @@ impl IntCode {
         self.input.clear();
     }
 
-    pub fn run_while_able(&mut self) -> (State, VecDeque<i64>) {
-        let mut output: VecDeque<i64> = VecDeque::new();
+    pub fn restore(&mut self, save: Self) {
+        self.cursor = save.cursor;
+        self.base = save.base;
+        self.code = save.code;
+        self.input = save.input;
+    }
+
+    pub fn run_while_able(&mut self) -> (State, Vec<i64>) {
+        let mut output: Vec<i64> = Vec::new();
         loop {
             match self.run() {
                 State::Input => { return (State::Input, output); },
-                State::Output(value) => { output.push_back(value); },
+                State::Output(value) => { output.push(value); },
                 State::Halted => { return (State::Halted, output); },
             }
         }
+    }
+
+    pub fn run_while_able_protected(&mut self, max_loop: usize) -> (State, Vec<i64>) {
+        let mut output: Vec<i64> = Vec::new();
+        let mut loop_count = 0;
+        loop {
+            loop_count += 1;
+            if loop_count == max_loop {
+                return (State::Halted, output);
+            }
+            match self.run() {
+                State::Input => { return (State::Input, output); },
+                State::Output(value) => { output.push(value); },
+                State::Halted => { return (State::Halted, output); },
+            }
+        }
+        
     }
 
     pub fn run(&mut self) -> State {
