@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use advent::utilities::{
     get_input::get_input,
     intcode::{IntCode, State},
@@ -51,12 +52,13 @@ fn part2(mut input: Input) -> Output {
     let mut paddle_position = Pos::origin();
 
     loop {
-        let (state, mut from_pong) = pong.run_while_able();
-        while let (Some(x), Some(y), Some(block)) = (
-            from_pong.pop_front(),
-            from_pong.pop_front(),
-            from_pong.pop_front(),
-        ) {
+        let (state, from_pong) = pong.run_while_able();
+        for (x, y, block) in from_pong
+            .into_iter()
+            .chunks(3)
+            .into_iter()
+            .map(|chunk| chunk.collect_tuple().unwrap())
+        {
             if x == -1 {
                 score = block;
             } else {
