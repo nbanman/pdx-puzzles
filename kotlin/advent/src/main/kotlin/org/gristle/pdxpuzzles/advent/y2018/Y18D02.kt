@@ -12,32 +12,13 @@ class Y18D02(input: String) : Day {
         return frequencies.count { it.contains(2) } * frequencies.count { it.contains(3) }
     }
 
-    override fun part2(): String {
-        fun Pair<String, String>.differsByOne(): Boolean {
-            var diffs = false
-            for (idx in first.indices) {
-                if (first[idx] != second[idx]) {
-                    if (!diffs) {
-                        diffs = true
-                    } else {
-                        return false
-                    }
-                }
-            }
-            return diffs
-        }
-
-        fun Pair<String, String>.shared() = buildString {
-            this@shared.first.forEachIndexed { index, a ->
-                if (a == this@shared.second[index]) append(a)
-            }
-        }
-
-        return boxIds
-            .getPairSequence()
-            .first { it.differsByOne() }
-            .shared()
-    }
+    override fun part2(): String = boxIds
+        .getPairSequence()
+        .map { (a, b) -> a zip b }
+        .first { pairs -> pairs.count { (a, b) -> a != b } == 1 }
+        .filter { (a, b) -> a == b }
+        .map { it.first }
+        .joinToString("")
 }
 
 fun main() = Day.runDay(Y18D02::class)
