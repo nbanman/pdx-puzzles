@@ -1,6 +1,5 @@
 use std::{
-    fmt::Display,
-    ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign},
+    fmt::Display, num::TryFromIntError, ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign}
 };
 use std::fmt::Debug;
 use itertools::Itertools;
@@ -457,6 +456,26 @@ impl<T: Coordinate> Coord<T, 2> {
 
     pub fn destructured(&self) -> (T, T) {
         (self.0[0], self.0[1])
+    }
+}
+
+impl<const N: usize> From<Coord<usize, N>> for Coord<i64, N> {
+    fn from(value: Coord<usize, N>) -> Self {
+        let coordinates: [i64; N] = value.0.map(|n| n as i64);
+        Self::new(coordinates)
+    }
+}
+
+impl<const N: usize> TryFrom<Coord<i64, N>> for Coord<usize, N> {
+    type Error = TryFromIntError;
+
+    fn try_from(value: Coord<i64, N>) -> Result<Self, Self::Error> {
+        let mut coordinates: [usize; N] = [0; N];
+        for (index, &signed) in value.0.iter().enumerate() {
+            let unsigned: usize = usize::try_from(signed)?;
+            coordinates[index] = unsigned;
+        }
+        Ok(Self::new(coordinates))
     }
 }
 
