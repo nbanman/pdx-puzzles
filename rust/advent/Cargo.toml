@@ -40,9 +40,9 @@ path = "src/bin/2018/y18d05.rs"
 name = "advent-y18d06"
 path = "src/bin/2018/y18d06.rs"
 
-#[[bin]]
-#name = "advent-y18d07"
-#path = "src/bin/2018/y18d07.rs"
+[[bin]]
+name = "advent-y18d07"
+path = "src/bin/2018/y18d07.rs"
 
 #[[bin]]
 #name = "advent-y18d08"
