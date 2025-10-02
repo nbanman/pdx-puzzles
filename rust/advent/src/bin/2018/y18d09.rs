@@ -48,6 +48,10 @@ fn add_right(id: usize, right_value: usize, marbles: &mut Vec<Marble>) -> usize 
 
     right.left = id;
     right.right = current.right;
+
+    // Normally you want to edit the marble to the right of the current marble, but on the first
+    // pass that is itself! Which means that on the first pass only, we want to edit the
+    // current marble that is swapped out of the marbles vec, rather than a marble in the vec.
     if marbles.len() == 2 {
         current.left = right_id;
     } else {
