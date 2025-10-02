@@ -1,15 +1,25 @@
-use std::{
-    fmt::Display, num::TryFromIntError, ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign}
-};
-use std::fmt::Debug;
 use itertools::Itertools;
-use num_traits::{CheckedAdd, CheckedSub, NumCast, One, PrimInt, Signed, Zero};
+use num_traits::{Bounded, CheckedAdd, CheckedSub, NumCast, One, PrimInt, Signed, Zero};
+use std::fmt::Debug;
+use std::{
+    collections::HashSet,
+    fmt::Display,
+    hash::Hash,
+    num::TryFromIntError,
+    ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign},
+};
 
 use crate::enums::{cardinals::Cardinal, intercardinals::Intercardinal};
 
-pub trait Coordinate: Default + PrimInt + Display + Zero + One + Mul + Debug {}
+pub trait Coordinate:
+    Default + PrimInt + Display + Zero + One + Mul + Debug + Bounded + PartialEq + Eq + Hash
+{
+}
 
-impl<T> Coordinate for T where T: Default + PrimInt + Display + Zero + One + Mul + Debug {}
+impl<T> Coordinate for T where
+    T: Default + PrimInt + Display + Zero + One + Mul + Debug + Bounded + PartialEq + Eq + Hash
+{
+}
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct Coord<T: Coordinate, const N: usize>(pub [T; N]);
@@ -88,14 +98,16 @@ impl<T: Coordinate, const N: usize> Coord<T, N> {
 
         // expand
         for dim in 0..N {
-            let left: Vec<_> = neighbors.iter()
+            let left: Vec<_> = neighbors
+                .iter()
                 .map(|pos| {
                     let mut pos = pos.clone();
                     pos.0[dim] = pos.0[dim] - T::one();
                     pos
                 })
                 .collect();
-            let right: Vec<_> = neighbors.iter()
+            let right: Vec<_> = neighbors
+                .iter()
                 .map(|pos| {
                     let mut pos = pos.clone();
                     pos.0[dim] = pos.0[dim] + T::one();
@@ -107,9 +119,30 @@ impl<T: Coordinate, const N: usize> Coord<T, N> {
         }
 
         // remove seed
-        neighbors.into_iter()
+        neighbors
+            .into_iter()
             .dropping(1)
             .sorted_unstable_by(|a, b| a.partial_cmp(b).unwrap())
+    }
+
+    pub fn min_max<'a>(coords: impl IntoIterator<Item = &'a Self>) -> (Self, Self)
+    where
+        T: 'a,
+    {
+        let mut min = [T::max_value(); N];
+        let mut max = [T::min_value(); N];
+
+        for pos in coords {
+            for dim in 0..N {
+                let val = pos.0[dim];
+                if val < min[dim] {
+                    min[dim] = val;
+                } else if val > max[dim] {
+                    max[dim] = val;
+                }
+            }
+        }
+        (Coord::new(min), Coord::new(max))
     }
 }
 
@@ -457,6 +490,44 @@ impl<T: Coordinate> Coord<T, 2> {
     pub fn destructured(&self) -> (T, T) {
         (self.0[0], self.0[1])
     }
+
+    pub fn for_rectangle<F>(tl: Self, br: Self, mut action: F)
+    where
+        F: FnMut(Self),
+    {
+        let mut y = tl.y();
+        let mut x = tl.x();
+        let y_max = br.y();
+        let x_max = br.x();
+
+        while y <= y_max {
+            while x <= x_max {
+                action(Self::new([x, y]));
+                x = x + T::one();
+            }
+            x = tl.x();
+            y = y + T::one();
+        }
+    }
+
+    pub fn coords_to_graphic(coords: &HashSet<Self>) -> String {
+        let (tl, br) = Self::min_max(coords);
+        let mut graphic = String::new();
+
+        Self::for_rectangle(tl, br, |pos| {
+            if pos.x() == tl.x() && pos.y() != tl.y() {
+                graphic.push('\n');
+            }
+            if coords.contains(&pos) {
+                graphic.push('#');
+            } else {
+                graphic.push('.');
+            }
+        });
+        graphic.push('\n');
+
+        graphic
+    }
 }
 
 impl<const N: usize> From<Coord<usize, N>> for Coord<i64, N> {
@@ -558,7 +629,10 @@ fn signed_math_operations() {
         Coord::new2d(0, 1),
         Coord::new2d(1, 1),
     ];
-    assert_eq!(neighbors, Coord::<i32, 2>::origin().get_neighbors().collect_vec());
+    assert_eq!(
+        neighbors,
+        Coord::<i32, 2>::origin().get_neighbors().collect_vec()
+    );
     // unsigned 3d
     let pos1 = Coord::new3d(-4isize, 7, -9);
     let pos2 = Coord::new3d(3isize, -6, 3);
