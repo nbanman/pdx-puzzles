@@ -43,3 +43,25 @@ fun BooleanArray.toLong() = foldIndexed(0L) { idx, acc, b ->
         acc
     }
 }
+
+/**
+ * Returns an Int from a BooleanArray
+ */
+fun List<Boolean>.toInt() = foldIndexed(0) { idx, acc, b ->
+    if (b) {
+        acc + (1 shl (size - idx - 1))
+    } else {
+        acc
+    }
+}
+
+/**
+ * Returns a Long from a BooleanArray
+ */
+fun List<Boolean>.toLong() = foldIndexed(0L) { idx, acc, b ->
+    if (b) {
+        acc + (1L shl (size - idx - 1))
+    } else {
+        acc
+    }
+}
