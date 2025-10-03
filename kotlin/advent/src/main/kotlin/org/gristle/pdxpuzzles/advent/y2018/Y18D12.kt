@@ -59,7 +59,7 @@ class Y18D12(input: String) : Day {
             // transform rows to their pot sum
             .map { (index, value) -> IndexedValue(index, value.sumOfPotNumbers(index)) }
             // look at generations 10 at a time
-            .windowed(groupSize)
+            .chunked(groupSize)
             // terminate and provide the first group where the difference in pot sums between each in the group is
             // the same
             .first { group ->
