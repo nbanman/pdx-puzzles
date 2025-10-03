@@ -28,7 +28,7 @@ pub type Grid2<T> = Grid<T, 2>;
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Grid<T, const N: usize> {
-    data: Vec<T>,
+    pub data: Vec<T>,
     pub dimensions: [usize; N],
 }
 
