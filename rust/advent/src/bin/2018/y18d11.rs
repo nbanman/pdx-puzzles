@@ -1,5 +1,5 @@
 use advent::utilities::get_input::get_input;
-use utilities::structs::{coord::Coord, grid::Grid2, stopwatch::{ReportDuration, Stopwatch}};
+use utilities::structs::{grid::Grid2, stopwatch::{ReportDuration, Stopwatch}};
 
 type Input = Grid2<i64>;
 type Output = String;
@@ -100,7 +100,7 @@ fn default() {
     assert_eq!("285,113,11".to_string(), part2(&input));
 }
 
-// Input parsed (521μs)
-// 1. 235,48 (20ms)
-// 2. 285,113,11 (905ms)
-// Total: 926ms
+// Input parsed (456μs)
+// 1. 235,48 (432μs)
+// 2. 285,113,11 (8ms)
+// Total: 9ms
