@@ -16,14 +16,14 @@ class Y18D12(input: String) : Day {
         }.toSet()
 
     // sequence that provides successive generations of plant rows
-    private val generator = generateSequence(initialRow) { it ->
-        BooleanArray(it.size + 4) { i ->
+    private val generator = generateSequence(initialRow) { plant ->
+        BooleanArray(plant.size + 4) { i ->
             val index = i - 2
-            val rng = (index - 2).coerceAtLeast(0)..(index + 2).coerceAtMost(it.lastIndex)
+            val rng = (index - 2).coerceAtLeast(0)..(index + 2).coerceAtMost(plant.lastIndex)
             var pattern = rng.fold(0) { acc, i ->
-                (acc shl 1) + if (it[i]) 1 else 0
+                (acc shl 1) + if (plant[i]) 1 else 0
             }
-            pattern = pattern shl (index + 2 - it.lastIndex).coerceAtLeast(0)
+            pattern = pattern shl (index + 2 - plant.lastIndex).coerceAtLeast(0)
             pattern in commands
         }
     }
