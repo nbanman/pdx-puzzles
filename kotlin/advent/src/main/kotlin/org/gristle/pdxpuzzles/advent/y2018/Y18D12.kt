@@ -1,37 +1,43 @@
 package org.gristle.pdxpuzzles.advent.y2018
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
+import org.gristle.pdxpuzzles.utilities.parsing.blankSplit
 
 class Y18D12(input: String) : Day {
-    private val lines = input.lines()
+    private val stanzas = input.blankSplit()
 
     // parse initial row of plants
-    private val initialRow = lines[0].drop(15).map { it == '#' }.toBooleanArray()
+    private val initialRow = stanzas[0].drop(15).map { it == '#' }.toList()
 
-    private val commands = lines
-        .drop(2)
+    private val commands = stanzas[1]
+        .lineSequence()
         .filter { it.last() == '#' }
         .map { line ->
             line.take(5).fold(0) { acc, ch -> (acc shl 1) + if (ch == '#') 1 else 0 }
         }.toSet()
 
     // sequence that provides successive generations of plant rows
+    // creates the binary value of the five pots centered around the index, 2 to each side of center.
+    // each iteration, the leftmost value is sloughed off, everything shifts one to the left, and a new
+    // rightmost value is added.
+    // that value is then checked for inclusion in the patterns database, returning true/false for that index
     private val generator = generateSequence(initialRow) { plant ->
-        BooleanArray(plant.size + 4) { i ->
-            val index = i - 2
-            val rng = (index - 2).coerceAtLeast(0)..(index + 2).coerceAtMost(plant.lastIndex)
-            var pattern = rng.fold(0) { acc, i ->
-                (acc shl 1) + if (plant[i]) 1 else 0
-            }
-            pattern = pattern shl (index + 2 - plant.lastIndex).coerceAtLeast(0)
-            pattern in commands
-        }
+        (0 until plant.size + 4)
+            .runningFold(0) { acc, index ->
+                if (index >= plant.size || !plant[index]) {
+                    (acc and 15) shl 1
+                } else {
+                    ((acc and 15) shl 1) + 1
+                }
+            }.drop(1)
+            .map { it in commands }
+            .toList()
     }
 
     /**
      * take the row and obtain the sum of pot numbers. "generations" is used to account for growth of the row
      */
-    private fun BooleanArray.sumOfPotNumbers(generations: Int) =
+    private fun List<Boolean>.sumOfPotNumbers(generations: Int) =
         mapIndexed { index, b -> if (b) (index - (generations * 2)) else 0 }
             .sum()
 
@@ -88,7 +94,7 @@ class Y18D12(input: String) : Day {
 
 fun main() = Day.runDay(Y18D12::class)
 
-//    Class creation: 21ms
+//    Class creation: 3ms
 //    Part 1: 4110 (3ms)
-//    Part 2: 2650000000466 (45ms)
-//    Total time: 70ms
+//    Part 2: 2650000000466 (20ms)
+//    Total time: 27ms
