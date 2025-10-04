@@ -1,10 +1,9 @@
 use std::iter::successors;
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
-use rustc_hash::FxHashSet;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
-type Output = usize;
+type Output = i64;
 
 fn main() {
     let mut stopwatch = Stopwatch::new();
@@ -25,15 +24,19 @@ fn parse_input(input: &str) -> impl Iterator<Item = Vec<bool>> + Clone {
         .collect();
 
     // database of patterns that result in a plant going into the pot for the next iteration.
-    let patterns: FxHashSet<i32> = commands.lines()
-        .map(|line| line.as_bytes())
-        .filter(|&line| *line.last().unwrap() == b'#')
-        .map(|line| {
-            line.iter().take(5).fold(0, |acc, &b| {
-                (acc << 1) + if b == b'#' { 1 } else { 0 }
-            })
-        })
-        .collect();
+    let mut patterns = [false; 48];
+    for command in commands.as_bytes().split(|&b| b == b'\n') {
+        if command.last().unwrap() == &b'#' {
+            let pattern = command.iter().take(5).fold(0, |acc, &b| {
+                if b == b'#' {
+                    (acc << 1) + 1
+                } else {
+                    acc << 1
+                }
+            });
+            patterns[pattern] = true;
+        }
+    }
 
     let mask = 15;
     let generator = successors(Some(initial_row), move |plant| {
@@ -50,16 +53,16 @@ fn parse_input(input: &str) -> impl Iterator<Item = Vec<bool>> + Clone {
                 }
                 Some(*state)
             })
-            .map(|pattern| patterns.contains(&pattern))
+            .map(|pattern| patterns[pattern])
             .collect();
         Some(next)
     });
     generator
 }
 
-fn sum_of_pot_numbers(pots: &[bool], generations: usize) -> usize {
+fn sum_of_pot_numbers(pots: &[bool], generations: usize) -> Output {
     pots.iter().enumerate()
-        .map(|(index, &b)| if b { index - generations * 2 } else { 0 })
+        .map(|(index, &b)| if b { index as i64 - generations as i64 * 2 } else { 0 })
         .sum()
 }
 
@@ -76,7 +79,7 @@ fn part2(generator: impl Iterator<Item = Vec<bool>>) -> Output {
     // same, we can surmise that the growth has stabilized. That group provides enough information to 
     // solve part 2.
     let group_size = 10;
-    let first_stable: Vec<(usize, usize)> = generator
+    let first_stable: Vec<(usize, i64)> = generator
         .enumerate() // pair up rows with their index, which is the number of generations
         // transform rows to their pot sum
         .map(|(index, value)| (index, sum_of_pot_numbers(&value, index)) )
@@ -103,7 +106,7 @@ fn part2(generator: impl Iterator<Item = Vec<bool>>) -> Output {
     let stable_increment = first_stable[1].1 - last_unstable_value;
 
     // putting it all together
-    return last_unstable_value + stable_increment * (generations - repeat_index)
+    return last_unstable_value + stable_increment * (generations - repeat_index) as i64
 }
 
 #[test]
@@ -114,7 +117,7 @@ fn default() {
     assert_eq!(2650000000466, part2(input));
 }
 
-// Input parsed (17μs)
-// 1. 4110 (24μs)
-// 2. 2650000000466 (267μs)
-// Total: 312μs
+// Input parsed (16μs)
+// 1. 4110 (18μs)
+// 2. 2650000000466 (198μs)
+// Total: 236μs
