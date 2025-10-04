@@ -1,4 +1,4 @@
-use std::{cmp::{min, max}, iter::successors};
+use std::iter::successors;
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
 use rustc_hash::FxHashSet;
@@ -17,12 +17,15 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
+// an iterator producing successive rows of plants
 fn parse_input(input: &str) -> impl Iterator<Item = Vec<bool>> + Clone {
     let (initial_row, commands) = input.trim_end().split_once("\n\n").unwrap();
     let initial_row: Vec<bool> = initial_row.chars().skip(15)
         .map(|c| c == '#')
         .collect();
-    let commands: FxHashSet<i32> = commands.lines()
+
+    // database of patterns that result in a plant going into the pot for the next iteration.
+    let patterns: FxHashSet<i32> = commands.lines()
         .map(|line| line.as_bytes())
         .filter(|&line| *line.last().unwrap() == b'#')
         .map(|line| {
@@ -31,18 +34,23 @@ fn parse_input(input: &str) -> impl Iterator<Item = Vec<bool>> + Clone {
             })
         })
         .collect();
+
+    let mask = 15;
     let generator = successors(Some(initial_row), move |plant| {
-        let last_index = plant.len() as i32 - 1;
-        let next: Vec<bool> = (-2..=last_index + 2)
-            .map(|index| {
-                let start = max(0, index - 2) as usize;
-                let end = min(index + 2, last_index) as usize + 1;
-                let pattern = plant[start..end].iter().fold(0, |acc, &b| {
-                    (acc << 1) + if b { 1 } else { 0 }
-                });
-                let pattern = pattern << max(0, index + 2 - last_index);
-                commands.contains(&pattern)
+        // next creates the binary value of the five pots centered around the index, 2 to each side of center.
+        // each iteration, the leftmost value is sloughed off, everything shifts one to the left, and a new
+        // rightmost value is added.
+        // that value is then checked for inclusion in the patterns database, returning true/false for that index
+        let next: Vec<bool> = (0..plant.len() + 4)
+            .scan(0, |state, index| {
+                if index >= plant.len() || !plant[index] {
+                    *state = (*state & mask) << 1;
+                } else {
+                    *state = ((*state & mask) << 1) + 1;
+                }
+                Some(*state)
             })
+            .map(|pattern| patterns.contains(&pattern))
             .collect();
         Some(next)
     });
@@ -106,7 +114,7 @@ fn default() {
     assert_eq!(2650000000466, part2(input));
 }
 
-// Input parsed (14μs)
-// 1. 4110 (28μs)
-// 2. 2650000000466 (442μs)
-// Total: 488μs
+// Input parsed (17μs)
+// 1. 4110 (24μs)
+// 2. 2650000000466 (267μs)
+// Total: 312μs
