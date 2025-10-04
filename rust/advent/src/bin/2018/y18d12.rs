@@ -106,7 +106,7 @@ fn part2(generator: impl Iterator<Item = Vec<bool>>) -> Output {
     let stable_increment = first_stable[1].1 - last_unstable_value;
 
     // putting it all together
-    return last_unstable_value + stable_increment * (generations - repeat_index) as i64
+    last_unstable_value + stable_increment * (generations - repeat_index) as i64
 }
 
 #[test]
