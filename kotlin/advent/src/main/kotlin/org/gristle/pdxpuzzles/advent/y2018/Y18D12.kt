@@ -9,12 +9,20 @@ class Y18D12(input: String) : Day {
     // parse initial row of plants
     private val initialRow = stanzas[0].drop(15).map { it == '#' }.toList()
 
-    private val commands = stanzas[1]
-        .lineSequence()
-        .filter { it.last() == '#' }
-        .map { line ->
-            line.take(5).fold(0) { acc, ch -> (acc shl 1) + if (ch == '#') 1 else 0 }
-        }.toSet()
+    private val patterns = let {
+        val patterns = BooleanArray(48)
+        for (command in stanzas[1].lines().filter { it.last() == '#' }) {
+            val pattern = command.take(5).fold(0) { acc, c ->
+                if (c == '#') {
+                    (acc shl 1) + 1
+                } else {
+                    acc shl 1
+                }
+            }
+            patterns[pattern] = true
+        }
+        patterns
+    }
 
     // sequence that provides successive generations of plant rows
     // creates the binary value of the five pots centered around the index, 2 to each side of center.
@@ -30,7 +38,7 @@ class Y18D12(input: String) : Day {
                     ((acc and 15) shl 1) + 1
                 }
             }.drop(1)
-            .map { it in commands }
+            .map { patterns[it] }
             .toList()
     }
 
@@ -85,7 +93,7 @@ class Y18D12(input: String) : Day {
         val repeatIndex: Int = firstStable.first().index
 
         // the amount that each successive generation adds to the pot number count
-        val stableIncrement = firstStable.let { it[1].value - it[0].value }
+        val stableIncrement = firstStable[1].value - firstStable[0].value
 
         // putting it all together
         return lastUnstableValue + stableIncrement * (generations - repeatIndex)
