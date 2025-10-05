@@ -66,7 +66,7 @@ class Y18D14(input: String) : Day {
 
 fun main() = Day.runDay(Y18D14::class)
 
-//    Class creation: 2ms
-//    Part 1: 4910101614 (61ms)
-//    Part 2: 20253137 (1120ms)
-//    Total time: 1185ms
+//    Class creation: 1ms
+//    Part 1: 4910101614 (36ms)
+//    Part 2: 20253137 (574ms)
+//    Total time: 612ms
