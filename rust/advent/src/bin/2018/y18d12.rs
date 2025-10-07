@@ -24,7 +24,7 @@ fn parse_input(input: &str) -> impl Iterator<Item = Vec<bool>> + Clone {
         .collect();
 
     // database of patterns that result in a plant going into the pot for the next iteration.
-    let mut patterns = [false; 48];
+    let mut patterns = [false; 32];
     for command in commands.as_bytes().split(|&b| b == b'\n') {
         if command.last().unwrap() == &b'#' {
             let pattern = command.iter().take(5).fold(0, |acc, &b| {
