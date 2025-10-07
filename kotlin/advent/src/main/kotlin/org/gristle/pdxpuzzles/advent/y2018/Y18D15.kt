@@ -270,15 +270,41 @@ class Y18D15(val input: String) : Day {
     override fun part1() = solve().score()
 
     // Sequence runs games with increasing elf damage until there is a game where the elves win. Returns score.
-    override fun part2() = generateSequence(4) { elfDamage -> elfDamage + 1 }
-        .map { elfDamage -> solve(elfDamage) }
-        .first { game -> game.round.winState == WinState.ELVES }
-        .score()
+    override fun part2(): Int {
+        var min = 3
+        var max = 3
+        var score: Int? = null
+        while (true) {
+            val elfDamage = if (score == null) {
+                max += 40
+                max
+            } else {
+                (max - min) / 2 + min
+            }
+            val game = solve(elfDamage)
+            if (game.round.winState == WinState.ELVES) {
+                if (score != null) {
+                    max = elfDamage
+                }
+                score = game.score()
+            } else {
+                if (score == null) {
+                    min = max + 1
+                    max += 40
+                } else {
+                    min = elfDamage + 1
+                }
+            }
+            if (min + 1 == max && score != null) {
+                return score
+            }
+        }
+    }
 }
 
 fun main() = Day.runDay(Y18D15::class)
 
-//    Class creation: 5ms
-//    Part 1: 224370 (140ms)
-//    Part 2: 45539 (252ms)
-//    Total time: 399ms
+//    Class creation: 2ms
+//    Part 1: 224370 (87ms)
+//    Part 2: 45539 (45ms)
+//    Total time: 135ms
