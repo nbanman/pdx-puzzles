@@ -1,11 +1,17 @@
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet};
+use advent::utilities::opcode::{Op, Parameters, Registers};
 use utilities::{parsing::get_numbers::ContainsNumbers, structs::stopwatch::{ReportDuration, Stopwatch}};
 
 type Input = (Vec<Trainer>, Vec<Code>);
 type Output = usize;
-type Registers = [usize; 4];
+
+#[derive(Debug, Clone)]
+struct Code {
+    opcode: usize,
+    parameters: Parameters,
+}
 
 fn main() {
     let mut stopwatch = Stopwatch::new();
@@ -19,14 +25,6 @@ fn main() {
 }
 
 #[derive(Debug, Clone)]
-struct Code {
-    opcode: usize,
-    a: usize,
-    b: usize,
-    c: usize,
-}
-
-#[derive(Debug, Clone)]
 struct Trainer {
     before: Registers,
     code: Code,
@@ -35,42 +33,11 @@ struct Trainer {
 
 impl Trainer {
     fn valid_ops(&self, ops: &FxHashSet<Op>) -> impl Iterator<Item = Op> {
-        ops.into_iter().filter(|op| self.after == op.execute(&self.before, &self.code)).copied()
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-enum Op {
-    Addr, Addi, Mulr, Muli, Banr, Bani, Borr, Bori, Setr, Seti,
-    Gtir, Gtri, Gtrr, Eqir, Eqri, Eqrr
-}
-
-impl Op {
-    const VARIANTS: [Self; 16] = [Self::Addr, Self::Addi, Self::Mulr, Self::Muli, Self::Banr, Self::Bani, Self::Borr,
-        Self::Bori, Self::Setr, Self::Seti, Self::Gtir, Self::Gtri, Self::Gtrr, Self::Eqir, Self::Eqri, Self::Eqrr];
-    
-    fn execute(&self, reg: &Registers, code: &Code) -> Registers {
-        let mut output = reg.clone();
-        let &Code { a, b, c, .. } = code;
-        output[c] = match self {
-            Op::Addr => reg[a] + reg[b],
-            Op::Addi => reg[a] + b,
-            Op::Mulr => reg[a] * reg[b],
-            Op::Muli => reg[a] * b,
-            Op::Banr => reg[a] & reg[b],
-            Op::Bani => reg[a] & b,
-            Op::Borr => reg[a] | reg[b],
-            Op::Bori => reg[a] | b,
-            Op::Setr => reg[a],
-            Op::Seti => a,
-            Op::Gtir => if a > reg[b] { 1 } else { 0 },
-            Op::Gtri => if reg[a] > b { 1 } else { 0 },
-            Op::Gtrr => if reg[a] > reg[b] { 1 } else { 0 },
-            Op::Eqir => if a == reg[b] { 1 } else { 0 },
-            Op::Eqri => if reg[a] == b { 1 } else { 0 },
-            Op::Eqrr => if reg[a] == reg[b] { 1 } else { 0 },
-        };
-        output
+        ops.into_iter()
+            .filter(|op| {
+                self.after == op.execute(&self.before, &self.code.parameters)
+            })
+            .copied()
     }
 }
 
@@ -80,9 +47,9 @@ fn parse_input(input: &str) -> Input {
         .map(|numbers| {
             let (ba, bb, bc, bd, opcode, a, b, c, aa, ab, ac, ad) = numbers.into_iter().collect_tuple().unwrap();
             Trainer {
-                before: [ba, bb, bc, bd],
-                code: Code { opcode, a, b, c },
-                after: [aa, ab, ac, ad],
+                before: vec![ba, bb, bc, bd],
+                code: Code { opcode, parameters: Parameters { a, b, c } },
+                after: vec![aa, ab, ac, ad],
             }
         })
         .collect();
@@ -90,7 +57,7 @@ fn parse_input(input: &str) -> Input {
     let code = code.get_numbers().chunks(4).into_iter()
         .map(|numbers| {
             let (opcode, a, b, c) = numbers.into_iter().collect_tuple().unwrap();
-            Code { opcode, a, b, c }
+            Code { opcode, parameters: Parameters { a, b, c } }
         })
         .collect();
         
@@ -125,9 +92,9 @@ fn part2(input: &Input) -> Output {
         }
     }
     code.iter()
-        .fold([0; 4], |acc, code| {
+        .fold(vec![0; 4], |acc, code| {
             let op = translator.get(&code.opcode).unwrap();
-            op.execute(&acc, code)
+            op.execute(&acc, &code.parameters)
         })[0]
 }
 
