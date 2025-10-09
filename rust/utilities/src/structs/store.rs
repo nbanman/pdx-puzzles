@@ -4,8 +4,8 @@ use indexmap::IndexMap;
 
 #[derive(Clone, Default, Debug)]
 pub struct Store<K: Hash + Eq, V> {
-    id: usize,
-    values: IndexMap<K, V>,
+    pub id: usize,
+    pub values: IndexMap<K, V>,
 }
 
 impl<K: Hash + Eq, V> Store<K, V> {
