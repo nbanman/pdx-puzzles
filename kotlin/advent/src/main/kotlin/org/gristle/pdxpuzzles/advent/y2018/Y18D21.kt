@@ -7,13 +7,12 @@ class Y18D21(private val input: String) : Day {
 
     data class Command(
         val op: Ops,
-        val p: Int,
         val a: Int,
         val b: Int,
         val c: Int,
         val lineNo: Int,
     ) {
-        fun execute(reg: LongArray) = op.fn(reg, p, a, b, c)
+        fun execute(reg: LongArray, p: Int) = op.fn(reg, p, a, b, c)
     }
 
     fun solve(part2: Boolean = false): Long {
@@ -25,14 +24,14 @@ class Y18D21(private val input: String) : Day {
             .mapIndexed { lineNo, s ->
                 val op = Ops.from(s.takeWhile { it != ' ' })
                 val (a, b, c) = s.getIntList()
-                Command(op, p, a, b, c, lineNo)
+                Command(op, a, b, c, lineNo)
             }.toList()
 
         val register = longArrayOf(0L, 0L, 0L, 0L, 0L, 0L)
         val r1Set = mutableSetOf<Long>()
         while (true) {
             val command = commands[register[p].toInt()]
-            command.execute(register)
+            command.execute(register, p)
             if (command.lineNo == 28) {
                 if (part2) {
                     if (r1Set.contains(register[1])) return r1Set.last()
