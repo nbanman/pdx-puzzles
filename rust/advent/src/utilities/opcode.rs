@@ -17,10 +17,9 @@ impl Op {
     pub const VARIANTS: [Self; 16] = [Self::Addr, Self::Addi, Self::Mulr, Self::Muli, Self::Banr, Self::Bani, Self::Borr,
         Self::Bori, Self::Setr, Self::Seti, Self::Gtir, Self::Gtri, Self::Gtrr, Self::Eqir, Self::Eqri, Self::Eqrr];
 
-    pub fn execute(&self, reg: &Registers, parameters: &Parameters) -> Registers {
-        let mut output = reg.clone();
+    pub fn execute(&self, reg: &mut Registers, parameters: &Parameters) {
         let &Parameters { a, b, c } = parameters;
-        output[c] = match self {
+        reg[c] = match self {
             Op::Addr => reg[a] + reg[b],
             Op::Addi => reg[a] + b,
             Op::Mulr => reg[a] * reg[b],
@@ -38,7 +37,6 @@ impl Op {
             Op::Eqri => if reg[a] == b { 1 } else { 0 },
             Op::Eqrr => if reg[a] == reg[b] { 1 } else { 0 },
         };
-        output
     }
 }
 
