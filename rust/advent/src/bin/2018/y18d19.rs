@@ -43,7 +43,7 @@ fn part1(input: &Input) -> Output {
     let (p, commands) = input;
     let mut register = vec![0; 6];
     while let Some((op, parameters)) = commands.get(register[*p]) {
-        register = op.execute(&register, parameters);
+        op.execute(&mut register, parameters);
         register[*p] += 1;
     }
     register[0]
@@ -54,7 +54,7 @@ fn part2(input: &Input) -> Output {
     let mut register = vec![1, 0, 0, 0, 0, 0];
     let mut prev = 0;
     while let Some((op, parameters)) = commands.get(register[*p]) {
-        register = op.execute(&register, parameters);
+        op.execute(&mut register, parameters);
         let pointer = &mut register[*p];
         *pointer += 1;
         if *pointer >= prev {
@@ -89,6 +89,6 @@ fn default() {
 }
 
 // Input parsed (18μs)
-// 1. 1764 (108ms)
+// 1. 1764 (45ms)
 // 2. 18992484 (8μs)
-// Total: 108ms
+// Total: 45ms

@@ -35,7 +35,9 @@ impl Trainer {
     fn valid_ops(&self, ops: &FxHashSet<Op>) -> impl Iterator<Item = Op> {
         ops.into_iter()
             .filter(|op| {
-                self.after == op.execute(&self.before, &self.code.parameters)
+                let mut before = self.before.clone();
+                op.execute(&mut before, &self.code.parameters);
+                before == self.after
             })
             .copied()
     }
@@ -94,7 +96,9 @@ fn part2(input: &Input) -> Output {
     code.iter()
         .fold(vec![0; 4], |acc, code| {
             let op = translator.get(&code.opcode).unwrap();
-            op.execute(&acc, &code.parameters)
+            let mut acc = acc.clone();
+            op.execute(&mut acc, &code.parameters);
+            acc
         })[0]
 }
 
