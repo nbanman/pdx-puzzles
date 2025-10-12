@@ -5,6 +5,10 @@ import org.gristle.pdxpuzzles.utilities.parsing.groupValues
 
 class Y18D24(input: String) : Day {
     private val data = input.split("Infection:\n")
+    private val pattern =
+        """(\d+) units each with (\d+) hit points (?:\(([^)]+)\) )?with an attack that does (\d+) ([a-z]+) damage at initiative (\d+)""".toRegex()
+    private val patternWeak = """weak to ((?:[a-z]+(?:, )?)+)""".toRegex()
+    private val patternImmune = """immune to ((?:[a-z]+(?:, )?)+)""".toRegex()
 
     private fun selectionOrder(boost: Int) =
         compareByDescending<ArmyUnit> { it.effectivePower(boost) }.thenByDescending { it.initiative }
@@ -28,76 +32,15 @@ class Y18D24(input: String) : Day {
             else -> other.effectivePower(boost)
         }
 
-        fun takeDamage(damage: Int) {
-            units -= damage / hp
-        }
-    }
-
-    override fun part1(): Int {
-        var immuneSystem = makeUnits("Immune System", data.first())
-        var infection = makeUnits("Infection", data.last())
-        // play rounds
-        while (immuneSystem.isNotEmpty() && infection.isNotEmpty()) {
-            // target selection phase
-            val immuneSelections = selectTargets(immuneSystem.sortedWith(selectionOrder(0)), infection)
-            val infectionSelections = selectTargets(infection.sortedWith(selectionOrder(0)), immuneSystem)
-
-            // attack phase
-            val attackers = (immuneSelections + infectionSelections)
-                .sortedByDescending { (attacker) -> attacker.initiative }
-            for ((attacker, defender) in attackers) {
-                if (attacker.units <= 0) continue
-                defender.takeDamage(defender.modifiedDamage(attacker))
+        fun takeDamage(damage: Int): Boolean {
+            val reduction = damage / hp
+            return if (reduction == 0) {
+                false
+            } else {
+                units -= damage / hp
+                true
             }
-
-            // cleanup phase
-            immuneSystem = immuneSystem.filter { it.units > 0 }
-            infection = infection.filter { it.units > 0 }
         }
-
-        return (immuneSystem + infection).sumOf { it.units }
-    }
-
-    override fun part2(): Int {
-        // play rounds
-        var skipped: Boolean
-        var boost = 0
-        loop@ do {
-            skipped = false
-            var immuneSystem = makeUnits("Immune System", data.first())
-            var infection = makeUnits("Infection", data.last())
-            boost++
-            var round = 0
-            while (immuneSystem.isNotEmpty() && infection.isNotEmpty()) {
-
-                round++
-                val unitSum = immuneSystem.sumOf { it.units } + infection.sumOf { it.units }
-                // target selection phase
-                val immuneSelections = selectTargets(immuneSystem.sortedWith(selectionOrder(boost)), infection, boost)
-                val infectionSelections = selectTargets(infection.sortedWith(selectionOrder(boost)), immuneSystem, boost)
-
-                // attack phase
-
-                val attackers = (immuneSelections + infectionSelections)
-                    .sortedByDescending { (attacker) -> attacker.initiative }
-                for ((attacker, defender) in attackers) {
-                    if (attacker.units <= 0) continue
-                    defender.takeDamage(defender.modifiedDamage(attacker, boost))
-                }
-
-                // cleanup phase
-                immuneSystem = immuneSystem.filter { it.units > 0 }
-                infection = infection.filter { it.units > 0 }
-                if (immuneSystem.sumOf { it.units } + infection.sumOf { it.units } == unitSum) {
-                    skipped = true
-                    continue@loop
-                }
-            }
-            val p2 = (immuneSystem + infection).sumOf { it.units }
-            if(infection.isEmpty()) return p2
-        } while (immuneSystem.isEmpty() || skipped)
-
-        return -1
     }
 
     private fun selectTargets(
@@ -138,7 +81,7 @@ class Y18D24(input: String) : Day {
         return attackerSelections
     }
 
-    private fun makeUnits(team: String, s: String): List<ArmyUnit> = s
+    private fun makeUnits(team: String, s: String, groupStart: Int): List<ArmyUnit> = s
         .groupValues(pattern)
         .mapIndexed { index, gv ->
             val units = gv[0].toInt()
@@ -148,19 +91,56 @@ class Y18D24(input: String) : Day {
             val damage = gv[3].toInt()
             val damageType = gv[4]
             val initiative = gv[5].toInt()
-            ArmyUnit(team, index + 1, units, hp, immunities, weaknesses, damage, damageType, initiative)
+            ArmyUnit(team, index + groupStart, units, hp, immunities, weaknesses, damage, damageType, initiative)
         }
 
-    private val pattern =
-        """(\d+) units each with (\d+) hit points (?:\(([^)]+)\) )?with an attack that does (\d+) ([a-z]+) damage at initiative (\d+)""".toRegex()
-    private val patternWeak = """weak to ((?:[a-z]+(?:, )?)+)""".toRegex()
-    private val patternImmune = """immune to ((?:[a-z]+(?:, )?)+)""".toRegex()
+    fun solve(startingBoost: Int, predicate: (List<ArmyUnit>) -> Boolean): Int {
+        // play rounds
+        var boost = startingBoost
+        loop@while (true) {
+            var immuneSystem = makeUnits("Immune System", data.first(), 0)
+            var infection = makeUnits("Infection", data.last(), immuneSystem.size)
 
+            while (immuneSystem.isNotEmpty() && infection.isNotEmpty()) {
+                // target selection phase
+                val immuneSelections = selectTargets(immuneSystem.sortedWith(selectionOrder(boost)), infection, boost)
+                val infectionSelections = selectTargets(infection.sortedWith(selectionOrder(boost)), immuneSystem, boost)
+
+                // attack phase
+                val attackers = (immuneSelections + infectionSelections)
+                    .sortedByDescending { (attacker) -> attacker.initiative }
+
+                // changed tracks whether a defender actually loses units in a turn. if this stays false,
+                // we know it's an unchanging loop and we can exit early.
+                var changed = false
+                for ((attacker, defender) in attackers) {
+                    changed = changed or defender.takeDamage(defender.modifiedDamage(attacker, boost))
+                }
+
+                // cleanup phase
+                immuneSystem = immuneSystem.filter { it.units > 0 }
+                infection = infection.filter { it.units > 0 }
+
+                // exit early if no units were killed
+                if (!changed) {
+                    boost++
+                    continue@loop
+                }
+            }
+            if (predicate(infection)) {
+                return (immuneSystem + infection).sumOf { it.units }
+            }
+            boost++
+        }
+    }
+
+    override fun part1() = solve(0) { true }
+    override fun part2() = solve(1) { it.isEmpty() }
 }
 
 fun main() = Day.runDay(Y18D24::class)
 
 //    Class creation: 2ms
-//    Part 1: 15165 (26ms)
-//    Part 2: 4037 (205ms)
-//    Total time: 234ms
+//    Part 1: 15165 (16ms)
+//    Part 2: 4037 (110ms)
+//    Total time: 129ms
