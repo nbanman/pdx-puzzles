@@ -1,4 +1,4 @@
-use itertools::Itertools;
+use itertools::{Chunk, Itertools};
 use num_traits::{Bounded, CheckedAdd, CheckedSub, NumCast, One, PrimInt, Signed, Zero};
 use std::fmt::Debug;
 use std::{
@@ -553,6 +553,13 @@ impl<const N: usize> TryFrom<Coord<i64, N>> for Coord<usize, N> {
 impl<T: Coordinate> From<(T, T)> for Coord<T, 2> {
     fn from(value: (T, T)) -> Self {
         Self::new2d(value.0, value.1)
+    }
+}
+
+impl<'a, T: Coordinate, I: Iterator<Item = T>, const N: usize> From<Chunk<'a, I>> for Coord<T, N> {
+    fn from(chunk: Chunk<'a, I>) -> Self {
+        let a: [T; N] = chunk.into_iter().collect_vec().try_into().unwrap();
+        Self::new(a)
     }
 }
 
