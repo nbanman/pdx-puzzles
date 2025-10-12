@@ -12,7 +12,7 @@ class Y18D25(private val input: String) : Day {
             .getInts()
             .chunked(4, ::MCoord)
 
-        val constellations = mutableListOf<List<MCoord>>()
+        val constellations = mutableSetOf<List<MCoord>>()
 
         for (point in points) {
             val inRange = constellations
@@ -25,7 +25,7 @@ class Y18D25(private val input: String) : Day {
                     add(point)
                     inRange.forEach { addAll(it) }
                 }
-                constellations.removeAll(inRange)
+                constellations.removeAll(inRange.toSet())
                 constellations.add(newConstellation)
             }
         }
@@ -37,6 +37,6 @@ class Y18D25(private val input: String) : Day {
 
 fun main() = Day.runDay(Y18D25::class)
 
-//    Class creation: 22ms
-//    Part 1: 394 (173ms)
-//    Total time: 195ms
+//    Class creation: 1ms
+//    Part 1: 394 (87ms)
+//    Total time: 89ms
