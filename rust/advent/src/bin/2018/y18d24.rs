@@ -194,15 +194,15 @@ fn solve (input: &Input, starting_boost: usize, predicate: fn(bool) -> bool) -> 
                 changed = changed | attacker.attack(defender, &mut unit_amounts, boost);
             }
 
-            // cleanup phase
-            immune = immune.into_iter().filter(|it| unit_amounts[it.id] > 0).collect();
-            infection = infection.into_iter().filter(|it| unit_amounts[it.id] > 0).collect();
-
             // exit early if no units were killed
             if !changed {
                 boost += 1;
                 continue 'outer;
             }
+
+            // cleanup phase
+            immune = immune.into_iter().filter(|it| unit_amounts[it.id] > 0).collect();
+            infection = infection.into_iter().filter(|it| unit_amounts[it.id] > 0).collect();
         }
         if predicate(infection.is_empty()) {
             return unit_amounts.iter().sum();
