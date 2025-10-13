@@ -28,7 +28,7 @@ struct Instruction<'a> {
 
 impl<'a> Instruction<'a> {
     fn execute(&self, register: &mut FxHashMap<&'a str, i64>) -> i64 {
-        let con_val = *register.get(self.con_var).unwrap_or(&0);
+        let con_val = register.get(self.con_var).copied().unwrap_or_default();
         let meets_condition = match self.con_op {
             "<=" => con_val <= self.con_amt,
             "<" => con_val < self.con_amt,
@@ -43,14 +43,15 @@ impl<'a> Instruction<'a> {
                 .and_modify(|v| *v += self.amount)
                 .or_insert(self.amount);
         }
-        *register.get(self.operand).unwrap_or(&0)
+        register.get(self.operand).copied().unwrap_or_default()
     }
 }
 
 fn parse_input(input: &str) -> Input {
     let instructions = input.lines()
         .map(|line| {
-            let (operand, operation, amount, _, con_var, con_op, con_amt) = line.split(' ').collect_tuple().unwrap();
+            let (operand, operation, amount, _, con_var, con_op, con_amt) =
+                line.split(' ').collect_tuple().unwrap();
             let amount: i64 = amount.parse().unwrap();
             let amount = if operation == "dec" { -amount } else { amount };
             let con_amt: i64 = con_amt.parse().unwrap();
