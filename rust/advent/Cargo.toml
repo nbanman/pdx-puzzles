@@ -17,6 +17,106 @@ bit-set = { workspace = true }
 bit-vec = { workspace = true }
 
 [[bin]]
+name = "advent-y17d01"
+path = "src/bin/2017/y17d01.rs"
+
+# [[bin]]
+# name = "advent-y17d02"
+# path = "src/bin/2017/y17d02.rs"
+
+# [[bin]]
+# name = "advent-y17d03"
+# path = "src/bin/2017/y17d03.rs"
+
+# [[bin]]
+# name = "advent-y17d04"
+# path = "src/bin/2017/y17d04.rs"
+
+# [[bin]]
+# name = "advent-y17d05"
+# path = "src/bin/2017/y17d05.rs"
+
+# [[bin]]
+# name = "advent-y17d06"
+# path = "src/bin/2017/y17d06.rs"
+
+# [[bin]]
+# name = "advent-y17d07"
+# path = "src/bin/2017/y17d07.rs"
+
+# [[bin]]
+# name = "advent-y17d08"
+# path = "src/bin/2017/y17d08.rs"
+
+# [[bin]]
+# name = "advent-y17d09"
+# path = "src/bin/2017/y17d09.rs"
+
+# [[bin]]
+# name = "advent-y17d10"
+# path = "src/bin/2017/y17d10.rs"
+
+# [[bin]]
+# name = "advent-y17d11"
+# path = "src/bin/2017/y17d11.rs"
+
+# [[bin]]
+# name = "advent-y17d12"
+# path = "src/bin/2017/y17d12.rs"
+
+# [[bin]]
+# name = "advent-y17d13"
+# path = "src/bin/2017/y17d13.rs"
+
+# [[bin]]
+# name = "advent-y17d14"
+# path = "src/bin/2017/y17d14.rs"
+
+# [[bin]]
+# name = "advent-y17d15"
+# path = "src/bin/2017/y17d15.rs"
+
+# [[bin]]
+# name = "advent-y17d16"
+# path = "src/bin/2017/y17d16.rs"
+
+# [[bin]]
+# name = "advent-y17d17"
+# path = "src/bin/2017/y17d17.rs"
+
+# [[bin]]
+# name = "advent-y17d17"
+# path = "src/bin/2017/y17d18.rs"
+
+# [[bin]]
+# name = "advent-y17d19"
+# path = "src/bin/2017/y17d19.rs"
+
+# [[bin]]
+# name = "advent-y17d20"
+# path = "src/bin/2017/y17d20.rs"
+
+# [[bin]]
+# name = "advent-y17d21"
+# path = "src/bin/2017/y17d21.rs"
+
+# [[bin]]
+# name = "advent-y17d22"
+# path = "src/bin/2017/y17d22.rs"
+
+# [[bin]]
+# name = "advent-y17d23"
+# path = "src/bin/2017/y17d23.rs"
+
+# [[bin]]
+# name = "advent-y17d24"
+# path = "src/bin/2017/y17d24.rs"
+
+# [[bin]]
+# name = "advent-y17d25"
+# path = "src/bin/2017/y17d25.rs"
+
+[[bin]]
 name = "advent-y18d01"
 path = "src/bin/2018/y18d01.rs"
 
