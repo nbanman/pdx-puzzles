@@ -12,6 +12,9 @@ pub fn get_input(year: u8, day: u8) -> io::Result<String> {
         Ok(mut file) => {
             let mut contents = String::new();
             file.read_to_string(&mut contents)?;
+            if contents.as_bytes().last().unwrap() == &b'\n' {
+                contents.pop();
+            }
             Ok(contents)
         }
         Err(err) => {
