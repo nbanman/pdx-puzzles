@@ -12,6 +12,12 @@ pub enum Intercardinal {
     Northwest,
 }
 
+impl From<&str> for Intercardinal {
+    fn from(direction: &str) -> Self {
+        Self::new(direction).unwrap()
+    }
+}
+
 impl Intercardinal {
     pub fn new(direction: &str) -> Option<Self> {
         match direction.to_ascii_uppercase().as_str() {
