@@ -20,9 +20,9 @@ bit-vec = { workspace = true }
 name = "advent-y17d01"
 path = "src/bin/2017/y17d01.rs"
 
-# [[bin]]
-# name = "advent-y17d02"
-# path = "src/bin/2017/y17d02.rs"
+ [[bin]]
+ name = "advent-y17d02"
+ path = "src/bin/2017/y17d02.rs"
 
 # [[bin]]
 # name = "advent-y17d03"
