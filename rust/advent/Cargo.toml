@@ -80,9 +80,9 @@ path = "src/bin/2017/y17d01.rs"
  name = "advent-y17d16"
  path = "src/bin/2017/y17d16.rs"
 
-# [[bin]]
-# name = "advent-y17d17"
-# path = "src/bin/2017/y17d17.rs"
+ [[bin]]
+ name = "advent-y17d17"
+ path = "src/bin/2017/y17d17.rs"
 
 # [[bin]]
 # name = "advent-y17d17"
