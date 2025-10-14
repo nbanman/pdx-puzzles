@@ -50,7 +50,7 @@ fn part2(input: &Input) -> Output {
     let mut visited = vec![false; grid.len()];
     let mut queue = Vec::new();
 
-    // basic flood fill starting from each '1' position on the grid, exiting if already visited in earlier pass
+    // basic dfs flood fill starting from each '1' position on the grid, exiting if already visited in earlier pass
     for (pos, _) in grid.iter().enumerate().filter(|&(_, &used)| used) {
         if visited[pos] { continue; }
         regions += 1;
