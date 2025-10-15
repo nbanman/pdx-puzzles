@@ -49,7 +49,7 @@ impl<T, const N: usize> IndexMut<Coord<usize, N>> for Grid<T, N> {
 
 /// General methods
 impl<T, const N: usize> Grid<T, N> {
-    pub fn iter(&self) -> std::slice::Iter<'_, T> {
+    pub fn iter(&self) -> Iter<'_, T> {
         self.data.iter()
     }
 
@@ -57,9 +57,7 @@ impl<T, const N: usize> Grid<T, N> {
         self.data.iter_mut()
     }
 
-    pub fn iter_with_coords(
-        &self,
-    ) -> Zip<impl Iterator<Item = Coord<usize, { N }>> + use<'_, T, N>, Iter<'_, T>> {
+    pub fn iter_with_coords(&self,) -> impl Iterator<Item = (Coord<usize, N>, &T)> {
         self.coords().zip(self.iter())
     }
 
@@ -401,7 +399,7 @@ mod tests {
 
         // successes
         assert_eq!(Some(index_coord), cube.coord_of(index_usize));
-        assert_eq!(Some(index_coord), cube.coord_of(index_usize as i32));
+        assert_eq!(Some(index_coord), cube.coord_of(index_usize));
 
         // failures
         assert_eq!(None, cube.coord_of(index_usize_invalid));
