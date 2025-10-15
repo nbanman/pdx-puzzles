@@ -6,7 +6,6 @@ import org.gristle.pdxpuzzles.utilities.objects.*
 import kotlin.math.sqrt
 
 class Y17D21(private val input: String) : Day {
-
     private val rules: Map<Grid<Boolean>, Grid<Boolean>> = buildMap {
         input
             .replace("/", "")
@@ -33,22 +32,17 @@ class Y17D21(private val input: String) : Day {
 
     private fun expandGrid(grid: Grid<Boolean>): Grid<Boolean> {
         val length = if (grid.width.isEven()) 2 else 3
-        val subGrids = buildList {
+        val transformedSubs = buildList {
             for (y in 0 until grid.height step length) {
                 for (x in 0 until grid.width step length) {
-                    add(grid.subGrid(Coord(x, y), length, length))
+                    val sub = grid.subGrid(Coord(x, y), length, length)
+                    add(rules.getValue(sub))
                 }
             }
         }.toGrid(grid.width / length)
 
-        val transformedSubs = subGrids.mapToGrid { transGrid ->
-            rules[transGrid] ?: throw Exception("no rule matches transGrid")
-        }
-
-        val expandedSize = transformedSubs.first().size * transformedSubs.size
-
+        val expandedSize = (length + 1) * (length + 1) * transformedSubs.size
         val expandedLength = sqrt(expandedSize.toDouble()).toInt()
-
         val expandedArray = MutableGrid(expandedLength, expandedLength) { false }
 
         for (subPos in transformedSubs.coords()) {
@@ -58,8 +52,7 @@ class Y17D21(private val input: String) : Day {
                 expandedArray[pos + offset] = subGrid[pos]
             }
         }
-
-        return expandedArray.toGrid(expandedLength)
+        return expandedArray
     }
 
     private fun solve(iterations: Int): Int {
@@ -77,7 +70,7 @@ class Y17D21(private val input: String) : Day {
 
 fun main() = Day.runDay(Y17D21::class)
 
-//    Class creation: 39ms
-//    Part 1: 150 (6ms)
-//    Part 2: 2606275 (1205ms)
-//    Total time: 1252ms
+//    Class creation: 10ms
+//    Part 1: 150 (4ms)
+//    Part 2: 2606275 (323ms)
+//    Total time: 338ms
