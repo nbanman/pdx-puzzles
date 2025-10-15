@@ -47,8 +47,9 @@ class Y17D20(input: String) : Day {
         .toList()
 
     override fun part1(): Int {
-        val selectParticles = particles.filter {
-            it.a.manhattanDistance() == particles.first().a.manhattanDistance()
+        val closest = particles[0].a.manhattanDistance()
+        val selectParticles = particles.takeWhile {
+            it.a.manhattanDistance() == closest
         }
         val offset = selectParticles.maxOf { it.stableTime() }
         return selectParticles
@@ -59,11 +60,10 @@ class Y17D20(input: String) : Day {
 
     override fun part2(): Int {
         val collisionSequence = generateSequence(particles) { last ->
-            val collisionsRemoved = last
+            last
                 .groupBy { it.p }
                 .filter { it.value.size == 1 }
-                .map { it.value.first() }
-            collisionsRemoved.map { it.particleAt(1) }
+                .map { it.value.first().particleAt(1) }
         }
 
         return collisionSequence
@@ -75,7 +75,7 @@ class Y17D20(input: String) : Day {
 
 fun main() = Day.runDay(Y17D20::class)
 
-//    Class creation: 55ms
-//    Part 1: 308 (4ms)
-//    Part 2: 504 (580ms)
-//    Total time: 640ms
+//    Input parsed (295μs)
+//    1. 308 (9μs)
+//    2. 504 (48ms)
+//    Total: 48ms
