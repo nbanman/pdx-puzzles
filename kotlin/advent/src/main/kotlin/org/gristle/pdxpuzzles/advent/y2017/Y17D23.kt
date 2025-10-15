@@ -33,7 +33,7 @@ class Y17D23(input: String) : Day {
                 }
                 "mul" -> {
                     p1++
-                    registers[command.arg1] = valueOf(command.arg1) - valueOf(command.arg2)
+                    registers[command.arg1] = valueOf(command.arg1) * valueOf(command.arg2)
                 }
                 "jnz" -> {
                     if (valueOf(command.arg1) != 0L) {
@@ -57,7 +57,7 @@ class Y17D23(input: String) : Day {
 
 fun main() = Day.runDay(Y17D23::class)
 
-//    Class creation: 15ms
-//    Part 1: 3025 (12ms)
+//    Class creation: 3ms
+//    Part 1: 3025 (9ms)
 //    Part 2: 915 (4ms)
-//    Total time: 32ms
+//    Total time: 17ms
