@@ -75,7 +75,7 @@ class Y17D20(input: String) : Day {
 
 fun main() = Day.runDay(Y17D20::class)
 
-//    Input parsed (295μs)
-//    1. 308 (9μs)
-//    2. 504 (48ms)
-//    Total: 48ms
+//    Class creation: 15ms
+//    Part 1: 308 (4ms)
+//    Part 2: 504 (243ms)
+//    Total time: 262ms
