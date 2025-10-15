@@ -14,7 +14,7 @@ pub use adjacent_metadata::*;
 pub use indexes_to_grid::*;
 pub use str_grid_error::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct StrGrid<'a> {
     pub s: &'a [u8],
     pub width: usize,
