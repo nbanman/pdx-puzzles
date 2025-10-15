@@ -69,9 +69,7 @@ fn expand_grid(grid: &Grid, rules: &Input) -> Grid {
                     size,
                 )
                 .unwrap();
-            // println!("sub_grid: \n{}", sub_grid);
             let transformed = rules.get(&sub_grid).unwrap();
-            // println!("transformed: \n{}", transformed);
             transformed
         })
         .try_collect_grid(grid.width() / side)
@@ -87,7 +85,6 @@ fn expand_grid(grid: &Grid, rules: &Input) -> Grid {
             expanded_grid[pos + offset] = value;
         }
     }
-    // println!("expanded:\n{}\n", expanded_grid);
     expanded_grid
 }
 
