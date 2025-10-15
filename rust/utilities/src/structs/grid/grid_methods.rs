@@ -2,7 +2,6 @@ use crate::{
     enums::intercardinals::Intercardinal,
     structs::coord::{Coord, Coord2U},
 };
-use std::iter::Zip;
 use std::slice::Iter;
 use std::{
     cmp::min,
