@@ -149,37 +149,6 @@ where
     }
 }
 
-impl<T, const N: usize> Grid<T, N>
-where
-    T: Clone,
-{
-    pub fn sub_grid(
-        &self,
-        start: Coord<usize, N>,
-        size: Coord<usize, N>,
-    ) -> Result<Self, GridError> {
-        self.index_of(start).ok_or(GridError::OutOfRange)?;
-        let adjusted_size: [usize; N] = std::array::from_fn(|n| {
-            min(
-                self.dimensions[n]
-                    .checked_sub(start.0[n])
-                    .unwrap_or_default(),
-                size.0[n],
-            )
-        });
-        if adjusted_size.iter().any(|dim| *dim == 0) {
-            return Err(GridError::OutOfRange);
-        }
-        let dummy = Grid {
-            data: vec![false; self.len()],
-            dimensions: adjusted_size,
-        };
-        let sub = Self::new_with_fn(adjusted_size, |i| {
-            self[i.as_coord(&dummy).unwrap() + start].clone()
-        });
-        Ok(sub)
-    }
-}
 /// 2D Grid methods
 impl<T> Grid<T, 2> {
     pub fn height(&self) -> usize {
@@ -265,6 +234,23 @@ impl<T> Grid<T, 2> {
             dir,
             value,
         })
+    }
+}
+
+impl<T: Clone> Grid<T, 2> {
+    pub fn sub_grid(
+        &self,
+        start: Coord<usize, 2>,
+        size: Coord<usize, 2>,
+    ) -> Result<Self, GridError> {
+        self.index_of(start).ok_or(GridError::OutOfRange)?;
+        let adj_width = min(self.width().checked_sub(start.x()).unwrap_or_default(), size.x());
+        let adj_height = min(self.height().checked_sub(start.y()).unwrap_or_default(), size.y());
+        let sub = Self::new_with_fn([adj_width, adj_height], |i| {
+            let new_pos = Coord::new2d(i % adj_height, i / adj_height);
+            self[new_pos + start].clone()
+        });
+        Ok(sub)
     }
 }
 
