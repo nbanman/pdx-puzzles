@@ -172,7 +172,7 @@ where
         }
         let dummy = Grid {
             data: vec![false; self.len()],
-            dimensions: self.dimensions,
+            dimensions: adjusted_size,
         };
         let sub = Self::new_with_fn(adjusted_size, |i| {
             self[i.as_coord(&dummy).unwrap() + start].clone()
