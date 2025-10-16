@@ -45,16 +45,19 @@ impl Component {
 }
 
 fn parse_input(input: &str) -> Input {
-    let components: Vec<Component> = std::iter::once(Component { a: 0, b: 0 })
-        .chain(input.get_numbers().chunks(2).into_iter().map(|chunk| {
+    let components: Vec<Component> = input
+        .get_numbers()
+        .chunks(2)
+        .into_iter()
+        .map(|chunk| {
             let (a, b) = chunk.collect_tuple().unwrap();
             Component { a, b }
-        }))
+        })
         .collect();
 
     let mut port_map = FxHashMap::default();
 
-    for (idx, component) in components.iter().enumerate().skip(1) {
+    for (idx, component) in components.iter().enumerate() {
         port_map.entry(component.a).or_insert(Vec::new()).push(idx);
         port_map.entry(component.b).or_insert(Vec::new()).push(idx);
     }
@@ -73,7 +76,7 @@ struct State {
 
 impl State {
     fn len(&self) -> usize {
-        self.visited.count_ones() as usize - 1
+        self.visited.count_ones() as usize
     }
 }
 
@@ -81,11 +84,8 @@ fn build_bridge(
     bridge_parts: &BridgeParts,
     comparator: fn(Bridge, Bridge) -> std::cmp::Ordering,
 ) -> Output {
-    let mut q = vec![State {
-        n: 0,
-        strength: 0,
-        visited: 1,
-    }];
+    let mut q = Vec::with_capacity(35);
+    q.push(State { n: 0, strength: 0, visited: 0 });
     let mut max_cmp = (0usize, 0u64);
     while let Some(cur) = q.pop() {
         let mut candidate_count = 0;
