@@ -66,7 +66,7 @@ fn part1(input: &Input) -> Output {
     let (intersections, _, _) = input;
     intersections
         .iter()
-        .map(|pos| pos.manhattan_distance(&Pos::origin()))
+        .map(|pos| pos.manhattan_distance(Pos::origin()))
         .min()
         .unwrap()
 }

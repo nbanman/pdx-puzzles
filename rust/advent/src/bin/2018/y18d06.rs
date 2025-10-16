@@ -146,7 +146,7 @@ fn part2(input: &Input) -> Output {
         .filter(|&idx| {
             let sum: usize = positions.iter()
                 .map(|pos| {
-                    pos.manhattan_distance(&Pos::from_index(idx, *width).unwrap())
+                    pos.manhattan_distance(Pos::from_index(idx, *width).unwrap())
                 })
                 .sum();
             sum < 10_000

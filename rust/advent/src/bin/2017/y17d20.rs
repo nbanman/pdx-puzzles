@@ -71,21 +71,21 @@ fn parse_input(input: &str) -> Input {
             let a = Pos::new3d(ax, ay, az);
             Particle { number, p, v, a }
         })
-        .sorted_unstable_by_key(|particle| particle.a.manhattan_distance(&Pos::origin()))
+        .sorted_unstable_by_key(|particle| particle.a.manhattan_distance(Pos::origin()))
         .collect()
 }
 
 fn part1(particles: &Input) -> Output {
-    let closest = particles[0].a.manhattan_distance(&Pos::origin());
+    let closest = particles[0].a.manhattan_distance(Pos::origin());
     let select_particles = particles.iter()
-        .take_while(|particle| particle.a.manhattan_distance(&Pos::origin()) == closest)
+        .take_while(|particle| particle.a.manhattan_distance(Pos::origin()) == closest)
         .collect_vec();
     let offset = select_particles.iter()
         .map(|particle| particle.stable_time())
         .max()
         .unwrap();
     select_particles.iter()
-        .max_by_key(|particle| particle.particle_at(offset).p.manhattan_distance(&Pos::origin()))
+        .max_by_key(|particle| particle.particle_at(offset).p.manhattan_distance(Pos::origin()))
         .map(|particle| particle.number)
         .unwrap()
 }

@@ -66,7 +66,7 @@ fn part2(input: &Input) -> i64 {
             // println!("({}, {}, {})", asteroid, new, new_angle);
             (OrderedFloat(new_angle), asteroid)
         })
-        .sorted_unstable_by_key(|(_, asteroid)| asteroid.manhattan_distance(station))
+        .sorted_unstable_by_key(|(_, asteroid)| asteroid.manhattan_distance(*station))
         .into_group_map_by(|(angle, _)| *angle)
         .into_values()
         .collect_vec();

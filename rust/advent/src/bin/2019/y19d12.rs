@@ -36,7 +36,7 @@ fn parse_input(input: &str) -> Input {
 }
 
 fn total_energy(pos: Pos, vel: Pos) -> Output {
-    pos.manhattan_distance(&Pos::origin()) * vel.manhattan_distance(&Pos::origin())
+    pos.manhattan_distance(Pos::origin()) * vel.manhattan_distance(Pos::origin())
 }
 
 fn apply_force(a: i64, b: i64) -> i64 {

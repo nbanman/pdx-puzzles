@@ -38,7 +38,7 @@ fn part1(input: Input) -> Output {
             .filter(|constellation| {
                 constellation
                     .iter()
-                    .any(|it| point.manhattan_distance(it) <= 3)
+                    .any(|it| point.manhattan_distance(*it) <= 3)
             })
             .cloned()
             .collect();

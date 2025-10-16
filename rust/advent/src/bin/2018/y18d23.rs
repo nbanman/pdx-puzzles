@@ -16,7 +16,7 @@ struct Nanobot {
 
 impl Nanobot {
     fn in_range_of(&self, other: Pos) -> bool {
-        self.radius >= self.pos.manhattan_distance(&other)
+        self.radius >= self.pos.manhattan_distance(other)
     }
 }
 
@@ -164,7 +164,7 @@ fn part2(nanobots: &Input) -> Output {
             cubes.push(Reverse(cube));
         }
     }
-    current.pos.manhattan_distance(&Pos::origin())
+    current.pos.manhattan_distance(Pos::origin())
 }
 
 #[test]

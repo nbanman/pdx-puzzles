@@ -116,7 +116,7 @@ impl ShipState {
             ShipState::Dir { pos, dir: _ } => *pos,
             ShipState::Waypoint { pos, waypoint: _ } => *pos,
         };
-        pos.manhattan_distance(&Pos::origin())
+        pos.manhattan_distance(Pos::origin())
     }
 }
 

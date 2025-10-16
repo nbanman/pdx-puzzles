@@ -92,7 +92,7 @@ fn get_distances(stars: &[Pos]) -> Grid2<usize> {
             if a == b {
                 distances.push(usize::MAX);
             } else {
-                distances.push(a.manhattan_distance(b));
+                distances.push(a.manhattan_distance(*b));
             }
         }
     }

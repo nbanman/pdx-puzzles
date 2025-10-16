@@ -148,7 +148,7 @@ impl Ord for State {
 
 fn part2(cavern: &mut Input) -> Output {
     let target = cavern.target;
-    let heuristic = |pos: Pos| pos.manhattan_distance(&target);
+    let heuristic = |pos: Pos| pos.manhattan_distance(target);
 
     let start = State {
         pos: Pos::origin(),

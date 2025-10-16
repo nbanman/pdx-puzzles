@@ -91,7 +91,7 @@ fn count_valid(input: &Input, pos: usize, end_coord: Pos, steps: usize) -> usize
 
     let pos_coord = Pos::from_index(pos, input.racetrack.width).unwrap();
     let difference = end_coord - pos_coord;
-    let min_steps = steps + difference.manhattan_distance(&Pos::origin());
+    let min_steps = steps + difference.manhattan_distance(Pos::origin());
 
     if min_steps > input.threshold {
         return 0;
@@ -136,7 +136,7 @@ fn count_valid(input: &Input, pos: usize, end_coord: Pos, steps: usize) -> usize
                 continue;
             }
             let cheat_steps =
-                steps + pos_coord.manhattan_distance(&Pos::new2d(x, y)) + input.from_end[re_pos];
+                steps + pos_coord.manhattan_distance(Pos::new2d(x, y)) + input.from_end[re_pos];
             if cheat_steps <= input.threshold {
                 count += 1;
             }
