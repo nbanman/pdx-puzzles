@@ -9,10 +9,10 @@ pub enum Cardinal {
 impl Cardinal {
     pub fn new(direction: char) -> Option<Self> {
         match direction.to_ascii_uppercase() {
-            'N' => Some(Self::North),
-            'E' => Some(Self::East),
-            'S' => Some(Self::South),
-            'W' => Some(Self::West),
+            'N' | 'U' => Some(Self::North),
+            'E' | 'R' => Some(Self::East),
+            'S' | 'D' => Some(Self::South),
+            'W' | 'L' => Some(Self::West),
             _ => None,
         }
     }
@@ -54,5 +54,19 @@ impl Cardinal {
             'B' => Some(self.flip()),
             _ => None,
         }
+    }
+}
+
+impl From<char> for Cardinal {
+    fn from(value: char) -> Self {
+        Self::new(value).unwrap()
+    }
+}
+
+impl From<&str> for Cardinal {
+    fn from(value: &str) -> Self {
+        assert!(value.len() == 1);
+        let value = value.chars().next().unwrap();
+        value.into()
     }
 }
