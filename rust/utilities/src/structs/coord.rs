@@ -62,7 +62,7 @@ impl<T: Coordinate, const N: usize> Coord<T, N> {
         self.0[0]
     }
 
-    pub fn manhattan_distance(&self, other: &Self) -> usize {
+    pub fn manhattan_distance(&self, other: Self) -> usize {
         self.0
             .iter()
             .zip(other.0.iter())
@@ -77,6 +77,26 @@ impl<T: Coordinate, const N: usize> Coord<T, N> {
                 None => b - a,
             })
             .reduce(|acc, n| acc + n)
+            .unwrap()
+            .to_usize()
+            .unwrap()
+    }
+
+    pub fn chebyshev_distance(&self, other: Self) -> usize {
+        self.0
+            .iter()
+            .zip(other.0.iter())
+            .map(|(&a, &b)| match a.checked_sub(&b) {
+                Some(val) => {
+                    if val < T::zero() {
+                        b - a
+                    } else {
+                        val
+                    }
+                }
+                None => b - a,
+            })
+            .max()
             .unwrap()
             .to_usize()
             .unwrap()
@@ -601,7 +621,7 @@ fn unsigned_math_operations() {
     assert_eq!(Some(Coord::new2d(1, 1)), pos1.checked_sub(&pos2));
     assert_eq!(Coord::new2d(12, 42), pos1 * pos2);
     assert_eq!(Coord::new2d(1, 1), pos1 / pos2);
-    assert_eq!(2, pos1.manhattan_distance(&pos2));
+    assert_eq!(2, pos1.manhattan_distance(pos2));
     // unsigned 3d
     let pos1 = Coord::new3d(4usize, 7, 9);
     let pos2 = Coord::new3d(3usize, 6, 3);
@@ -611,7 +631,7 @@ fn unsigned_math_operations() {
     assert_eq!(Some(Coord::new3d(1, 1, 6)), pos1.checked_sub(&pos2));
     assert_eq!(Coord::new3d(12, 42, 27), pos1 * pos2);
     assert_eq!(Coord::new3d(1, 1, 3), pos1 / pos2);
-    assert_eq!(8, pos1.manhattan_distance(&pos2));
+    assert_eq!(8, pos1.manhattan_distance(pos2));
 }
 
 #[test]
@@ -625,7 +645,7 @@ fn signed_math_operations() {
     assert_eq!(Some(Coord::new2d(-7, 13)), pos1.checked_sub(&pos2));
     assert_eq!(Coord::new2d(-12, -42), pos1 * pos2);
     assert_eq!(Coord::new2d(-1, -1), pos1 / pos2);
-    assert_eq!(20, pos1.manhattan_distance(&pos2));
+    assert_eq!(20, pos1.manhattan_distance(pos2));
     let neighbors: Vec<Coord<i32, 2>> = vec![
         Coord::new2d(-1, -1),
         Coord::new2d(0, -1),
@@ -649,6 +669,6 @@ fn signed_math_operations() {
     assert_eq!(Some(Coord::new3d(-7, 13, -12)), pos1.checked_sub(&pos2));
     assert_eq!(Coord::new3d(-12, -42, -27), pos1 * pos2);
     assert_eq!(Coord::new3d(-1, -1, -3), pos1 / pos2);
-    assert_eq!(32, pos1.manhattan_distance(&pos2));
+    assert_eq!(32, pos1.manhattan_distance(pos2));
     assert_eq!(80, Coord::<i64, 4>::origin().get_neighbors().count());
 }
