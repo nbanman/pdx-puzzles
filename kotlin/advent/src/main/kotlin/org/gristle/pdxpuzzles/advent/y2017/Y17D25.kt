@@ -3,88 +3,55 @@ package org.gristle.pdxpuzzles.advent.y2017
 import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.parsing.getInts
 
-class Y17D25(input: String) : Day {
-    private class Node(var isOne: Boolean = false, var left: Node? = null, var right: Node? = null) {
-        fun value() = if (isOne) 1 else 0
+class Y17D25(private val input: String) : Day {
 
-        fun moveLeft(): Node {
-            left = left ?: Node(false, null, this)
-            return left as Node
-        }
-
-        fun moveRight(): Node {
-            right = right ?: Node(false, this, null)
-            return right as Node
-        }
-
-        fun sumList(): Int {
-            return (sumLeft() + sumRight() - value())
-        }
-
-        private fun sumLeft(): Int {
-            return value() + (left?.sumLeft() ?: 0)
-        }
-
-        private fun sumRight(): Int {
-            return value() + (right?.sumRight() ?: 0)
-        }
+    enum class Dir {
+        LEFT,
+        RIGHT,
     }
-
-    private data class State(
-        val zeroWrite: Boolean,
-        val zeroLeft: Boolean,
-        val zeroChange: String,
-        val oneWrite: Boolean,
-        val oneLeft: Boolean,
-        val oneChange: String
-    )
-
-    private val pattern = """In state ([A-F]):
-  If the current value is 0:
-    - Write the value ([01]).
-    - Move one slot to the (left|right).
-    - Continue with state ([A-F]).
-  If the current value is 1:
-    - Write the value ([01]).
-    - Move one slot to the (left|right).
-    - Continue with state ([A-F])."""
-
-    private val data = input.replace("\r", "")
+    data class Action(val write: Boolean, val dir: Dir, val change: Int)
+    data class State(val zero: Action, val one: Action)
 
     override fun part1(): Int {
-        val steps: Int = data.getInts().first()
-
-        val states: Map<String, State> = pattern
-            .toRegex()
-            .findAll(data)
-            .associate { result ->
-                val (name, zeroWrite, zeroLeft, zeroChange, oneWrite, oneLeft, oneChange) = result.destructured
-                name to State(
-                    zeroWrite == "1",
-                    zeroLeft == "left",
-                    zeroChange,
-                    oneWrite == "1",
-                    oneLeft == "left",
-                    oneChange
+        val stanzas = input.splitToSequence("\n\n").iterator()
+        val steps = stanzas.next()
+            .dropLastWhile { c -> !c.isDigit() }
+            .takeLastWhile { c -> c.isDigit() }
+            .toInt()
+        val states = stanzas.asSequence()
+            .map { stanza ->
+                val args = stanza.lines().map { line ->
+                    line.dropLast(1).takeLastWhile { c -> c.isLetterOrDigit() }
+                }
+                val write0 = args[2] == "1"
+                val dir0 = if (args[3] == "left") Dir.LEFT else Dir.RIGHT
+                val change0 = args[4][0] - 'A'
+                val write1 = args[6] == "1"
+                val dir1 = if (args[7] == "left") Dir.LEFT else Dir.RIGHT
+                val change1 = args[8][0] - 'A'
+                State(
+                    Action(write0, dir0, change0),
+                    Action(write1, dir1, change1),
                 )
-            }
+            }.toList()
+        val slots = ArrayDeque<Boolean>()
+        slots.add(false)
+        var state = states[0]
+        var node = 0
 
-        val startNode = Node()
-        var currentNode = startNode
-        var currentName = "A"
-        for (x in 1..steps) {
-            val state = states.getValue(currentName)
-            if (currentNode.isOne) {
-                currentNode.isOne = state.oneWrite
-                currentNode = if (state.oneLeft) currentNode.moveLeft() else currentNode.moveRight()
-                currentName = state.oneChange
-            } else {
-                currentNode.isOne = state.zeroWrite
-                currentNode = if (state.zeroLeft) currentNode.moveLeft() else currentNode.moveRight()
-                currentName = state.zeroChange
+        for (_i in 0 until steps) {
+            val action = if (slots[node]) state.one else state.zero
+            slots[node] = action.write
+            when (action.dir) {
+                Dir.LEFT -> if (node == 0) slots.addFirst(false) else node--
+                Dir.RIGHT -> {
+                    if (node == slots.size - 1) slots.addLast(false)
+                    node++
+                }
             }
+            state = states[action.change]
         }
-        return startNode.sumList()
+        return slots.count { it }
     }
 
     override fun part2() = true
@@ -92,6 +59,6 @@ class Y17D25(input: String) : Day {
 
 fun main() = Day.runDay(Y17D25::class)
 
-//    Class creation: 10ms
-//    Part 1: 3745 (150ms)
-//    Total time: 160ms
+//    Class creation: 1ms
+//    Part 1: 3745 (76ms)
+//    Total time: 77ms
