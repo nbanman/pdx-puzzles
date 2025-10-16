@@ -17,14 +17,20 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
+enum Dir { Left, Right }
+
+#[derive(Debug)]
+struct Action {
+    write: bool,
+    dir: Dir,
+    change: usize,
+}
+
+#[derive(Debug)]
 struct State {
-    write0: bool,
-    left0: bool,
-    change0: usize,
-    write1: bool,
-    left1: bool,
-    change1: usize,
+    zero: Action,
+    one: Action,
 }
 
 fn penultimate(s: &str) -> &str {
@@ -48,55 +54,45 @@ fn part1(input: Input) -> Output {
                 .collect_tuple()
                 .unwrap();
             let write0 = write0 == "1";
-            let left0 = dir0 == "left";
+            let dir0 = if dir0 == "left" { Dir::Left } else { Dir::Right };
             let change0 = (change0.as_bytes()[0] - b'A') as usize;
             let write1 = write1 == "1";
-            let left1 = dir1 == "left";
+            let dir1 = if dir1 == "left" { Dir::Left } else { Dir::Right };
             let change1 = (change1.as_bytes()[0] - b'A') as usize;
-            State { write0, left0, change0, write1, left1, change1 }
+            State {
+                zero: Action { write: write0, dir: dir0, change: change0 },
+                one: Action { write: write1, dir: dir1, change: change1 },
+            }
         })
         .collect_vec();
 
-    let mut slots = VecDeque::new();
+    let mut slots = VecDeque::with_capacity(3746);
     slots.push_front(false);
     let mut state = &states[state_idx];
     let mut node = 0;
 
     for _ in 0..steps {
         let node_val = slots.get_mut(node).unwrap();
-        if *node_val {
-            *node_val = state.write1;
-            if state.left1 {
+        let action = if *node_val { &state.one } else { &state.zero };
+        *node_val = action.write;
+        match action.dir {
+            Dir::Left => {
                 if node == 0 {
                     slots.push_front(false);
                 } else {
                     node -= 1;
                 }
-            } else {
+            }
+            Dir::Right => {
                 if node == slots.len() - 1 {
                     slots.push_back(false);
                 }
                 node += 1;
             }
-            state = &states[state.change1];
-        } else {
-            *node_val = state.write0;
-            if state.left0 {
-                if node == 0 {
-                    slots.push_front(false);
-                } else {
-                    node -= 1;
-                }
-            } else {
-                if node == slots.len() - 1 {
-                    slots.push_back(false);
-                }
-                node += 1;
-            }
-            state = &states[state.change0];
         }
+
+        state = &states[action.change];
     }
-    
     slots.into_iter().filter(|&b| b).count()
 }
 #[test]
