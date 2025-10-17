@@ -27,8 +27,7 @@ class Y16D05(input: String) : Day {
 
 fun main() = Day.runDay(Y16D05::class)
 
-//    [2016 Day 5]
-//    Class creation: 16ms
-//    Part 1: 4543c154 (2525ms)
-//    Part 2: 1050cbbd (6370ms)
-//    Total time: 8912ms
+//    Class creation: 2ms
+//    Part 1: 4543c154 (1142ms)
+//    Part 2: 1050cbbd (2884ms)
+//    Total time: 4030ms
