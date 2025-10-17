@@ -24,97 +24,97 @@ path = "src/bin/2016/y16d01.rs"
 name = "advent-y16d02"
 path = "src/bin/2016/y16d02.rs"
 
-# [[bin]]
-# name = "advent-y16d03"
-# path = "src/bin/2016/y16d03.rs"
+[[bin]]
+name = "advent-y16d03"
+path = "src/bin/2016/y16d03.rs"
 
-# [[bin]]
-# name = "advent-y16d04"
-# path = "src/bin/2016/y16d04.rs"
+[[bin]]
+name = "advent-y16d04"
+path = "src/bin/2016/y16d04.rs"
 
-# [[bin]]
-# name = "advent-y16d05"
-# path = "src/bin/2016/y16d05.rs"
+#[[bin]]
+#name = "advent-y16d05"
+#path = "src/bin/2016/y16d05.rs"
 
-# [[bin]]
-# name = "advent-y16d06"
-# path = "src/bin/2016/y16d06.rs"
+#[[bin]]
+#name = "advent-y16d06"
+#path = "src/bin/2016/y16d06.rs"
 
-# [[bin]]
-# name = "advent-y16d07"
-# path = "src/bin/2016/y16d07.rs"
+#[[bin]]
+#name = "advent-y16d07"
+#path = "src/bin/2016/y16d07.rs"
 
-# [[bin]]
-# name = "advent-y16d08"
-# path = "src/bin/2016/y16d08.rs"
+#[[bin]]
+#name = "advent-y16d08"
+#path = "src/bin/2016/y16d08.rs"
 
-# [[bin]]
-# name = "advent-y16d09"
-# path = "src/bin/2016/y16d09.rs"
+#[[bin]]
+#name = "advent-y16d09"
+#path = "src/bin/2016/y16d09.rs"
 
-# [[bin]]
-# name = "advent-y16d10"
-# path = "src/bin/2016/y16d10.rs"
+#[[bin]]
+#name = "advent-y16d10"
+#path = "src/bin/2016/y16d10.rs"
 
-# [[bin]]
-# name = "advent-y16d11"
-# path = "src/bin/2016/y16d11.rs"
+#[[bin]]
+#name = "advent-y16d11"
+#path = "src/bin/2016/y16d11.rs"
 
-# [[bin]]
-# name = "advent-y16d12"
-# path = "src/bin/2016/y16d12.rs"
+#[[bin]]
+#name = "advent-y16d12"
+#path = "src/bin/2016/y16d12.rs"
 
-# [[bin]]
-# name = "advent-y16d13"
-# path = "src/bin/2016/y16d13.rs"
+#[[bin]]
+#name = "advent-y16d13"
+#path = "src/bin/2016/y16d13.rs"
 
-# [[bin]]
-# name = "advent-y16d14"
-# path = "src/bin/2016/y16d14.rs"
+#[[bin]]
+#name = "advent-y16d14"
+#path = "src/bin/2016/y16d14.rs"
 
-# [[bin]]
-# name = "advent-y16d15"
-# path = "src/bin/2016/y16d15.rs"
+#[[bin]]
+#name = "advent-y16d15"
+#path = "src/bin/2016/y16d15.rs"
 
-# [[bin]]
-# name = "advent-y16d16"
-# path = "src/bin/2016/y16d16.rs"
+#[[bin]]
+#name = "advent-y16d16"
+#path = "src/bin/2016/y16d16.rs"
 
-# [[bin]]
-# name = "advent-y16d17"
-# path = "src/bin/2016/y16d17.rs"
+#[[bin]]
+#name = "advent-y16d17"
+#path = "src/bin/2016/y16d17.rs"
 
-# [[bin]]
-# name = "advent-y16d18"
-# path = "src/bin/2016/y16d18.rs"
+#[[bin]]
+#name = "advent-y16d18"
+#path = "src/bin/2016/y16d18.rs"
 
-# [[bin]]
-# name = "advent-y16d19"
-# path = "src/bin/2016/y16d19.rs"
+#[[bin]]
+#name = "advent-y16d19"
+#path = "src/bin/2016/y16d19.rs"
 
-# [[bin]]
-# name = "advent-y16d20"
-# path = "src/bin/2016/y16d20.rs"
+#[[bin]]
+#name = "advent-y16d20"
+#path = "src/bin/2016/y16d20.rs"
 
-# [[bin]]
-# name = "advent-y16d21"
-# path = "src/bin/2016/y16d21.rs"
+#[[bin]]
+#name = "advent-y16d21"
+#path = "src/bin/2016/y16d21.rs"
 
-# [[bin]]
-# name = "advent-y16d22"
-# path = "src/bin/2016/y16d22.rs"
+#[[bin]]
+#name = "advent-y16d22"
+#path = "src/bin/2016/y16d22.rs"
 
-# [[bin]]
-# name = "advent-y16d23"
-# path = "src/bin/2016/y16d23.rs"
+#[[bin]]
+#name = "advent-y16d23"
+#path = "src/bin/2016/y16d23.rs"
 
-# [[bin]]
-# name = "advent-y16d24"
-# path = "src/bin/2016/y16d24.rs"
+#[[bin]]
+#name = "advent-y16d24"
+#path = "src/bin/2016/y16d24.rs"
 
-# [[bin]]
-# name = "advent-y16d25"
-# path = "src/bin/2016/y16d25.rs"
+#[[bin]]
+#name = "advent-y16d25"
+#path = "src/bin/2016/y16d25.rs"
 
 [[bin]]
 name = "advent-y17d01"
