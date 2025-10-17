@@ -5,7 +5,8 @@ edition = "2024"
 
 [dependencies]
 utilities = { path = "../utilities" }
-ureq = "2.11.0"
+ureq = "3.1.2"
+md5 = "0.8.0"
 lazy-regex = { workspace = true }
 itertools = { workspace = true }
 rayon = { workspace = true }
@@ -32,9 +33,9 @@ path = "src/bin/2016/y16d03.rs"
 name = "advent-y16d04"
 path = "src/bin/2016/y16d04.rs"
 
-#[[bin]]
-#name = "advent-y16d05"
-#path = "src/bin/2016/y16d05.rs"
+[[bin]]
+name = "advent-y16d05"
+path = "src/bin/2016/y16d05.rs"
 
 #[[bin]]
 #name = "advent-y16d06"
