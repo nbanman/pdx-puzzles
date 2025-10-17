@@ -5,3 +5,4 @@ pub mod math;
 pub mod parsing;
 pub mod structs;
 pub mod minmax;
+pub mod collation;
