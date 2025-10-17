@@ -43,14 +43,16 @@ fn download_input(year: u8, day: u8, path: &str) -> Result<String, io::Error> {
 
     // Propagate network and file errors
     let mut response = ureq::get(&url)
-        .set("Cookie", &session)
-        .set(
+        .header("Cookie", &session)
+        .header(
             "User-Agent",
             "github.com/nbanman/pdx-puzzles/tree/main/rust/advent/utilities/get_input.rs",
         )
         .call()
-        .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?
-        .into_reader();
+        .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
+
+
+    let mut response = response.body_mut().as_reader();
 
     // Create file and copy contents
     let mut file = File::create(path)?;
