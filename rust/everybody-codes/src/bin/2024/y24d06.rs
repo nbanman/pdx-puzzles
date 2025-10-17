@@ -26,7 +26,7 @@ fn solve(input: &str, truncate: bool) -> String {
     get_strongest(paths)
 }
 
-fn get_branches(input: &str) -> Branches {
+fn get_branches(input: &str) -> Branches<'_> {
     input
         .lines()
         .filter(|line| {

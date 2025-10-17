@@ -17,7 +17,7 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn patterns(input: Input) -> impl Iterator<Item = Vec<i64>> + use<'_> {
+fn patterns(input: Input<'_>) -> impl Iterator<Item = Vec<i64>> + use<'_> {
     input
         .lines()
         .map(|line| line.split(' ').map(|n| n.parse().unwrap()).collect())

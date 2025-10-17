@@ -16,7 +16,7 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse_input(rucksacks: &str) -> Input {
+fn parse_input(rucksacks: &str) -> Input<'_> {
     rucksacks.trim_end().as_bytes().split(|&b| b == b'\n').collect()
 }
 

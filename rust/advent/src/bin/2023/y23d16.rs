@@ -106,7 +106,7 @@ fn light_beam(state: State, grid: &Input) -> usize {
     count
 }
 
-fn parse_input(input: &str) -> Input {
+fn parse_input(input: &str) -> Input<'_> {
     StrGrid::new(input).unwrap()
 }
 

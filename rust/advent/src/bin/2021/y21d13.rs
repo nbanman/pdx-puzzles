@@ -1,5 +1,5 @@
 use advent::utilities::get_input::get_input;
-use utilities::structs::{coord::{Coord, Coord2, Coord2U}, grid::{Grid2, GridRotation}, stopwatch::{ReportDuration, Stopwatch}};
+use utilities::structs::{coord::Coord2U, grid::Grid2, stopwatch::{ReportDuration, Stopwatch}};
 
 type Int = usize;
 type Input<'a> = &'a str;

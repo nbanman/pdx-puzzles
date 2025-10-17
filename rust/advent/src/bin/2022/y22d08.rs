@@ -24,7 +24,7 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse_input(input: &str) -> Trees {
+fn parse_input(input: &str) -> Trees<'_> {
     StrGrid::new(input).unwrap()
 }
 

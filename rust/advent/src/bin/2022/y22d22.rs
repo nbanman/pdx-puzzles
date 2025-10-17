@@ -1,7 +1,7 @@
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
 use lazy_regex::regex;
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashMap;
 use utilities::{
     enums::cardinals::Cardinal,
     structs::{

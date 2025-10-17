@@ -27,7 +27,7 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse_input(input: &str) -> Input {
+fn parse_input(input: &str) -> Input<'_> {
     let (towels, designs) = input.trim().split_once("\n\n").unwrap();
     let towels: Vec<&str> = towels.split(", ").collect();
     let designs: Vec<&str> = designs.split("\n").collect();

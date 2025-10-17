@@ -20,7 +20,7 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse_input(input: &str) -> Input {
+fn parse_input(input: &str) -> Input<'_> {
     let map = StrGrid::new(input).unwrap();
     let end = map.s.iter().position(|&x| x == b'E').unwrap();
     (map, end)

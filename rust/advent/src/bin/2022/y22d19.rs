@@ -119,7 +119,7 @@ impl State {
     }
 }
 
-fn parse_input(input: &str) -> Input {
+fn parse_input(input: &str) -> Input<'_> {
     let rx = regex!(r"Each ([a-z]+) robot costs (\d+) ([a-z]+)(?: and (\d+) ([a-z]+))?. ?");
     let mut indexer = Indexer::new();
     let blueprints = input

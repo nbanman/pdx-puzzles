@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use advent::utilities::get_input::get_input;
-use itertools::Itertools;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 type Int = usize;
@@ -22,7 +21,7 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse_input(input: &str) -> Input {
+fn parse_input(input: &str) -> Input<'_> {
     let (template, rule_str) = input.split_once("\n\n").unwrap();
     let template = template.as_bytes();
     let rule_str = rule_str.as_bytes();

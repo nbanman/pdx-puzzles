@@ -40,7 +40,7 @@ where
     (last.unwrap(), visited)
 }
 
-fn path(bfs_output: BfsOutput) -> Vec<&str> {
+fn path(bfs_output: BfsOutput<'_>) -> Vec<&'_ str> {
     let mut path = Vec::new();
     let (last, parents) = bfs_output;
     path.push(last);

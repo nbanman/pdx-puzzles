@@ -225,7 +225,7 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse_input(input: &str) -> Input {
+fn parse_input(input: &str) -> Input<'_> {
     let mut lookup = Lookup::new();
     let mut upstream_count = UpstreamCount::new();
     let dispatch_queue = DispatchQueue::new();

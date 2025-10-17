@@ -23,7 +23,7 @@ fn hash_of(step: &str) -> usize {
         .fold(0, |acc, &c| (acc + c as usize) * 17 % 256)
 }
 
-fn parse_input(input: Input) -> impl Iterator<Item = &str> {
+fn parse_input(input: Input<'_>) -> impl Iterator<Item = &str> {
     input.trim_end().split(',')
 }
 
