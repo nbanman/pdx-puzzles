@@ -61,7 +61,7 @@ fn part2(layers: &Input) -> String {
             .map(|pixel| pixel == Pixel::White)
             .unwrap()
     });
-    ocr(screen).unwrap()
+    ocr(&screen).unwrap()
 }
 
 #[test]
