@@ -61,7 +61,7 @@ fn default() {
     let input = get_input(16, 7).unwrap();
     let input = parse_input(&input);
     assert_eq!(118, part1(&input));
-    // assert_eq!(260, part2(&input));
+    assert_eq!(260, part2(&input));
 }
 
 // Input parsed (718μs)
