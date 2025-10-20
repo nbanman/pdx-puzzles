@@ -23,6 +23,12 @@ struct Floor {
     generators: u8,
 }
 
+impl Floor {
+    fn is_empty(&self) -> bool {
+        self.microchips == 0 && self.generators == 0
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 struct FloorState {
     elevator: usize,
@@ -43,140 +49,116 @@ impl FloorState {
             _ => vec![2],
         };
         let cur_floor = self.floors[self.elevator];
-        
+
         // Nested loop that tries all valid loads on all potential floors. If the floor with the new load is valid,
         // add it to the list of potential states.
         for potential_elevator in potential_elevators {
             let potential_floor = self.floors[potential_elevator];
+            if potential_elevator == 0 && potential_floor.is_empty() { continue; }
+            if potential_elevator == 1
+                && self.elevator == 2
+                && potential_floor.is_empty()
+                && self.floors[0].is_empty()
+            {
+                continue;
+            }
 
-            // add matched pair case
+            // add matched pair case. Matched pairs can always be moved together!
             if cur_floor.microchips > 0 && cur_floor.generators > 0 {
-                let new_floors: [Floor; 4] = std::array::from_fn(|i| {
-                    let cur = self.floors[i];
-                    match i {
-                        i if i == self.elevator => Floor {
-                            microchips: cur.microchips - 1,
-                            generators: cur.generators - 1,
-                        },
-                        i if i == potential_elevator => Floor {
-                            microchips: cur.microchips + 1,
-                            generators: cur.generators + 1,
-                        },
-                        _ => cur,
-                    }
-                });
                 valid_moves.push(
-                    FloorState { elevator: potential_elevator, floors: new_floors }
+                    self.generate_next(potential_elevator, 1, 1)
                 );
             }
 
-            // add one chip case
+            let mut added_one_chip = false;
+
+            // add one chip case. A chip can be moved when the floor to move to has no generators,
+            // or has more generators then chips. This latter case means that the chip matches with
+            // the spare generator.
             if cur_floor.microchips > 0 {
                 if potential_floor.generators == 0
                     || potential_floor.generators > potential_floor.microchips
                 {
-                    let new_floors: [Floor; 4] = std::array::from_fn(|i| {
-                        let cur = self.floors[i];
-                        match i {
-                            i if i == self.elevator => Floor {
-                                microchips: cur.microchips - 1,
-                                generators: cur.generators,
-                            },
-                            i if i == potential_elevator => Floor {
-                                microchips: cur.microchips + 1,
-                                generators: cur.generators,
-                            },
-                            _ => cur,
-                        }
-                    });
+                    added_one_chip = true;
                     valid_moves.push(
-                        FloorState { elevator: potential_elevator, floors: new_floors }
+                        self.generate_next(potential_elevator, 1, 0)
                     );
                 }
             }
 
-            // add two chip case
-            if cur_floor.microchips > 1 {
+            // add two chip case. Two chips can be moved when the floor to move to has no generators,
+            // or has at least two more generators than chips.
+            if (!added_one_chip || potential_elevator > self.elevator) && cur_floor.microchips > 1 {
                 if potential_floor.generators == 0
                     || potential_floor.generators > potential_floor.microchips + 1
                 {
-                    let new_floors: [Floor; 4] = std::array::from_fn(|i| {
-                        let cur = self.floors[i];
-                        match i {
-                            i if i == self.elevator => Floor {
-                                microchips: cur.microchips - 2,
-                                generators: cur.generators,
-                            },
-                            i if i == potential_elevator => Floor {
-                                microchips: cur.microchips + 2,
-                                generators: cur.generators,
-                            },
-                            _ => cur,
-                        }
-                    });
+                    if potential_elevator > self.elevator && added_one_chip {
+                        valid_moves.pop();
+                    }
                     valid_moves.push(
-                        FloorState { elevator: potential_elevator, floors: new_floors }
+                        self.generate_next(potential_elevator, 2, 0)
                     );
                 }
             }
 
-            // add one gen case
+            let mut added_one_gen = false;
+
+            // add one gen case. A floor that loses a gen is valid if that was the only generator,
+            // because no gens == no problems. If there is another gen, that is a problem because
+            // that implies an unmatched chip that will fry. A floor that gains a gen is valid if
+            // it has no microchips (nothing to fry), or there are already enough gens for all
+            // microchips (all chips are protected),
             if cur_floor.generators > 0 {
                 let can_leave = cur_floor.generators == 1
                     || cur_floor.generators > cur_floor.microchips;
                 let can_gain = can_leave && (potential_floor.microchips == 0
-                    || potential_floor.generators >= potential_floor.microchips
-                    || potential_floor.generators == 0 && potential_floor.microchips == 1);
+                    || potential_floor.generators >= potential_floor.microchips - 1);
                 if can_gain {
-                    let new_floors: [Floor; 4] = std::array::from_fn(|i| {
-                        let cur = self.floors[i];
-                        match i {
-                            i if i == self.elevator => Floor {
-                                microchips: cur.microchips,
-                                generators: cur.generators - 1,
-                            },
-                            i if i == potential_elevator => Floor {
-                                microchips: cur.microchips,
-                                generators: cur.generators + 1,
-                            },
-                            _ => cur,
-                        }
-                    });
+                    added_one_gen = true;
                     valid_moves.push(
-                        FloorState { elevator: potential_elevator, floors: new_floors }
+                        self.generate_next(potential_elevator, 0, 1)
                     );
                 }
             }
 
-            // add two gen case
-            if cur_floor.generators > 1 {
+            // add two gen case. A floor that loses two gens is valid if they are the only
+            // generators, because no gens == no problems.  A floor that gains two gens is valid if
+            // it has no microchips (nothing to fry), or there are already enough gens for all
+            // microchips (all chips are protected),
+            if (!added_one_gen || potential_elevator > self.elevator) && cur_floor.generators > 1 {
                 let can_leave = cur_floor.generators == 2
                     || cur_floor.generators > cur_floor.microchips + 1;
                 let can_gain = can_leave && (potential_floor.microchips == 0
-                    || potential_floor.generators >= potential_floor.microchips + 1
-                    || potential_floor.generators == 0 && potential_floor.microchips == 2);
+                    || potential_floor.generators >= potential_floor.microchips);
                 if can_gain {
-                    let new_floors: [Floor; 4] = std::array::from_fn(|i| {
-                        let cur = self.floors[i];
-                        match i {
-                            i if i == self.elevator => Floor {
-                                microchips: cur.microchips,
-                                generators: cur.generators - 2,
-                            },
-                            i if i == potential_elevator => Floor {
-                                microchips: cur.microchips,
-                                generators: cur.generators + 2,
-                            },
-                            _ => cur,
-                        }
-                    });
+                    if potential_elevator > self.elevator && added_one_gen {
+                        valid_moves.pop();
+                    }
                     valid_moves.push(
-                        FloorState { elevator: potential_elevator, floors: new_floors }
+                        self.generate_next(potential_elevator, 0, 2)
                     );
                 }
             }
         }
         valid_moves
+    }
+
+    fn generate_next(&self, next_elevator: usize, microchips: u8, generators: u8) -> FloorState {
+        let new_floors: [Floor; 4] = std::array::from_fn(|i| {
+            let cur = self.floors[i];
+            match i {
+                i if i == self.elevator => Floor {
+                    microchips: cur.microchips - microchips,
+                    generators: cur.generators - generators,
+                },
+                i if i == next_elevator => Floor {
+                    microchips: cur.microchips + microchips,
+                    generators: cur.generators + generators,
+                },
+                _ => cur,
+            }
+        });
+        FloorState { elevator: next_elevator, floors: new_floors }
     }
 }
 
@@ -195,7 +177,7 @@ fn parse_input(input: &str) -> FloorState {
 
 fn solve_floors(initial_state: FloorState) -> usize {
     let mut steps = 0;
-    
+
     // cache used to prune previously visited states.
     let mut visited = FxHashSet::default();
     visited.insert(initial_state.clone());
