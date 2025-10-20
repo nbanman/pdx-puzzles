@@ -1,5 +1,3 @@
-use std::{iter::successors, num::NonZero};
-
 use advent::utilities::get_input::get_input;
 use indexmap::IndexSet;
 use itertools::Itertools;
@@ -27,12 +25,6 @@ struct Floor {
     generators: u8,
 }
 
-impl Floor {
-    fn is_valid(&self) -> bool {
-        self.microchips == 0 || self.generators == 0 || self.microchips & self.generators == self.microchips
-    }
-}
-
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 struct FloorState {
     elevator: usize,
@@ -40,15 +32,11 @@ struct FloorState {
 }
 
 impl FloorState {
-    fn is_valid(&self) -> bool {
-        self.floors.iter().all(|floor| floor.is_valid())
-    }
-
     fn is_solved(&self) -> bool {
         self.floors.iter().dropping_back(1).all(|floor| floor.microchips == 0 && floor.generators == 0)
     }
 
-    fn next(&self) -> Vec<Self> {
+    fn next(&self, items: u8) -> Vec<Self> {
         let mut valid_moves = Vec::new();
         let potential_elevators = match self.elevator {
             0 => vec![1],
@@ -62,30 +50,91 @@ impl FloorState {
         // add it to the list of potential states.
         for potential_elevator in potential_elevators {
             let potential_floor = self.floors[potential_elevator];
-            let matchy = cur_floor.microchips & cur_floor.generators;
-            for n in successors(Some(matchy), |&acc| {
-                if acc == 0 {
-                    None
-                } else {
-                    Some(acc >> 1)
+            let pot_flr_unmatched_chips = potential_floor.microchips & !potential_floor.generators;
+            if pot_flr_unmatched_chips == 0 {
+                let matchy = cur_floor.microchips & cur_floor.generators;
+                for n in 0..items {
+                    if (matchy >> n) & 1 == 1 {
+                        let diff = 1 << n;
+                        let new_floors: [Floor; 4] = std::array::from_fn(|i| {
+                            let cur = self.floors[i];
+                            match i {
+                                i if i == self.elevator => Floor {
+                                    microchips: cur.microchips - diff,
+                                    generators: cur.generators - diff,
+                                },
+                                i if i == potential_elevator => Floor {
+                                    microchips: cur.microchips + diff,
+                                    generators: cur.generators + diff,
+                                },
+                                _ => cur,
+                            }
+                        });
+                        valid_moves.push(
+                            FloorState { elevator: potential_elevator, floors: new_floors }
+                        );
+                    }
                 }
-            }) {
-                
             }
             let pot_flr_no_chips = potential_floor.microchips == 0;
-            let pot_flr_unmatched_chips = potential_floor.microchips & !potential_floor.generators;
+            let cur_flr_unmatched_chips = cur_floor.generators & !cur_floor.generators;
             let pot_flr_no_gen = potential_floor.generators == 0;
             let pot_chips = if pot_flr_no_gen {
                 cur_floor.microchips
             } else {
                 cur_floor.microchips & potential_floor.generators
             };
-            let mut pot_gens = cur_floor.generators & !cur_floor.microchips;
+            let mut pot_gens = if cur_flr_unmatched_chips == 0 {
+                cur_floor.generators
+            } else {
+                cur_floor.generators & !cur_floor.microchips
+            };
             if !pot_flr_no_chips {
                 if pot_flr_unmatched_chips.count_ones() > 1 {
                     pot_gens = 0;
                 } else {
                     pot_gens = pot_gens & potential_floor.microchips;
+                }
+            }
+            for (item1, item2) in (0..items * 2).tuple_combinations() {
+                let mut chip_change = 0;
+                let mut gen_change = 0;
+                if item1 < items {
+                    if (pot_chips >> item1) & 1 == 1 {
+                        chip_change |= 1 << item1;
+                    }
+                } else {
+                    if (pot_gens >> (item1 - items)) & 1== 1 {
+                        gen_change |= 1 << (item1 - items);
+                    }
+                }
+                if item2 < items {
+                    if (pot_chips >> item2) & 1 == 1 {
+                        chip_change |= 1 << item2;
+                    }
+                } else {
+                    if (pot_gens >> (item2 - items)) & 1== 1 {
+                        gen_change |= 1 << (item2 - items);
+                    }
+                }
+                if chip_change + gen_change > 0 {
+                    let new_floors: [Floor; 4] = std::array::from_fn(|i| {
+                        let cur = self.floors[i];
+                        match i {
+                            i if i == self.elevator => Floor {
+                                microchips: cur.microchips - chip_change,
+                                generators: cur.generators - gen_change,
+                            },
+                            i if i == potential_elevator => Floor {
+                                microchips: cur.microchips + chip_change,
+                                generators: cur.generators + gen_change,
+                            },
+                            _ => cur,
+                        }
+                    });
+                    valid_moves.push(
+                        FloorState { elevator: potential_elevator, floors: new_floors }
+                    );
                 }
             }
         }
@@ -118,7 +167,7 @@ fn parse_input(input: &str) -> FloorState {
     FloorState { elevator: 0, floors }
 }
 
-fn solve_floors(initial_state: FloorState) -> usize {
+fn solve_floors(initial_state: FloorState, items: u8) -> usize {
     let mut steps = 0;
     
     // cache used to prune previously visited states.
@@ -131,7 +180,7 @@ fn solve_floors(initial_state: FloorState) -> usize {
         steps += 1;
         std::mem::swap(&mut todo, &mut next);
         for state in todo.drain( .. ) {
-            for neighbor in state.next() {
+            for neighbor in state.next(items) {
                 if !visited.contains(&neighbor) {
                     if neighbor.is_solved() {
                         return steps
@@ -145,13 +194,13 @@ fn solve_floors(initial_state: FloorState) -> usize {
 }
 
 fn part1(initial_state: Input) -> Output {
-    solve_floors(initial_state)
+    solve_floors(initial_state, 5)
 }
 
 fn part2(mut initial_state: Input) -> Output {
     initial_state.floors[0].microchips += 96;
     initial_state.floors[0].generators += 96;
-    solve_floors(initial_state)
+    solve_floors(initial_state, 7)
 }
 
 #[test]
