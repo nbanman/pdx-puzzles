@@ -1,3 +1,5 @@
+use std::iter::successors;
+use indexmap::IndexMap;
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
 use rustc_hash::FxHashSet;
@@ -27,6 +29,10 @@ impl Floor {
     fn is_empty(&self) -> bool {
         self.microchips == 0 && self.generators == 0
     }
+
+    fn is_valid(&self) -> bool {
+        self.microchips == 0 || self.generators == 0 || self.generators >= self.microchips
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -38,6 +44,10 @@ struct FloorState {
 impl FloorState {
     fn is_solved(&self) -> bool {
         self.floors.iter().dropping_back(1).all(|floor| floor.microchips == 0 && floor.generators == 0)
+    }
+
+    fn is_valid(&self) -> bool {
+        self.floors.iter().all(|floor| floor.is_valid())
     }
 
     fn next(&self) -> Vec<Self> {
@@ -63,8 +73,11 @@ impl FloorState {
                 continue;
             }
 
-            // add matched pair case. Matched pairs can always be moved together!
-            if cur_floor.microchips > 0 && cur_floor.generators > 0 {
+            // add matched pair case. Matched pairs can always be moved together unless there are
+            // unmatched chips on the floor to be moved.
+            let can_leave = cur_floor.microchips > 0 && cur_floor.generators > 0;
+            let can_gain = can_leave && potential_floor.microchips <= potential_floor.generators;
+            if can_gain {
                 valid_moves.push(
                     self.generate_next(potential_elevator, 1, 1)
                 );
@@ -75,7 +88,10 @@ impl FloorState {
             // add one chip case. A chip can be moved when the floor to move to has no generators,
             // or has more generators then chips. This latter case means that the chip matches with
             // the spare generator.
-            if cur_floor.microchips > 0 {
+            let can_leave = cur_floor.microchips > 0;
+            let can_gain = cur_floor.generators == 0 && potential_floor.generators > potential_floor.microchips;
+            let can_gain = can_gain || potential_floor.generators == 0;
+            if can_leave && can_gain {
                 if potential_floor.generators == 0
                     || potential_floor.generators > potential_floor.microchips
                 {
@@ -88,9 +104,11 @@ impl FloorState {
 
             // add two chip case. Two chips can be moved when the floor to move to has no generators,
             // or has at least two more generators than chips.
-            if (!added_one_chip || potential_elevator > self.elevator) && cur_floor.microchips > 1 {
-                if potential_floor.generators == 0
-                    || potential_floor.generators > potential_floor.microchips + 1
+            if !added_one_chip || potential_elevator > self.elevator || true {
+                let can_leave = cur_floor.microchips > 1;
+                let can_gain = cur_floor.generators == 0 && potential_floor.generators > potential_floor.microchips + 1;
+                let can_gain = can_gain || potential_floor.generators == 0;
+                if can_gain && can_leave
                 {
                     if potential_elevator > self.elevator && added_one_chip {
                         valid_moves.pop();
@@ -112,7 +130,9 @@ impl FloorState {
                 let can_leave = cur_floor.generators == 1
                     || cur_floor.generators > cur_floor.microchips;
                 let can_gain = can_leave && (potential_floor.microchips == 0
-                    || potential_floor.generators >= potential_floor.microchips - 1);
+                    || potential_floor.generators >= potential_floor.microchips - 1
+                    || potential_floor.microchips == 1
+                );
                 if can_gain {
                     added_one_gen = true;
                     valid_moves.push(
@@ -129,7 +149,9 @@ impl FloorState {
                 let can_leave = cur_floor.generators == 2
                     || cur_floor.generators > cur_floor.microchips + 1;
                 let can_gain = can_leave && (potential_floor.microchips == 0
-                    || potential_floor.generators >= potential_floor.microchips);
+                    || potential_floor.generators >= potential_floor.microchips
+                    || potential_floor.microchips == 2
+                );
                 if can_gain {
                     if potential_elevator > self.elevator && added_one_gen {
                         valid_moves.pop();
@@ -158,7 +180,11 @@ impl FloorState {
                 _ => cur,
             }
         });
-        FloorState { elevator: next_elevator, floors: new_floors }
+        let fs = FloorState { elevator: next_elevator, floors: new_floors };
+        if !fs.is_valid() {
+            panic!("invalid state: {:?}", fs);
+        }
+        fs
     }
 }
 
@@ -179,22 +205,86 @@ fn solve_floors(initial_state: FloorState) -> usize {
     let mut steps = 0;
 
     // cache used to prune previously visited states.
-    let mut visited = FxHashSet::default();
-    visited.insert(initial_state.clone());
-    let mut todo: Vec<FloorState> = Vec::new();
-    let mut next: Vec<FloorState> = Vec::new();
-    next.push(initial_state);
+    let mut visited = IndexMap::new();
+    visited.insert(initial_state.clone(), 0);
+    let mut todo = Vec::new();
+    let mut next = Vec::new();
+    next.push((initial_state, 0));
     loop {
         steps += 1;
         std::mem::swap(&mut todo, &mut next);
-        for state in todo.drain( .. ) {
+        for (state, parent) in todo.drain( .. ) {
+            println!("e: {}, 0: {}:{}, 1: {}:{}, 2: {}:{}, 3: {}:{}",
+                    state.elevator,
+                    state.floors[0].microchips,
+                    state.floors[0].generators,
+                    state.floors[1].microchips,
+                    state.floors[1].generators,
+                    state.floors[2].microchips,
+                    state.floors[2].generators,
+                    state.floors[3].microchips,
+                    state.floors[3].generators,
+            );
             for neighbor in state.next() {
-                if !visited.contains(&neighbor) {
+                if !visited.contains_key(&neighbor) {
                     if neighbor.is_solved() {
+                        let mut path = Vec::new();
+                        let last = format!("e: {}, 0: {}:{}, 1: {}:{}, 2: {}:{}, 3: {}:{}",
+                                 neighbor.elevator,
+                                           neighbor.floors[0].microchips,
+                                           neighbor.floors[0].generators,
+                                           neighbor.floors[1].microchips,
+                                           neighbor.floors[1].generators,
+                                           neighbor.floors[2].microchips,
+                                           neighbor.floors[2].generators,
+                                           neighbor.floors[3].microchips,
+                                           neighbor.floors[3].generators,
+                        );
+                        path.push(last);
+                        let path_it = successors(Some((state, parent)), |(state, parent)| {
+                            if *parent == 0 {
+                                None
+                            } else {
+                                let (new_state, &new_parent) = visited.get_index(*parent).unwrap();
+                                Some((new_state.clone(), new_parent))
+                            }
+                        }).map(|(state, _)| state);
+                        for neighbor in path_it {
+                            path.push(
+                                format!("e: {}, 0: {}:{}, 1: {}:{}, 2: {}:{}, 3: {}:{}",
+                                        neighbor.elevator,
+                                        neighbor.floors[0].microchips,
+                                        neighbor.floors[0].generators,
+                                        neighbor.floors[1].microchips,
+                                        neighbor.floors[1].generators,
+                                        neighbor.floors[2].microchips,
+                                        neighbor.floors[2].generators,
+                                        neighbor.floors[3].microchips,
+                                        neighbor.floors[3].generators,
+                                )
+                            );
+                        }
+                        let neighbor = visited.get_index(0).unwrap().0;
+                        let first = format!("e: {}, 0: {}:{}, 1: {}:{}, 2: {}:{}, 3: {}:{}",
+                                 neighbor.elevator,
+                                neighbor.floors[0].microchips,
+                                neighbor.floors[0].generators,
+                                neighbor.floors[1].microchips,
+                                neighbor.floors[1].generators,
+                                neighbor.floors[2].microchips,
+                                neighbor.floors[2].generators,
+                                neighbor.floors[3].microchips,
+                                neighbor.floors[3].generators,
+                        );
+                        path.push(first);
+                        println!("All done! Path:\n");
+                        for s in path.into_iter().rev() {
+                            println!("{}", s);
+                        }
                         return steps
                     }
-                    visited.insert(neighbor.clone());
-                    next.push(neighbor);
+                    visited.insert(neighbor.clone(), parent);
+                    next.push((neighbor, visited.len() - 1));
                 }
             }
         }
@@ -217,6 +307,17 @@ fn default() {
     let input = parse_input(&input);
     assert_eq!(47, part1(input.clone()));
     assert_eq!(71, part2(input));
+}
+
+#[test]
+fn other() {
+    let input = r"The first floor contains a promethium generator and a promethium-compatible microchip.
+The second floor contains a cobalt generator, a curium generator, a ruthenium generator, and a plutonium generator.
+The third floor contains a cobalt-compatible microchip, a curium-compatible microchip, a ruthenium-compatible microchip, and a plutonium-compatible microchip.
+The fourth floor contains nothing relevant.";
+    let input = parse_input(input);
+    assert_eq!(33, part1(input.clone()));
+    assert_eq!(57, part2(input));
 }
 
 // Input parsed (17μs)
