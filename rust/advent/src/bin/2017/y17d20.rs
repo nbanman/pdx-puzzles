@@ -63,9 +63,8 @@ fn main() {
 }
 
 fn parse_input(input: &str) -> Input {
-    input.get_numbers().chunks(9).into_iter().enumerate()
-        .map(|(number, chunk)| {
-            let (px, py, pz, vx, vy, vz, ax, ay, az) = chunk.into_iter().collect_tuple().unwrap();
+    input.get_numbers().tuples().enumerate()
+        .map(|(number, (px, py, pz, vx, vy, vz, ax, ay, az))| {
             let p = Pos::new3d(px, py, pz);
             let v = Pos::new3d(vx, vy, vz);
             let a = Pos::new3d(ax, ay, az);

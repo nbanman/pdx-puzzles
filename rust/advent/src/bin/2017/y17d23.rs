@@ -64,12 +64,9 @@ fn main() {
 }
 
 fn parse_input(input: &str) -> Input {
-    input.split([' ', '\n']).chunks(3).into_iter()
-        .map(|chunk| {
-            let (op, arg1, arg2) = chunk.collect_tuple()
-                .map(|(op, arg1, arg2)| (op.into(), arg1.into(), arg2.into()))
-                .unwrap();
-            Command { op, arg1, arg2 }
+    input.split([' ', '\n']).tuples()
+        .map(|(op, arg1, arg2)| {
+            Command { op: op.into(), arg1: arg1.into(), arg2: arg2.into() }
         })
         .collect()
 }

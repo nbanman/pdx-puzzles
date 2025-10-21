@@ -41,12 +41,7 @@ fn add_to_nat(nics: &mut Input, nat: &mut Vec<Nat>, end_on_first_add: bool) {
             nic.input(-1);
         }
         let (_, output) = nic.run_while_able();
-        for (recipient, x, y) in output
-            .into_iter()
-            .chunks(3)
-            .into_iter()
-            .map(|chunk| chunk.collect_tuple().unwrap())
-        {
+        for (recipient, x, y) in output.into_iter().tuples() {
             if recipient == 255 {
                 nat.push(Nat::new2d(x, y));
                 if end_on_first_add { break; }

@@ -53,12 +53,7 @@ fn part2(mut input: Input) -> Output {
 
     loop {
         let (state, from_pong) = pong.run_while_able();
-        for (x, y, block) in from_pong
-            .into_iter()
-            .chunks(3)
-            .into_iter()
-            .map(|chunk| chunk.collect_tuple().unwrap())
-        {
+        for (x, y, block) in from_pong.into_iter().tuples() {
             if x == -1 {
                 score = block;
             } else {

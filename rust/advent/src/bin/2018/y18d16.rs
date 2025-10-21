@@ -45,9 +45,8 @@ impl Trainer {
 
 fn parse_input(input: &str) -> Input {
     let (trainers, code) = input.split_once("\n\n\n\n").unwrap();
-    let trainers = trainers.get_numbers().chunks(12).into_iter()
-        .map(|numbers| {
-            let (ba, bb, bc, bd, opcode, a, b, c, aa, ab, ac, ad) = numbers.into_iter().collect_tuple().unwrap();
+    let trainers = trainers.get_numbers().tuples()
+        .map(|(ba, bb, bc, bd, opcode, a, b, c, aa, ab, ac, ad)| {
             Trainer {
                 before: vec![ba, bb, bc, bd],
                 code: Code { opcode, parameters: Parameters { a, b, c } },
@@ -56,9 +55,8 @@ fn parse_input(input: &str) -> Input {
         })
         .collect();
 
-    let code = code.get_numbers().chunks(4).into_iter()
-        .map(|numbers| {
-            let (opcode, a, b, c) = numbers.into_iter().collect_tuple().unwrap();
+    let code = code.get_numbers().tuples()
+        .map(|(opcode, a, b, c)| {
             Code { opcode, parameters: Parameters { a, b, c } }
         })
         .collect();

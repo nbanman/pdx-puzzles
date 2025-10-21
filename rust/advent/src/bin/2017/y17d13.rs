@@ -17,9 +17,7 @@ fn main() {
 }
 
 fn parse_input(input: &str) -> Input {
-    input.get_numbers().chunks(2).into_iter()
-        .map(|chunk| chunk.collect_tuple().unwrap())
-        .collect()
+    input.get_numbers().tuples().collect()
 }
 
 fn part1(layers: &Input) -> Output {

@@ -47,12 +47,8 @@ impl Component {
 fn parse_input(input: &str) -> Input {
     let components: Vec<Component> = input
         .get_numbers()
-        .chunks(2)
-        .into_iter()
-        .map(|chunk| {
-            let (a, b) = chunk.collect_tuple().unwrap();
-            Component { a, b }
-        })
+        .tuples()
+        .map(|(a, b)| Component { a, b })
         .collect();
 
     let mut port_map = FxHashMap::default();

@@ -27,12 +27,7 @@ fn main() {
 fn parse_input(input: &str) -> Input {
     let mut points = Vec::new();
     let mut velocities = Vec::new();
-    for (px, py, vx, vy) in input
-        .get_numbers()
-        .chunks(4)
-        .into_iter()
-        .map(|ch| ch.collect_tuple().unwrap())
-    {
+    for (px, py, vx, vy) in input.get_numbers().tuples() {
         points.push(Pos::new([px, py]));
         velocities.push(Pos::new([vx, vy]));
     }

@@ -19,10 +19,8 @@ fn main() {
 
 fn parse_input(input: &str) -> Input {
     let claims: Vec<(Pos, Pos)> = input.get_numbers()
-        .chunks(5)
-        .into_iter()
-        .map(|chunk| {
-            let (_, x, y, w, h) = chunk.collect_tuple().unwrap();
+        .tuples()
+        .map(|(_, x, y, w, h)| {
             (Pos::new2d(x, y), Pos::new2d(x + w - 1, y + h - 1))
         })
         .collect();

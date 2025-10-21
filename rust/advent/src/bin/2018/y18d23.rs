@@ -130,10 +130,8 @@ fn main() {
 
 fn parse_input(input: &str) -> Input {
     input.get_numbers()
-        .chunks(4)
-        .into_iter()
-        .map(|chunk| {
-            let (x, y, z, radius) = chunk.collect_tuple().unwrap();
+        .tuples()
+        .map(|(x, y, z, radius)| {
             Nanobot { pos: Pos::new3d(x, y, z), radius: radius as usize }
         })
         .collect()
