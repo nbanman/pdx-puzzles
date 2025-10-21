@@ -29,6 +29,7 @@ fn parse_input(input: &str) -> Input {
     todo.push(start);
     
     loop {
+        steps += 1;
         for pos in todo.drain( .. ) {
             for neighbor in pos.adjacent(false) {
                 if visited.contains_key(&neighbor) { continue; }
@@ -37,19 +38,18 @@ fn parse_input(input: &str) -> Input {
                     let spaces = visited.values()
                         .filter(|steps| steps.map(|steps| steps <= 50).unwrap_or(false))
                         .count();
-                    return (steps + 1, spaces);
+                    return (steps, spaces);
                 }
                 let (x, y) = (neighbor.x(), neighbor.y());
                 let hash = x * x + 3 * x + 2 * x * y + y + y * y + fav;
                 if hash.count_ones() & 1 == 0 {
-                    visited.insert(neighbor, Some(steps + 1));
+                    visited.insert(neighbor, Some(steps));
                     next.push(neighbor);
                 } else {
                     visited.insert(neighbor, None);
                 }
             }
         }
-        steps += 1;
         std::mem::swap(&mut todo, &mut next); 
     }
 }
