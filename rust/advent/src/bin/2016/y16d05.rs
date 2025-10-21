@@ -1,5 +1,6 @@
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
+use md5::{Digest, Md5};
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 type Output = String;
@@ -16,12 +17,14 @@ fn main() {
 }
 
 fn parse_input(seed: &str) -> impl Iterator<Item = [u8; 16]> + Clone {
+    let mut hasher = Md5::new();
     (0..)
         .map(move |i| {
             let data = format!("{}{}", seed, i);
-            md5::compute(&data.as_bytes()).0
+            Digest::update(&mut hasher, &data);
+            Digest::finalize_reset(&mut hasher).into()
         })
-        .filter(|digest| digest[0] == 0 && digest[1] == 0 && digest[2] < 16)
+        .filter(|digest: &[u8; 16]| digest[0] == 0 && digest[1] == 0 && digest[2] < 16)
 }
 
 fn part1(hashes: impl Iterator<Item = [u8; 16]>) -> Output {
@@ -55,7 +58,7 @@ fn default() {
     assert_eq!("1050cbbd".to_string(), part2(input));
 }
 
-// Input parsed (17μs)
-// 1. 4543c154 (1.638s)
-// 2. 1050cbbd (4.424s)
-// Total: 6.63s
+// Input parsed (18μs)
+// 1. 4543c154 (1.468s)
+// 2. 1050cbbd (3.932s)
+// Total: 5.400s
