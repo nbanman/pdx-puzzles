@@ -380,7 +380,7 @@ object Graph {
     }
 
     /**
-     * Works but slower nad really don't see the need.
+     * Works but slower and really don't see the need.
      */
     inline fun <E> aStarSequence(
         startId: E,
