@@ -417,10 +417,6 @@ impl<T: Coordinate> Coord<T, 2> {
         self.0[1]
     }
 
-    // pub fn origin() -> Self {
-    //     Self([T::default(); 2])
-    // }
-
     pub fn adjacent(&self, diagonals: bool) -> Vec<Self> {
         let capacity = if diagonals { 8 } else { 4 };
 
@@ -507,6 +503,32 @@ impl<T: Coordinate> Coord<T, 2> {
         }
     }
 
+    pub fn north(&self) -> Option<Self> {
+        Some(Self([self.x(), self.y().checked_sub(&T::one())?]))
+    }
+    
+    pub fn east(&self) -> Option<Self> {
+        Some(Self([self.x() + T::one(), self.y()]))
+    }
+    
+    pub fn south(&self) -> Option<Self> {
+        Some(Self([self.x(), self.y() + T::one()]))
+    }
+    
+    pub fn west(&self) -> Option<Self> {
+        Some(Self([self.x().checked_sub(&T::one())?, self.y()]))
+    }
+
+    pub fn char_move(&self, c: char) -> Option<Self> {
+        match c {
+            '^' | 'N' | 'U' => self.north(),
+            '>' | 'E' | 'R' => self.east(),
+            'v' | 'S' | 'D' => self.south(),
+            '<' | 'W' | 'L' => self.west(),
+            _ => None,
+        }
+    }
+    
     pub fn destructured(&self) -> (T, T) {
         (self.0[0], self.0[1])
     }
