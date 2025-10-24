@@ -27,9 +27,6 @@ class Y16D24(input: String) : Day {
     // Read map
     private val layout = input.toGrid()
 
-    // Find the numbers in the map and associate it with their location
-    private val numbers = layout.withIndex().filter { it.value.isDigit() }
-
     // Naive edge map providing distance from any given number to all the other numbers. Naive in the sense that
     // the Dijkstra algo does not use it directly because we need to generate the edges on the fly in order to 
     // track the numbers already visited.    
@@ -49,27 +46,25 @@ class Y16D24(input: String) : Day {
             ?: throw IllegalStateException("Dijkstra search reached location that is not in the edgemap.")
     }
 
-    private val explore = Graph.dijkstraSequence(start, defaultEdges = getEdges)
-
-    // Runs dijkstra and provides weight of the shortest path. Takes in different end conditions to accommodate 
+    // Runs dijkstra and provides weight of the shortest path. Takes in different end conditions to accommodate
     // parts 1 & 2.
-    fun solve(endCondition: (State) -> Boolean) = explore
-        .first { endCondition(it.id) }
+    fun solve(endCondition: (State) -> Boolean) = Graph.dijkstraSequence(start, defaultEdges = getEdges)
+        .first { endCondition(it.id) && it.id.numbersVisited.size == edgeMap.size }
         .steps()
 
     // Part one ends when all numbers have been visited
-    override fun part1() = solve { it.numbersVisited.size == numbers.size }
+    override fun part1() = solve { true }
 
     // Part two ends when all numbers have been visited AND the robot has gone back to '0'
-    override fun part2() = solve { it.location == '0' && it.numbersVisited.size == numbers.size }
+    override fun part2() = solve { it.location == '0' }
 }
 
 fun main() = Day.runDay(Y16D24::class)
 
-//Class creation: 95ms
-//Part 1: 470 (9ms)
-//Part 2: 720 (12ms)
-//Total time: 116ms
+//    Class creation: 42ms
+//    Part 1: 470 (12ms)
+//    Part 2: 720 (10ms)
+//    Total time: 64ms
 
 // (218ms OG) (370ms BFS) (133ms 2-stage DFS-Dijk)
 // (36ms OG) (638ms BFS) (10ms 2-stage DFS-Dijk)
