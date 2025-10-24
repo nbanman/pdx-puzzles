@@ -20,6 +20,106 @@ bit-set = { workspace = true }
 bit-vec = { workspace = true }
 
 [[bin]]
+name = "advent-y15d01"
+path = "src/bin/2015/y15d01.rs"
+
+[[bin]]
+name = "advent-y15d02"
+path = "src/bin/2015/y15d02.rs"
+
+#[[bin]]
+#name = "advent-y15d03"
+#path = "src/bin/2015/y15d03.rs"
+
+#[[bin]]
+#name = "advent-y15d04"
+#path = "src/bin/2015/y15d04.rs"
+
+#[[bin]]
+#name = "advent-y15d05"
+#path = "src/bin/2015/y15d05.rs"
+
+#[[bin]]
+#name = "advent-y15d06"
+#path = "src/bin/2015/y15d06.rs"
+
+#[[bin]]
+#name = "advent-y15d07"
+#path = "src/bin/2015/y15d07.rs"
+
+#[[bin]]
+#name = "advent-y15d08"
+#path = "src/bin/2015/y15d08.rs"
+
+#[[bin]]
+#name = "advent-y15d09"
+#path = "src/bin/2015/y15d09.rs"
+
+#[[bin]]
+#name = "advent-y15d10"
+#path = "src/bin/2015/y15d10.rs"
+
+#[[bin]]
+#name = "advent-y15d11"
+#path = "src/bin/2015/y15d11.rs"
+
+#[[bin]]
+#name = "advent-y15d12"
+#path = "src/bin/2015/y15d12.rs"
+
+#[[bin]]
+#name = "advent-y15d13"
+#path = "src/bin/2015/y15d13.rs"
+
+#[[bin]]
+#name = "advent-y15d14"
+#path = "src/bin/2015/y15d14.rs"
+
+#[[bin]]
+#name = "advent-y15d15"
+#path = "src/bin/2015/y15d15.rs"
+
+#[[bin]]
+#name = "advent-y15d15"
+#path = "src/bin/2015/y15d16.rs"
+
+#[[bin]]
+#name = "advent-y15d17"
+#path = "src/bin/2015/y15d17.rs"
+
+#[[bin]]
+#name = "advent-y15d18"
+#path = "src/bin/2015/y15d18.rs"
+
+#[[bin]]
+#name = "advent-y15d19"
+#path = "src/bin/2015/y15d19.rs"
+
+#[[bin]]
+#name = "advent-y15d20"
+#path = "src/bin/2015/y15d20.rs"
+
+#[[bin]]
+#name = "advent-y15d21"
+#path = "src/bin/2015/y15d21.rs"
+
+#[[bin]]
+#name = "advent-y15d22"
+#path = "src/bin/2015/y15d22.rs"
+
+#[[bin]]
+#name = "advent-y15d23"
+#path = "src/bin/2015/y15d23.rs"
+
+#[[bin]]
+#name = "advent-y15d24"
+#path = "src/bin/2015/y15d24.rs"
+
+#[[bin]]
+#name = "advent-y15d25"
+#path = "src/bin/2015/y15d25.rs"
+
+[[bin]]
 name = "advent-y16d01"
 path = "src/bin/2016/y16d01.rs"
 
@@ -115,9 +215,9 @@ path = "src/bin/2016/y16d23.rs"
 name = "advent-y16d24"
 path = "src/bin/2016/y16d24.rs"
 
-#[[bin]]
-#name = "advent-y16d25"
-#path = "src/bin/2016/y16d25.rs"
+[[bin]]
+name = "advent-y16d25"
+path = "src/bin/2016/y16d25.rs"
 
 [[bin]]
 name = "advent-y17d01"
