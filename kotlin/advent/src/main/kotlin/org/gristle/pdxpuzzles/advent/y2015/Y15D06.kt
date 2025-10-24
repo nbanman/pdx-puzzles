@@ -29,12 +29,12 @@ class Y15D06(input: String) : Day {
 
     val length = 1_000
 
-    fun solve(operation: (lights: IntArray, index: Int, command: Int) -> Int): Int {
+    fun solve(operation: (pixelValue: Int, command: Int) -> Int): Int {
         val lights = IntArray(length * length)
         fun IntArray.execute(instruction: Instruction) {
             for (y in instruction.y1..instruction.y2) for (x in instruction.x1..instruction.x2) {
                 val index = y * length + x
-                this[index] = operation(lights, index, instruction.command)
+                this[index] = operation(this[index], instruction.command)
             }
         }
         instructions.forEach { lights.execute(it) }
@@ -42,19 +42,19 @@ class Y15D06(input: String) : Day {
     }
 
     override fun part1(): Int {
-        fun operation(lights: IntArray, index: Int, command: Int) = when (command) {
+        fun operation(pixelValue: Int, command: Int) = when (command) {
             1 -> 1
             -1 -> 0
-            else -> abs(lights[index] - 1)
+            else -> abs(pixelValue - 1)
         }
         return solve(::operation)
     }
 
     override fun part2(): Int {
-        fun operation(lights: IntArray, index: Int, command: Int) = when (command) {
-            1 -> lights[index] + 1
-            -1 -> max(0, lights[index] - 1)
-            else -> lights[index] + 2
+        fun operation(pixelValue: Int, command: Int) = when (command) {
+            1 -> pixelValue + 1
+            -1 -> max(0, pixelValue - 1)
+            else -> pixelValue + 2
         }
         return solve(::operation)
     }
