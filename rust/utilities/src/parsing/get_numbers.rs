@@ -82,3 +82,14 @@ impl ContainsNumbers for str {
         NumberIterator::new(self)
     }
 }
+
+impl ContainsNumbers for [u8] {
+    fn get_numbers<'a, N: PrimInt + FromStr>(&'a self) -> NumberIterator<'a, N> {
+        NumberIterator {
+            s: &self,
+            start_position: -1,
+            position: 0,
+            phantom: std::marker::PhantomData,
+        }
+    }
+}
