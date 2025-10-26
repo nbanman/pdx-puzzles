@@ -47,36 +47,33 @@ fn parse_input(input: &str) -> Input<'_> {
     (aunt_sue, sues)
 }
 
-fn modern_retroencabulator(sue: &Sue, aunt_sue: &Sue) -> bool {
-    aunt_sue.iter().all(|(&item, amt)| {
-        sue.get(item).map(|s_amt| amt == s_amt).unwrap_or(true)
-    })
-}
-
-fn outdated_retroencabulator(sue: &Sue, aunt_sue: &Sue) -> bool {
-    aunt_sue.iter().all(|(&item, amt)| {
-        sue.get(item)
-            .map(|s_amt| {
-                match item {
-                    "cats" | "trees" => s_amt > amt,
-                    "pomeranians" | "goldfish" => s_amt < amt ,
-                    _ => s_amt == amt,
-                }
+fn solve<F>(aunt_sue: &Sue, sues: &Vec<Sue>, predicate: F) -> Output
+where
+    F: Fn(&str, usize, usize) -> bool,
+{
+    sues.iter()
+        .position(|sue| {
+            aunt_sue.iter().all(|(&item, &aunt_amt)| {
+                sue.get(item)
+                    .map(|&sue_amt| predicate(item, sue_amt, aunt_amt))
+                    .unwrap_or(true)
             })
-            .unwrap_or(true)
-    })
+        })
+        .unwrap() + 1
 }
 
 fn part1((aunt_sue, sues): &Input) -> Output {
-    sues.iter()
-        .position(|sue| modern_retroencabulator(sue, aunt_sue))
-        .unwrap() + 1
+    solve(&aunt_sue, &sues, |_, sue_amt, aunt_amt| sue_amt == aunt_amt)
 }
 
 fn part2((aunt_sue, sues): &Input) -> Output {
-    sues.iter()
-        .position(|sue| outdated_retroencabulator(sue, aunt_sue))
-        .unwrap() + 1
+    solve(&aunt_sue, &sues, |item, sue_amt, aunt_amt| {
+        match item {
+            "cats" | "trees" => sue_amt > aunt_amt,
+            "pomeranians" | "goldfish" => sue_amt < aunt_amt ,
+            _ => sue_amt == aunt_amt,
+        }
+    })
 }
 
 #[test]
