@@ -83,17 +83,17 @@ path = "src/bin/2015/y15d15.rs"
 name = "advent-y15d16"
 path = "src/bin/2015/y15d16.rs"
 
-#[[bin]]
-#name = "advent-y15d17"
-#path = "src/bin/2015/y15d17.rs"
+[[bin]]
+name = "advent-y15d17"
+path = "src/bin/2015/y15d17.rs"
 
-#[[bin]]
-#name = "advent-y15d18"
-#path = "src/bin/2015/y15d18.rs"
+[[bin]]
+name = "advent-y15d18"
+path = "src/bin/2015/y15d18.rs"
 
-#[[bin]]
-#name = "advent-y15d19"
-#path = "src/bin/2015/y15d19.rs"
+[[bin]]
+name = "advent-y15d19"
+path = "src/bin/2015/y15d19.rs"
 
 #[[bin]]
 #name = "advent-y15d20"
