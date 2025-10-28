@@ -88,30 +88,26 @@ fn parse_input(input: &str) -> Input {
 }
 
 fn eval_1(mut expression: VecDeque<Expression>) -> Output {
-    while expression.len() >= 3 {
-        let left = expression.pop_front().unwrap();
-        let operator = expression.pop_front().unwrap();
-        let right = expression.pop_front().unwrap();
-        let left = left.evaluate(eval_1).unwrap();
+    let mut left = expression.pop_front().unwrap().evaluate(eval_1).unwrap();
+    while let (Some(operator), Some(right)) =
+        (expression.pop_front(), expression.pop_front())
+    {
         let right = right.evaluate(eval_1).unwrap();
-        let new_value = match operator {
-            Expression::Plus => Expression::Value(left + right),
-            Expression::Times => Expression::Value(left * right),
+        left = match operator {
+            Expression::Plus => left + right,
+            Expression::Times => left * right,
             _ => panic!("Operator must be Plus or Times"),
         };
-        expression.push_front(new_value);
     }
-    if let Some(Expression::Value(v)) = expression.pop_front() {
-        v
-    } else {
-        panic!()
-    }
+    left
 }
 
-fn eval_2(mut todo: VecDeque<Expression>) -> Output {
+fn eval_2(mut expression: VecDeque<Expression>) -> Output {
     let mut values: Vec<usize> = Vec::new();
-    let mut left = todo.pop_front().unwrap().evaluate(eval_2).unwrap();
-    while let (Some(operator), Some(right)) = (todo.pop_front(), todo.pop_front()) {
+    let mut left = expression.pop_front().unwrap().evaluate(eval_2).unwrap();
+    while let (Some(operator), Some(right)) =
+        (expression.pop_front(), expression.pop_front())
+    {
         let right = right.evaluate(eval_2).unwrap();
         match operator {
             Expression::Plus => { left = left + right; },
@@ -139,8 +135,8 @@ fn part2(expressions: Input) -> Output {
 fn default() {
     let input = get_input(20, 18).unwrap();
     let input = parse_input(&input);
-    assert_eq!(510009915468, part1(input.clone()));
-    assert_eq!(321176691637769, part2(input));
+    assert_eq!(510_009_915_468, part1(input.clone()));
+    assert_eq!(321_176_691_637_769, part2(input));
 }
 
 // Input parsed (369μs)
