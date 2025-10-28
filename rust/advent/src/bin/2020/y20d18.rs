@@ -16,6 +16,16 @@ enum Expression {
 }
 
 impl Expression {
+    fn evaluate<F>(self, mut eval: F) -> Option<Output>
+    where F: FnMut(VecDeque<Expression>) -> Output,
+    {
+        match self {
+            Expression::Value(v) => Some(v),
+            Expression::Parens(expressions) => Some(eval(*expressions)),
+            _ => None,
+        }
+    }
+
     fn parse(s: &str) -> VecDeque<Self> {
         let mut parser = 0;
         let bytes = s.as_bytes();
@@ -82,20 +92,12 @@ fn eval_1(mut expression: VecDeque<Expression>) -> Output {
         let left = expression.pop_front().unwrap();
         let operator = expression.pop_front().unwrap();
         let right = expression.pop_front().unwrap();
-        let left = match left {
-            Expression::Value(v) => v,
-            Expression::Parens(components) => eval_1(*components),
-            _ => unreachable!(),
-        };
-        let right = match right {
-            Expression::Value(v) => v,
-            Expression::Parens(components) => eval_1(*components),
-            _ => unreachable!(),
-        };
+        let left = left.evaluate(eval_1).unwrap();
+        let right = right.evaluate(eval_1).unwrap();
         let new_value = match operator {
             Expression::Plus => Expression::Value(left + right),
             Expression::Times => Expression::Value(left * right),
-            _ => unreachable!(),
+            _ => panic!("Operator must be Plus or Times"),
         };
         expression.push_front(new_value);
     }
@@ -108,17 +110,9 @@ fn eval_1(mut expression: VecDeque<Expression>) -> Output {
 
 fn eval_2(mut todo: VecDeque<Expression>) -> Output {
     let mut values: Vec<usize> = Vec::new();
-    let mut left = match todo.pop_front().unwrap() {
-        Expression::Value(v) => v,
-        Expression::Parens(expressions) => eval_2(*expressions),
-        _ => panic!("left should never be an operator"),
-    };
+    let mut left = todo.pop_front().unwrap().evaluate(eval_2).unwrap();
     while let (Some(operator), Some(right)) = (todo.pop_front(), todo.pop_front()) {
-        let right = match right {
-            Expression::Value(v) => v,
-            Expression::Parens(expressions) => eval_2(*expressions),
-            _ => panic!("left should never be an operator"),
-        };
+        let right = right.evaluate(eval_2).unwrap();
         match operator {
             Expression::Plus => { left = left + right; },
             Expression::Times => {
