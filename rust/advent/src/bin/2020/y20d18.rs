@@ -1,4 +1,3 @@
-use std::ops::Mul;
 use std::collections::VecDeque;
 
 use advent::utilities::get_input::get_input;
@@ -88,7 +87,13 @@ fn parse_input(input: &str) -> Input {
 }
 
 fn eval_1(mut expression: VecDeque<Expression>) -> Output {
+    // reduces the expression left-to-right
+    // left operand only explicitly gathered once. Subsequent iterations, left is the result of
+    // the operation.
     let mut left = expression.pop_front().unwrap().evaluate(eval_1).unwrap();
+
+    // repeatedly get the operator and right operand for evaluation until the expression is fully
+    // evaluated
     while let (Some(operator), Some(right)) =
         (expression.pop_front(), expression.pop_front())
     {
@@ -103,8 +108,16 @@ fn eval_1(mut expression: VecDeque<Expression>) -> Output {
 }
 
 fn eval_2(mut expression: VecDeque<Expression>) -> Output {
-    let mut values: Vec<usize> = Vec::new();
+    // starts with multiplication identity; grows by multiplying left operands followed by a
+    // multiplication subexpression
+    let mut value: usize = 1;
+
+    // left operand only explicitly gathered once. Subsequent times, left is either the result
+    // of a plus operation, or the right operand is shifted to left in the next iteration.
     let mut left = expression.pop_front().unwrap().evaluate(eval_2).unwrap();
+
+    // repeatedly get the operator and right operand for evaluation until the expression is fully
+    // evaluated
     while let (Some(operator), Some(right)) =
         (expression.pop_front(), expression.pop_front())
     {
@@ -112,14 +125,14 @@ fn eval_2(mut expression: VecDeque<Expression>) -> Output {
         match operator {
             Expression::Plus => { left = left + right; },
             Expression::Times => {
-                values.push(left);
+                value *= left;
                 left = right;
             },
             _ => panic!("operator must be Plus or Times"),
         }
     }
-    values.push(left);
-    values.into_iter().reduce(usize::mul).unwrap()
+    value *= left;
+    value
 }
 
 
