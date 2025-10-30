@@ -56,7 +56,7 @@ impl<T, const N: usize> Grid<T, N> {
         self.data.iter_mut()
     }
 
-    pub fn iter_with_coords(&self,) -> impl Iterator<Item = (Coord<usize, N>, &T)> {
+    pub fn iter_with_coords(&self) -> impl Iterator<Item = (Coord<usize, N>, &T)> {
         self.coords().zip(self.iter())
     }
 
@@ -169,7 +169,10 @@ impl<T> Grid<T, 2> {
         output
     }
 
-    pub fn row(&self, row_index: usize) -> Result<impl Iterator<Item = &T> + '_, GridError> {
+    pub fn row(
+        &self,
+        row_index: usize,
+    ) -> Result<impl Iterator<Item = &T> + DoubleEndedIterator + '_, GridError> {
         if row_index >= self.height() {
             return Err(GridError::OutOfRange);
         }
@@ -185,7 +188,10 @@ impl<T> Grid<T, 2> {
         })
     }
 
-    pub fn column(&self, column_index: usize) -> Result<impl Iterator<Item = &T> + '_, GridError> {
+    pub fn column(
+        &self,
+        column_index: usize,
+    ) -> Result<impl Iterator<Item = &T> + DoubleEndedIterator + '_, GridError> {
         if column_index >= self.width() {
             return Err(GridError::OutOfRange);
         }
@@ -241,13 +247,51 @@ impl<T: Clone> Grid<T, 2> {
         size: Coord<usize, 2>,
     ) -> Result<Self, GridError> {
         self.index_of(start).ok_or(GridError::OutOfRange)?;
-        let adj_width = min(self.width().checked_sub(start.x()).unwrap_or_default(), size.x());
-        let adj_height = min(self.height().checked_sub(start.y()).unwrap_or_default(), size.y());
+        let adj_width = min(
+            self.width().checked_sub(start.x()).unwrap_or_default(),
+            size.x(),
+        );
+        let adj_height = min(
+            self.height().checked_sub(start.y()).unwrap_or_default(),
+            size.y(),
+        );
         let sub = Self::new_with_fn([adj_width, adj_height], |i| {
             let new_pos = Coord::new2d(i % adj_height, i / adj_height);
             self[new_pos + start].clone()
         });
         Ok(sub)
+    }
+
+    pub fn add_down(&self, other: &Self) -> Result<Self, GridError> {
+        if self.width() != other.width() {
+            return Err(GridError::UnevenDimensions);
+        }
+        let height = self.height() + other.height();
+        let combined = Self::new2d_with_fn(self.width(), height, |i| {
+            let pos: Coord<usize, 2> = Coord::from_index(i, self.width()).unwrap();
+            if pos.y() < self.height() {
+                self[pos].clone()
+            } else {
+                other[Coord::new2d(pos.x(), pos.y() - self.height())].clone()
+            }
+        });
+        Ok(combined)
+    }
+
+    pub fn add_right(&self, other: &Self) -> Result<Self, GridError> {
+        if self.height() != other.height() {
+            return Err(GridError::UnevenDimensions);
+        }
+        let width = self.width() + other.width();
+        let combined = Self::new2d_with_fn(width, self.height(), |i| {
+            let pos: Coord<usize, 2> = Coord::from_index(i, width).unwrap();
+            if pos.x() < self.width() {
+                self[pos].clone()
+            } else {
+                other[Coord::new2d(pos.x() - self.width(), pos.y())].clone()
+            }
+        });
+        Ok(combined)
     }
 }
 
