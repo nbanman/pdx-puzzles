@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Cardinal {
     North,
@@ -68,5 +70,17 @@ impl From<&str> for Cardinal {
         assert!(value.len() == 1);
         let value = value.chars().next().unwrap();
         value.into()
+    }
+}
+
+impl Display for Cardinal {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let disp = match self {
+            Cardinal::North => "North",
+            Cardinal::East => "East",
+            Cardinal::South => "South",
+            Cardinal::West => "West",
+        };
+        write!(f, "{}", disp)
     }
 }
