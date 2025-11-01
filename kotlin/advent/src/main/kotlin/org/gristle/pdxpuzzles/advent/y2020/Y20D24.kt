@@ -5,71 +5,67 @@ import org.gristle.pdxpuzzles.utilities.objects.Hexagon
 
 class Y20D24(input: String) : Day {
 
-    val pattern = "(nw|ne|sw|se|w|e)".toRegex()
-    private val rules = input
-        .lines()
-        .map { line ->
-            pattern.findAll(line)
-                .toList()
-                .map {
-                    when (it.value) {
-                        "w" -> "n"
-                        "nw" -> "ne"
-                        "ne" -> "se"
-                        "e" -> "s"
-                        "se" -> "sw"
-                        "sw" -> "nw"
-                        else -> it.value
+    val flippedTiles: Set<Hexagon> = buildSet {
+        val pattern = "(nw|ne|sw|se|w|e)".toRegex()
+        val rules = input
+            .lines()
+            .map { line ->
+                pattern.findAll(line)
+                    .toList()
+                    .map {
+                        when (it.value) {
+                            "w" -> "n"
+                            "nw" -> "ne"
+                            "ne" -> "se"
+                            "e" -> "s"
+                            "se" -> "sw"
+                            "sw" -> "nw"
+                            else -> throw IllegalStateException()
+                        }
                     }
-                }
-        }
-    private val home = Hexagon.ORIGIN
-    private val flipped: Map<Hexagon, Boolean> = buildMap {
-        rules.forEach { rule ->
-            val tile = rule.fold(home, Hexagon::hexAt)
-            this[tile] = !getOrPut(tile) { false }
+            }
+
+        for (rule in rules) {
+            val tile = rule.fold(Hexagon.ORIGIN, Hexagon::hexAt)
+
+            if (contains(tile)) {
+                remove(tile)
+            } else {
+                add(tile)
+            }
         }
     }
 
-    override fun part1() = flipped.count { it.value }
+
+
+    override fun part1() = flippedTiles.size
 
     override fun part2(): Int {
-        fun hexRing(n: Int): List<Hexagon> = buildList {
-            for (r in 0..n) add(Hexagon(-n, r))
-            for (q in -(n - 1)..0) {
-                add(Hexagon(q, n))
-                add(Hexagon(q, -(n + q)))
-            }
-            addAll(dropLast(2).map { hex -> Hexagon(-hex.q, -hex.r) })
-        }
+        var flippedTiles = flippedTiles
 
-        var flipMap = flipped
-        var radius = flipMap.filter { it.value }.maxOf { it.key.distance(home) }
-        for (day in 1..100) {
-            val newMap = flipMap.toMutableMap()
-            radius++
-            val hexen: List<Hexagon> = buildList {
-                add(home)
-                (1..radius).forEach { addAll(hexRing(it)) }
-            }
-            hexen.forEach { hexagon ->
-                val blackNeighbors = hexagon.neighbors().count { flipMap[it] ?: false }
-                val isBlack = flipMap[hexagon] ?: false
-                newMap[hexagon] = if (isBlack) { // if black
-                    blackNeighbors in 1..2
-                } else {
-                    blackNeighbors == 2
+        val candidates = mutableMapOf<Hexagon, Int>()
+
+        repeat(100) {
+            for (tile in flippedTiles) {
+                for (adj in tile.neighbors()) {
+                    candidates[adj] = candidates.getOrDefault(adj, 0) + 1
                 }
             }
-            flipMap = newMap
+            flippedTiles = candidates.asSequence()
+                .filter { (candidate, occurrences) ->
+                    occurrences == 2 || (occurrences == 1 && flippedTiles.contains(candidate))
+                }.map { (candidate, _) -> candidate }
+                .toSet()
+            candidates.clear()
         }
-        return flipMap.count { it.value }
+
+        return flippedTiles.size
     }
 }
 
 fun main() = Day.runDay(Y20D24::class)
 
-//    Class creation: 39ms
-//    Part 1: 244 (2ms)
-//    Part 2: 3665 (1101ms)
-//    Total time: 1142ms
+//    Class creation: 11ms
+//    Part 1: 244 (1ms)
+//    Part 2: 3665 (80ms)
+//    Total time: 93ms
