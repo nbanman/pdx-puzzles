@@ -256,7 +256,7 @@ impl<T: Clone> Grid<T, 2> {
             size.y(),
         );
         let sub = Self::new_with_fn([adj_width, adj_height], |i| {
-            let new_pos = Coord::new2d(i % adj_height, i / adj_height);
+            let new_pos = Coord::new2d(i % adj_width, i / adj_width);
             self[new_pos + start].clone()
         });
         Ok(sub)
