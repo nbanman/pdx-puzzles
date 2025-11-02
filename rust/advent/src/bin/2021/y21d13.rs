@@ -1,71 +1,79 @@
 use advent::utilities::get_input::get_input;
-use utilities::structs::{coord::Coord2U, grid::Grid2, stopwatch::{ReportDuration, Stopwatch}};
+use advent_ocr::ocr;
+use itertools::Itertools;
+use utilities::{parsing::get_numbers::ContainsNumbers, structs::{coord::Coord2U, grid::Grid2, stopwatch::{ReportDuration, Stopwatch}}};
 
 type Int = usize;
-type Input<'a> = &'a str;
+type Input = (Paper, Vec<FoldInstruction>);
 type Pos = Coord2U;
+type Paper = Grid2<bool>;
+
+enum Axis { X, Y }
 
 struct FoldInstruction {
-    axis: char,
+    axis: Axis,
     amt: usize,
 }
 
 impl FoldInstruction {
-    fn execute(&self, paper: Grid2<bool>) -> Grid2<bool> {
+    fn execute(&self, paper: &mut Paper, tl: Pos, br: Pos) -> (Pos, Pos) {
         match self.axis {
-            // 'x' => {
-            //     let left = paper
-            //         .sub_grid(Pos::origin(), Pos::new2d(self.amt, paper.height()))
-            //         .unwrap();
-            //     let right = paper
-            //         .sub_grid(
-            //             Pos::new2d(self.amt + 1, 0), 
-            //             Pos::new2d(paper.width() - 1 - self.amt, paper.height())
-            //         )
-            //         .unwrap()
-            //         .rotate(GridRotation::FlipX);
-            //     let (larger, smaller) = if left.len() > right.len() {
-            //         (left, right)
-            //     } else {
-            //         (right, left)
-            //     };
-            //     let offset = larger.width() as i64 - smaller.width() as i64;
-            //     perform_fold(Coord::new2d(offset, 0), larger, smaller)
-            // },
-            // 'y' => {
-            //     let up = paper
-            //         .sub_grid(Pos::origin(), Pos::new2d(paper.width(), self.amt))
-            //         .unwrap();
-            //     let down = paper
-            //         .sub_grid(Pos::new2d(0, self.amt + 1), Pos::new2d(paper.width(), paper.height() - 1 - amt))
-            //         .unwrap()
-            //         .rotate(GridRotation::FlipY);
-            //     let (larger, smaller) = if up.len() > down.len() {
-            //         (up, down)
-            //     } else {
-            //         (down, up)
-            //     };
-            //     let offset = smaller.height() as i64 - larger.height() as i64;
-            //     perform_fold(Coord2::new2d(0, offset), larger, smaller)
-            // },
-            _ => panic!("Regex returned illegal value")
+            Axis::X => {
+                let lbr = Pos::new2d(tl.x() + self.amt - 1, br.y());
+                let rtl = Pos::new2d(tl.x() + self.amt + 1, tl.y());
+                self.perform_fold(paper, tl, lbr, rtl, br)
+            },
+            Axis::Y => {
+                let ubr = Pos::new2d(br.x(), tl.y() + self.amt - 1);
+                let dtl = Pos::new2d(tl.x(), tl.y() + self.amt + 1);
+                self.perform_fold(paper, tl, ubr, dtl, br)
+            },
+        }
+    }
+
+    fn perform_fold(&self, paper: &mut Paper, atl: Pos, abr: Pos, btl: Pos, bbr: Pos) -> (Pos, Pos) {
+        match self.axis {
+            Axis::X => {
+                if abr.x() - atl.x() >= bbr.x() - btl.x() {
+                    Pos::for_rectangle(btl, bbr, |pos| {
+                        if paper[pos] {
+                            let dist = pos.x() - btl.x();
+                            paper[Pos::new2d(abr.x() - dist, pos.y())] = true;
+                        }
+                    });
+                    (atl, abr)
+                } else {
+                    Pos::for_rectangle(atl, abr, |pos| {
+                        if paper[pos] {
+                            let dist = abr.x() - pos.x();
+                            paper[Pos::new2d(btl.x() + dist, pos.y())] = true;
+                        }
+                    });
+                    (btl, bbr)
+                }
+            },
+            Axis::Y => {
+                if abr.y() - atl.y() >= bbr.y() - btl.y() {
+                    Pos::for_rectangle(btl, bbr, |pos| {
+                        if paper[pos] {
+                            let dist = pos.y() - btl.y();
+                            paper[Pos::new2d(pos.x(), abr.y() - dist)] = true;
+                        }
+                    });
+                    (atl, abr)
+                } else {
+                    Pos::for_rectangle(atl, abr, |pos| {
+                        if paper[pos] {
+                            let dist = abr.y() - pos.y();
+                            paper[Pos::new2d(pos.x(), btl.y() + dist)] = true;
+                        }
+                    });
+                    (btl, bbr)
+                }
+            },
         }
     }
 }
-
-// fn perform_fold(adjustment: Coord2, larger: Grid2<bool>, smaller: Grid2<bool>) -> Grid2<bool> {
-//     Grid2::new2d_with_fn(larger.width(), larger.len() / larger.width(), |i| {
-//         let l_pos = larger.coord_of(i).unwrap();
-// 
-//         if larger[l_pos] {
-//             true
-//         } else {
-//             let s_pos = l_pos 
-//             false
-//         }
-//         
-//     })
-// }
 
 fn main() {
     let mut stopwatch = Stopwatch::new();
@@ -79,21 +87,73 @@ fn main() {
 }
 
 fn parse_input(input: &str) -> Input {
-    todo!()
+    let (dots, folds) = input.split_once("\n\n").unwrap();
+    let dots = dots.lines()
+        .map(|line| {
+            let (x, y) = line.get_numbers().collect_tuple().unwrap();
+            Pos::new2d(x, y)
+        })
+        .collect_vec();
+    let width = dots.iter().map(|pos| pos.x()).max().unwrap() + 1;
+    let height= dots.iter().map(|pos| pos.y()).max().unwrap() + 1;
+
+    let mut paper = Grid2::new2d_with_fn(width, height, |_| false);
+    for dot in dots {
+        paper[dot] = true;
+    }
+    let folds = folds.lines()
+        .map(|line| {
+            let (_, _, axis, amt) = line.split([' ', '=']).collect_tuple().unwrap();
+            let axis = match axis {
+                "x" => Axis::X,
+                "y" => Axis::Y,
+                _ => unreachable!(),
+            };
+            let amt = amt.parse().unwrap();
+            FoldInstruction { axis, amt }
+        })
+        .collect_vec();
+    (paper, folds)
 }
 
 fn part1(input: &Input) -> Int {
-    todo!()
+    let (paper, folds) = input;
+    let mut paper = paper.clone();
+    let paper_br = Pos::new2d(paper.width() - 1, paper.height() -1);
+    let (tl, br) = folds.first().unwrap()
+        .execute(&mut paper, Pos::origin(), paper_br);
+    let mut count = 0;
+    Pos::for_rectangle(tl, br, |pos| {
+        if paper[pos] {
+            count += 1;
+        }
+    });
+    count
 }
 
 fn part2(input: &Input) -> String {
-    todo!()
+    let (paper, folds) = input;
+    let mut paper = paper.clone();
+    let paper_br = Pos::new2d(paper.width() - 1, paper.height() -1);
+
+    let (tl, br) = folds.iter()
+        .fold((Pos::origin(), paper_br), |(tl, br), fold| {
+            fold.execute(&mut paper, tl, br)
+        });
+    let size = Pos::new2d(br.x() - tl.x() + 1, br.y() - tl.y() + 1);
+    let folded = paper.sub_grid(tl, size).unwrap();
+    ocr(&folded).unwrap()
 }
 
-// #[test]
-// fn default() {
-//     let input = get_input(21, 13).unwrap();
-//     let input = parse_input(&input);
-//     assert_eq!(735, part1(&input));
-//     assert_eq!("UFRZKAUZ".to_string(), part2(&input));
-// }
+#[test]
+fn default() {
+    let input = get_input(21, 13).unwrap();
+    let input = parse_input(&input);
+    assert_eq!(735, part1(&input));
+    assert_eq!("UFRZKAUZ".to_string(), part2(&input));
+}
+
+// Input parsed (448μs)
+// 1. 735 (44ms)
+// 2. UFRZKAUZ (48ms)
+// Total: 93ms
