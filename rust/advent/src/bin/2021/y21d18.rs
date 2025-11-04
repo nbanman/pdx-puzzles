@@ -1,6 +1,7 @@
 use std::{hint::black_box, ops::Add};
 use std::fmt::{Display, Formatter};
 use advent::utilities::get_input::get_input;
+use itertools::Itertools;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 type Input = Vec<Snailfish>;
@@ -32,6 +33,36 @@ impl Snailfish {
             Snailfish::Number(v) => *v as usize,
             Snailfish::Pair { left, right } => {
                 left.magnitude() * 3 + right.magnitude() * 2
+            },
+        }
+    }
+
+    fn reduce(&mut self) {
+        loop {
+            loop {
+                if self.explode(1) == ExplodeStatus::Nothing { break; }
+            }
+            if !self.split() { break; }
+        }
+    }
+
+    fn split(&mut self) -> bool {
+        match self {
+            Snailfish::Number(v) => {
+                if *v >= 10 {
+                    let left_v = *v / 2;
+                    let right_v = left_v + if *v & 1 == 1 { 1 } else { 0 };
+                    *self = Self::Pair {
+                        left: Box::new(Self::Number(left_v)),
+                        right: Box::new(Self::Number(right_v))
+                    };
+                    true
+                } else {
+                    false
+                }
+            },
+            Snailfish::Pair { left, right } => {
+                left.split() || right.split()
             },
         }
     }
@@ -136,14 +167,6 @@ impl Snailfish {
         match self {
             Snailfish::Number(v) => {
                 *v += to_place;
-                if *v >= 10 {
-                    let left_v = *v / 2;
-                    let right_v = left_v + if *v & 1 == 1 { 1 } else { 0 };
-                    *self = Self::Pair {
-                        left: Box::new(Self::Number(left_v)),
-                        right: Box::new(Self::Number(right_v))
-                    };
-                }
             },
             Snailfish::Pair { left, .. } => { left.place_left(to_place); },
         }
@@ -153,14 +176,6 @@ impl Snailfish {
         match self {
             Snailfish::Number(v) => {
                 *v += to_place;
-                if *v >= 10 {
-                    let left_v = *v / 2;
-                    let right_v = left_v + if *v & 1 == 1 { 1 } else { 0 };
-                    *self = Self::Pair {
-                        left: Box::new(Self::Number(left_v)),
-                        right: Box::new(Self::Number(right_v))
-                    };
-                }
             },
             Snailfish::Pair { right, .. } => { right.place_right(to_place); },
         }
@@ -175,7 +190,7 @@ impl Add<Snailfish> for Snailfish {
         let left = Box::new(self);
         let right = Box::new(rhs);
         let mut added = Self::Pair { left, right };
-        added.explode(1);
+        added.reduce();
         added
     }
 }
@@ -217,7 +232,7 @@ impl From<&mut std::slice::Iter<'_, u8>> for Snailfish {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 enum ExplodeStatus {
     PlaceLeft(u8),
     PlaceRight(u8),
@@ -231,15 +246,14 @@ fn parse_input(input: &str) -> Input {
 }
 
 fn part1(snailfish: Input) -> Output {
-    let added = snailfish[0].clone() + snailfish[1].clone();
-    println!("{added}");
-    // todo!()
     snailfish.into_iter().reduce(Snailfish::add).unwrap().magnitude()
 }
 
 fn part2(snailfish: Input) -> Output {
-
-    todo!()
+    snailfish.iter().permutations(2)
+        .map(|combo| (combo[0].clone() + combo[1].clone()).magnitude())
+        .max()
+        .unwrap()
 }
 
 #[test]
@@ -250,10 +264,7 @@ fn default() {
     assert_eq!(4727, part2(input));
 }
 
-#[test]
-fn examples() {
-    let input = get_input(21, 18).unwrap();
-    let input = parse_input(&input);
-    assert_eq!(3806, part1(input.clone()));
-    assert_eq!(4727, part2(input));
-}
+// Input parsed (60μs)
+// 1. 3806 (1ms)
+// 2. 4727 (24ms)
+// Total: 26ms
