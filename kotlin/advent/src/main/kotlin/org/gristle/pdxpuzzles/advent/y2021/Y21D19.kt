@@ -140,7 +140,7 @@ class Y21D19(input: String) : Day {
         }
 
         val furthestDistance =
-            master.scannerLocations.elementPairs().toList().maxOf { (a, b) -> a.manhattanDistance(b) }
+            master.scannerLocations.elementPairs().maxOf { (a, b) -> a.manhattanDistance(b) }
 
         master.beacons.size to furthestDistance
     }
@@ -167,7 +167,7 @@ class Y21D19(input: String) : Day {
 
 fun main() = Day.runDay(Y21D19::class)
 
-//    Class creation: 2275ms
-//    Part 1: 378 (0ms)
-//    Part 2: 13148 (0ms)
-//    Total time: 2275ms
+//    Class creation: 1071ms
+//    Part 1: 378 (1ms)
+//    Part 2: 13148 (2ms)
+//    Total time: 1075ms
