@@ -214,7 +214,6 @@ impl From<&str> for Snailfish {
 impl From<&mut std::slice::Iter<'_, u8>> for Snailfish {
     fn from(bytes: &mut std::slice::Iter<'_, u8>) -> Self {
         let next = *bytes.next().unwrap() as char;
-        black_box(&next);
         match next {
             '[' => {
                 // Pair
