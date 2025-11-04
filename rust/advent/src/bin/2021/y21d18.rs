@@ -1,7 +1,7 @@
-use std::{hint::black_box, ops::Add};
-use std::fmt::{Display, Formatter};
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
+use std::fmt::{Display, Formatter};
+use std::ops::Add;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 type Input = Vec<Snailfish>;
