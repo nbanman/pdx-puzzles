@@ -34,7 +34,7 @@ class Y20D14(input: String) : Day {
             }
         }
 
-        data class Mask internal constructor(val oneMask: Long, val zeroMask: Long, val xMask: Long) : Instruction()
+        data class Mask constructor(val oneMask: Long, val zeroMask: Long, val xMask: Long) : Instruction()
 
         data class Mem(val register: Long, val value: Long) : Instruction() {
             fun maskedRegisters(oneMask: Long, xMask: Long): List<Long> {
