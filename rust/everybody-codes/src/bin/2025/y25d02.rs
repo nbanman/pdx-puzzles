@@ -22,20 +22,20 @@ fn parse(input: Input) -> Pos {
     let (x, y) = input.get_numbers().collect_tuple().unwrap();
     Pos::from((x, y))
 }
-fn mul(a: Pos, b: Pos) -> Pos {
-    let x = a.x() * b.x() - a.y() * b.y();
-    let y = a.x() * b.y() + a.y() * b.x();
+fn square(a: Pos) -> Pos {
+    let x = a.x() * a.x() - a.y() * a.y();
+    let y = a.x() * a.y() + a.x() * a.y();
     Pos::from((x,y))
 }
 
 fn solve(input: Input, step: usize) -> usize {
     let tl = parse(input);
-    let br = tl + Pos::from((1000, 1000));
+    let br = tl + 1000;
     let mut engraved_points = 0;
     for y in (tl.y()..=br.y()).step_by(step) {
         for x in (tl.x()..=br.x()).step_by(step) {
             let point = Pos::from((x, y));
-            if engravable_point(100, point, 100_000) {
+            if engravable_point(100, point, 100_000).is_some() {
                 engraved_points += 1;
             }
         }
@@ -43,25 +43,21 @@ fn solve(input: Input, step: usize) -> usize {
     engraved_points
 }
 
-fn engravable_point(cycles: usize, point: Pos, divisor: i64) -> bool {
-    let mut acc = Pos::origin();
+fn engravable_point(cycles: usize, point: Pos, divisor: i64) -> Option<Pos> {
     let range = -1000000 ..= 1000000;
+    let mut acc = Pos::origin();
     for _ in 0..cycles {
-        let mul = mul(acc, acc);
-        acc = point + mul / divisor;
+        acc = point + square(acc) / divisor;
         if !range.contains(&acc.x()) || !range.contains(&acc.y()) {
-            return false;
+            return None;
         }
     }
-    true
+    Some(acc)
 }
 
 fn part1(input: Input) -> String {
-    let a = parse(input);
-    let div = Pos::from((10, 10));
-    let ans = (0..3).fold(Pos::origin(), |acc, _| {
-        a + mul(acc, acc) / div
-    });
+    let point = parse(input);
+    let ans = engravable_point(3, point, 10).unwrap();
     format!("[{},{}]", ans.x(), ans.y())
 }
 
