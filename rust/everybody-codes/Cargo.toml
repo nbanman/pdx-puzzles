@@ -121,3 +121,7 @@ path = "src/bin/2025/y25d01.rs"
 [[bin]]
 name = "ec-y25d02"
 path = "src/bin/2025/y25d02.rs"
+
+[[bin]]
+name = "ec-y25d03"
+path = "src/bin/2025/y25d03.rs"
