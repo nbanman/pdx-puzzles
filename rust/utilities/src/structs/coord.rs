@@ -252,6 +252,14 @@ impl<T: Coordinate, const N: usize> Sub for Coord<T, N> {
     }
 }
 
+impl<T: Coordinate, const N: usize> Sub for &Coord<T, N> {
+    type Output = Coord<T, N>;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        *self + *rhs
+    }
+}
+
 impl<T, const N: usize> Sub<T> for Coord<T, N>
 where
     T: Coordinate + Sub<Output = T>,
