@@ -1,7 +1,9 @@
+use rayon::iter::ParallelIterator;
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
 use std::fmt::{Display, Formatter};
 use std::ops::Add;
+use rayon::iter::IntoParallelRefIterator;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 type Input = Vec<Snailfish>;
@@ -249,7 +251,10 @@ fn part1(snailfish: Input) -> Output {
 }
 
 fn part2(snailfish: Input) -> Output {
-    snailfish.iter().permutations(2)
+    let combos = snailfish.iter().permutations(2)
+        .collect_vec();
+    combos
+        .par_iter()
         .map(|combo| (combo[0].clone() + combo[1].clone()).magnitude())
         .max()
         .unwrap()
@@ -263,7 +268,7 @@ fn default() {
     assert_eq!(4727, part2(input));
 }
 
-// Input parsed (60μs)
+// Input parsed (72μs)
 // 1. 3806 (1ms)
-// 2. 4727 (24ms)
-// Total: 26ms
+// 2. 4727 (5ms)
+// Total: 7ms
