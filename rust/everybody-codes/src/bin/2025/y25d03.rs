@@ -16,15 +16,19 @@ fn main() {
 }
 
 fn part1(input: Input) -> usize {
-    input.get_numbers::<usize>().sorted_unstable().unique().sum()
+    input.get_numbers::<usize>().sorted_unstable().dedup().sum()
 }
 
 fn part2(input: Input) -> usize {
-    input.get_numbers::<usize>().sorted().unique().take(20).sum()
+    input.get_numbers::<usize>().sorted().dedup().take(20).sum()
 }
 
 fn part3(input: Input) -> usize {
-    *input.get_numbers::<usize>().counts().values().max().unwrap()
+    let mut counts: [usize; 100] = [0; 100];
+    for n in input.get_numbers::<usize>() {
+        counts[n] += 1;
+    }
+    counts.into_iter().max().unwrap()
 }
 
 #[test]
@@ -35,8 +39,8 @@ fn default() {
     assert_eq!(3204, part3(&input3));
 }
 
-// Input parsed (41μs)
-// 1. 2569 (30μs)
-// 2. 296 (14μs)
-// 3. 3204 (172μs)
-// Total: 261μs
+// Input parsed (39μs)
+// 1. 2569 (10μs)
+// 2. 296 (11μs)
+// 3. 3204 (80μs)
+// Total: 144μs
