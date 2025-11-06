@@ -20,7 +20,7 @@ fn part1(input: Input) -> usize {
 }
 
 fn part2(input: Input) -> usize {
-    input.get_numbers::<usize>().sorted().dedup().take(20).sum()
+    input.get_numbers::<usize>().sorted_unstable().dedup().take(20).sum()
 }
 
 fn part3(input: Input) -> usize {
@@ -39,8 +39,8 @@ fn default() {
     assert_eq!(3204, part3(&input3));
 }
 
-// Input parsed (39μs)
+// Input parsed (37μs)
 // 1. 2569 (10μs)
-// 2. 296 (11μs)
-// 3. 3204 (80μs)
-// Total: 144μs
+// 2. 296 (9μs)
+// 3. 3204 (74μs)
+// Total: 134μs
