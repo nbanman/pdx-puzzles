@@ -15,17 +15,24 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
+#[inline(always)]
+fn parse(input: Input) -> impl Iterator<Item = usize> {
+    input.as_bytes().split(|b| b == &b',').map(|bytes| {
+        bytes.iter().fold(0, |acc, &b| acc * 10 + (b - b'0') as usize)
+    })
+}
+
 fn part1(input: Input) -> usize {
-    input.get_numbers::<usize>().sorted_unstable().dedup().sum()
+    parse(input).sorted_unstable().dedup().sum()
 }
 
 fn part2(input: Input) -> usize {
-    input.get_numbers::<usize>().sorted_unstable().dedup().take(20).sum()
+    parse(input).sorted_unstable().dedup().take(20).sum()
 }
 
 fn part3(input: Input) -> usize {
     let mut counts: [usize; 100] = [0; 100];
-    for n in input.get_numbers::<usize>() {
+    for n in parse(input) {
         counts[n] += 1;
     }
     counts.into_iter().max().unwrap()
@@ -41,6 +48,6 @@ fn default() {
 
 // Input parsed (37μs)
 // 1. 2569 (10μs)
-// 2. 296 (9μs)
-// 3. 3204 (74μs)
-// Total: 134μs
+// 2. 296 (7μs)
+// 3. 3204 (24μs)
+// Total: 81μs
