@@ -1,6 +1,6 @@
 use everybody_codes::utilities::inputs::get_event_inputs;
 use itertools::Itertools;
-use utilities::{parsing::get_numbers::ContainsNumbers, structs::stopwatch::{ReportDuration, Stopwatch}};
+use utilities::{structs::stopwatch::{ReportDuration, Stopwatch}};
 
 type Input<'a> = &'a str;
 
