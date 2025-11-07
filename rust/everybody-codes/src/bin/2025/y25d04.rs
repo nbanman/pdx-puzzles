@@ -1,5 +1,6 @@
 extern crate core;
 
+use std::ops::Mul;
 use everybody_codes::utilities::inputs::get_event_inputs;
 use itertools::Itertools;
 use utilities::{parsing::get_numbers::ContainsNumbers, structs::stopwatch::{ReportDuration, Stopwatch}};
@@ -17,7 +18,7 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn first_and_last(input: Input) -> (f64, f64) {
+fn first_and_last(input: Input) -> (u64, u64) {
     let first = input.as_bytes().iter().position(|it| !it.is_ascii_digit()).unwrap();
     let first = input[0..first].parse().unwrap();
     let last = input.trim_end().as_bytes().iter().rposition(|it| !it.is_ascii_digit()).unwrap();
@@ -27,20 +28,19 @@ fn first_and_last(input: Input) -> (f64, f64) {
 
 fn part1(input: Input) -> u64 {
     let (first, last) = first_and_last(input);
-    (2025.0 * (first / last)) as u64
+    2025 * first / last
 }
 
 fn part2(input: Input) -> u64 {
     let (first, last) = first_and_last(input);
-    (10_000_000_000_000.0 * (last / first)).ceil() as u64
+    (10_000_000_000_000 * last).div_ceil(first)
 }
 
 fn part3(input: Input) -> u64 {
-    input.get_numbers::<usize>()
-        .tuple_windows()
-        .enumerate()
-        .filter(|(index, _)| index & 1 == 0)
-        .fold(100f64, |acc, (_, (a, b))| acc * (a as f64 / b as f64)) as u64
+    input.get_numbers::<u64>()
+        .tuples()
+        .map(|(a, b)| a as f64 / b as f64)
+        .fold(100f64, f64::mul) as u64
 }
 
 #[test]
@@ -51,8 +51,8 @@ fn default() {
     assert_eq!(220503433846, part3(&input3));
 }
 
-// Input parsed (28μs)
-// 1. 12980 (8μs)
-// 2. 2394789579159 (2μs)
-// 3. 220503433846 (5μs)
-// Total: 46μs
+// Input parsed (29μs)
+// 1. 12980 (4μs)
+// 2. 2394789579159 (1μs)
+// 3. 220503433846 (3μs)
+// Total: 40μs

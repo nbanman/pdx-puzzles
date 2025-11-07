@@ -1,7 +1,6 @@
 package org.gristle.pdxpuzzles.everybodycodes.y2025
 
 import org.gristle.pdxpuzzles.everybodycodes.utilities.Day
-import org.gristle.pdxpuzzles.utilities.math.isEven
 import org.gristle.pdxpuzzles.utilities.parsing.getInts
 import kotlin.math.ceil
 
@@ -20,9 +19,8 @@ object Y25D04 : Day {
 
     override fun part3(input: String) = input
         .getInts()
-        .zipWithNext()
-        .filterIndexed { index, _-> index.isEven() }
-        .fold(100.0) { acc, (a, b) -> acc * (a.toDouble() / b)}
+        .chunked(2) { (a, b) -> a.toDouble() / b }
+        .fold(100.0, Double::times)
         .toLong()
 }
 
