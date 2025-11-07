@@ -50,12 +50,6 @@ class Y21D24(input: String) : Day {
     fun solve(findIntersection: (pushMax: Int, popMax: Int) -> Int): Long {
         var z = 0L
 
-        // The steps are paired and are run in the order that the "push" steps occur. This presents a problem
-        // because the "pull" steps can occur out of order. However, we know that the "pull" steps always result
-        // in z:= z / 26. So this kludge allows us to figure how many intervening "pull" steps occurred since the
-        // last "push" step, and reduce z accordingly.
-        var lastIncrease = 0
-
         // This is our answer, an array of digits. It is a mutable list because the digits are not found in order. 
         val modelNumber = MutableList(pairedSteps.size * 2) { 0 }
 
@@ -79,12 +73,8 @@ class Y21D24(input: String) : Day {
             modelNumber[step.push.order] = 9 - (pushMax - intersection)
             modelNumber[step.pop.order] = 9 - (popMax - intersection)
 
-            // Applies the z-decrease step for the number of times that a pop had occured since the last push
-            repeat(step.push.order - lastIncrease - 1) { z /= 26 }
-
             // Applies the z-increase step.
             z = increaseZ + modelNumber[step.push.order]
-            lastIncrease = step.push.order
         }
 
         return modelNumber.joinToString("").toLong()
@@ -96,11 +86,8 @@ class Y21D24(input: String) : Day {
 }
 
 fun main() = Day.runDay(Y21D24::class)
-//    var time = System.nanoTime()
-//    val c = Y21D24(readRawInput("y2021/d24"))
-//    println("Class creation: ${elapsedTime(time)}ms")
-//    time = System.nanoTime()
-//    println("Part 1: ${c.part1()} (${elapsedTime(time)}ms)") // 92969593497992
-//    time = System.nanoTime()
-//    println("Part 2: ${c.part2()} (${elapsedTime(time)}ms)") // 81514171161381
-//}
+
+//    Class creation: 5ms
+//    Part 1: 92969593497992 (2ms)
+//    Part 2: 81514171161381 (2ms)
+//    Total time: 10ms
