@@ -707,9 +707,9 @@ path = "src/bin/2021/y21d21.rs"
 name = "advent-y21d22"
 path = "src/bin/2021/y21d22.rs"
 
-#[[bin]]
-#name = "advent-y21d23"
-#path = "src/bin/2021/y21d23.rs"
+[[bin]]
+name = "advent-y21d23"
+path = "src/bin/2021/y21d23.rs"
 
 #[[bin]]
 #name = "advent-y21d24"
