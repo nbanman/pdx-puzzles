@@ -50,7 +50,7 @@ fn solve<F>(instructions: &Input, operation: F) -> Output
 where
     F: Fn(Command, usize) -> usize,
 {
-    let mut lights = [0usize; LIGHT_SIZE];    
+    let mut lights = vec![0usize; LIGHT_SIZE];
     for inst in instructions {
         for (y, x) in (inst.tl.y()..=inst.br.y()).cartesian_product(inst.tl.x()..=inst.br.x()) {
             let index = y * LENGTH + x;
