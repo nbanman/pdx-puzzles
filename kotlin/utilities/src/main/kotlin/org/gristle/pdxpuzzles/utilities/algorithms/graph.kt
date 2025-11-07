@@ -293,7 +293,8 @@ object Graph {
             val current = q.pollUntil { visited[it.id] == null } ?: break
             visited[current.id] = current
             if (endCondition(current.id) == true) return visited.values.toList()
-            (edges[current.id] ?: defaultEdges(current.id)).forEach { neighborEdge ->
+            val neighbors = (edges[current.id] ?: defaultEdges(current.id))
+            for (neighborEdge in neighbors) {
                 val alternateWeight = current.weight + neighborEdge.weight
                 val weight = weights.getOrDefault(neighborEdge.vertexId, Double.MAX_VALUE)
                 if (alternateWeight < weight) {
