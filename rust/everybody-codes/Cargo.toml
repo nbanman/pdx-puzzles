@@ -12,7 +12,6 @@ lazy-regex = { workspace = true }
 #thiserror = { workspace = true }
 anyhow = { workspace = true }
 indexmap = { workspace = true }
-clap = { version = "4.5.47", features = ["derive"] }
 
 [[bin]]
 name = "ec-y24d01"
@@ -125,3 +124,7 @@ path = "src/bin/2025/y25d02.rs"
 [[bin]]
 name = "ec-y25d03"
 path = "src/bin/2025/y25d03.rs"
+
+[[bin]]
+name = "ec-y25d04"
+path = "src/bin/2025/y25d04.rs"
