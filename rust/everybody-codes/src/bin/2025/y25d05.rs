@@ -100,25 +100,6 @@ impl From<&str> for Sword {
     }
 }
 
-impl Ord for Sword {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.quality().cmp(&other.quality())
-            .then_with(|| {
-                self.segments.iter()
-                    .zip(other.segments.iter())
-                    .map(|(a, b)| a.number().cmp(&b.number()))
-                    .find(|&ordering| ordering != std::cmp::Ordering::Equal)
-                    .unwrap_or_else(|| self.id.cmp(&other.id))
-            })
-    }
-}
-
-impl PartialOrd for Sword {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
 fn concat(a: Int, b: Int) -> Int {
     let mut pow = 1;
     while pow <= b {
@@ -144,7 +125,11 @@ fn part2(input: Input) -> Int {
 fn part3(input: Input) -> Int {
     input.lines()
         .map(|line| Sword::from(line))
-        .sorted_unstable()
+        .sorted_by_cached_key(|sword| (
+            sword.quality(),
+            sword.segments.iter().map(|seg| seg.number()).collect_vec(),
+            sword.id,
+        ))
         .rev()
         .enumerate()
         .map(|(idx, sword)| (idx as Int + 1) * sword.id)
@@ -159,8 +144,8 @@ fn default() {
     assert_eq!(31574813, part3(&input3));
 }
 
-// Input parsed (41μs)
-// 1. 2782784532 (9μs)
+// Input parsed (45μs)
+// 1. 2782784532 (5μs)
 // 2. 8637361015798 (89μs)
-// 3. 31574813 (664μs)
-// Total: 808μs
+// 3. 31574813 (609μs)
+// Total: 752μs
