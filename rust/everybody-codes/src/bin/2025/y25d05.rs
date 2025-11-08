@@ -25,8 +25,9 @@ struct Segment {
     left: Option<Int>,
     right: Option<Int>,
 }
+
 impl Segment {
-    fn place(&mut self, int: u64) -> bool {
+    fn place(&mut self, int: Int) -> bool {
         if int < self.spine && self.left.is_none() {
             self.left = Some(int);
             true
@@ -43,6 +44,10 @@ impl Segment {
             concat(self.left.unwrap_or_default(), self.spine),
             self.right.unwrap_or_default(),
         )
+    }
+
+    fn is_closed(&self) -> bool {
+        self.left.is_some() && self.right.is_some()
     }
 }
 
@@ -67,10 +72,20 @@ impl From<&str> for Sword {
             left: None,
             right: None,
         }];
+        let mut open = 0;
 
         'outer: for int in ints {
-            for idx in 0..segments.len() {
+            let mut found_open = false;
+            for idx in open..segments.len() {
                 let segment = segments.get_mut(idx).unwrap();
+                if segment.is_closed() {
+                    if !found_open {
+                        open = idx + 1;
+                    }
+                    continue;
+                } else {
+                    found_open = true;
+                }
                 if segment.place(int) {
                     continue 'outer;
                 }
@@ -145,7 +160,7 @@ fn default() {
 }
 
 // Input parsed (42μs)
-// 1. 2782784532 (9μs)
-// 2. 8637361015798 (105μs)
-// 3. 31574813 (741μs)
-// Total: 902μs
+// 1. 2782784532 (8μs)
+// 2. 8637361015798 (92μs)
+// 3. 31574813 (710μs)
+// Total: 856μs
