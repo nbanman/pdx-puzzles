@@ -19,7 +19,6 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-#[derive(Debug, PartialEq, Eq)]
 struct Segment {
     spine: Int,
     left: Option<Int>,
@@ -51,7 +50,6 @@ impl Segment {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
 struct Sword {
     id: Int,
     segments: Vec<Segment>,
