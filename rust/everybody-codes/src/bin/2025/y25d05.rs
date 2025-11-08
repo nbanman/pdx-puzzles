@@ -56,15 +56,6 @@ struct Sword {
 }
 
 impl Sword {
-    fn new(id: Int, ints: &[Int]) -> Self {
-        let mut segments: Vec<Segment> = Vec::new();
-        for &int in ints {
-            if !segments.iter_mut().any(|segment| segment.place(int)) {
-                segments.push(Segment::new(int))
-            }
-        }
-        Self { id, segments }
-    }
     fn quality(&self) -> Int {
         self.segments
             .iter()
@@ -76,8 +67,13 @@ impl From<&str> for Sword {
     fn from(value: &str) -> Self {
         let mut ints = value.get_numbers::<Int>();
         let id = ints.next().unwrap();
-        let ints = ints.collect_vec();
-        Self::new(id, &ints)
+        let mut segments: Vec<Segment> = Vec::new();
+        for int in ints {
+            if !segments.iter_mut().any(|segment| segment.place(int)) {
+                segments.push(Segment::new(int))
+            }
+        }
+        Self { id, segments }
     }
 }
 
