@@ -28,12 +28,12 @@ impl ReportDuration for Duration {
     fn report(&self) -> String {
         let seconds = self.as_secs();
         if seconds > 0 {
-            format!("{0}.{1:02}s", seconds, self.as_millis() % 1000)
+            format!("{0}.{1:03}s", seconds, self.as_millis() % 1000)
         } else {
             match self.as_nanos() {
                 ..1_000 => format!("{}ns", self.as_nanos()),
                 1_000..1_000_000 => format!("{}μs", self.as_micros()),
-                1_000_000.. => format!("{}ms", self.as_millis()),
+                1_000_000.. => format!("{}.{:03}ms", self.as_millis(), self.as_micros() % 1_000),
             }
         }
     }
@@ -65,6 +65,16 @@ impl Stopwatch {
             is_running: false,
             elapsed: Duration::ZERO,
             last_start: None,
+            lap_start: None,
+        }
+    }
+
+    /// Creates a new stopwatch initialized to zero and not running
+    pub fn started() -> Self {
+        Self {
+            is_running: true,
+            elapsed: Duration::ZERO,
+            last_start: Some(Instant::now()),
             lap_start: None,
         }
     }
@@ -112,7 +122,7 @@ impl Stopwatch {
     pub fn lap(&mut self) -> Duration {
         if self.is_running {
             let now = Instant::now();
-            let lap = now - self.lap_start.unwrap();
+            let lap = now - self.lap_start.unwrap_or(self.last_start.unwrap());
             self.lap_start = Some(now);
             lap
         } else {
