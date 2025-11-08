@@ -45,8 +45,8 @@ impl Segment {
         )
     }
 
-    fn is_closed(&self) -> bool {
-        self.left.is_some() && self.right.is_some()
+    fn new(spine: u64) -> Self {
+        Self { spine, left: None, right: None, }
     }
 }
 
@@ -56,8 +56,19 @@ struct Sword {
 }
 
 impl Sword {
+    fn new(id: Int, ints: &[Int]) -> Self {
+        let mut segments: Vec<Segment> = Vec::new();
+        for &int in ints {
+            if !segments.iter_mut().any(|segment| segment.place(int)) {
+                segments.push(Segment::new(int))
+            }
+        }
+        Self { id, segments }
+    }
     fn quality(&self) -> Int {
-        self.segments.iter().fold(0, |acc, segment| concat(acc, segment.spine))
+        self.segments
+            .iter()
+            .fold(0, |acc, segment| concat(acc, segment.spine))
     }
 }
 
@@ -65,36 +76,8 @@ impl From<&str> for Sword {
     fn from(value: &str) -> Self {
         let mut ints = value.get_numbers::<Int>();
         let id = ints.next().unwrap();
-        let mut segments = vec![Segment {
-            spine: ints.next().unwrap(),
-            left: None,
-            right: None,
-        }];
-        let mut open = 0;
-
-        'outer: for int in ints {
-            let mut found_open = false;
-            for idx in open..segments.len() {
-                let segment = segments.get_mut(idx).unwrap();
-                if segment.is_closed() {
-                    if !found_open {
-                        open = idx + 1;
-                    }
-                    continue;
-                } else {
-                    found_open = true;
-                }
-                if segment.place(int) {
-                    continue 'outer;
-                }
-            }
-            segments.push(Segment {
-                spine: int,
-                left: None,
-                right: None,
-            })
-        }
-        Self { id, segments }
+        let ints = ints.collect_vec();
+        Self::new(id, &ints)
     }
 }
 
@@ -111,7 +94,8 @@ fn part1(input: Input) -> Int {
 }
 
 fn part2(input: Input) -> Int {
-    let minmax = input.lines()
+    let minmax = input
+        .lines()
         .map(|line| Sword::from(line).quality())
         .minmax();
     if let MinMaxResult::MinMax(min, max) = minmax {
@@ -121,13 +105,16 @@ fn part2(input: Input) -> Int {
 }
 
 fn part3(input: Input) -> Int {
-    input.lines()
+    input
+        .lines()
         .map(|line| Sword::from(line))
-        .sorted_by_cached_key(|sword| (
-            sword.quality(),
-            sword.segments.iter().map(|seg| seg.number()).collect_vec(),
-            sword.id,
-        ))
+        .sorted_by_cached_key(|sword| {
+            (
+                sword.quality(),
+                sword.segments.iter().map(|seg| seg.number()).collect_vec(),
+                sword.id,
+            )
+        })
         .rev()
         .enumerate()
         .map(|(idx, sword)| (idx as Int + 1) * sword.id)
@@ -142,8 +129,8 @@ fn default() {
     assert_eq!(31574813, part3(&input3));
 }
 
-// Input parsed (45μs)
-// 1. 2782784532 (5μs)
-// 2. 8637361015798 (89μs)
-// 3. 31574813 (609μs)
-// Total: 752μs
+// Input parsed (41μs)
+// 1. 2782784532 (9μs)
+// 2. 8637361015798 (107μs)
+// 3. 31574813 (700μs)
+// Total: 861μs
