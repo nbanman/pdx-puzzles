@@ -44,10 +44,6 @@ impl Segment {
             self.right.unwrap_or_default(),
         )
     }
-
-    fn new(spine: u64) -> Self {
-        Self { spine, left: None, right: None, }
-    }
 }
 
 struct Sword {
@@ -70,7 +66,7 @@ impl From<&str> for Sword {
         let mut segments: Vec<Segment> = Vec::new();
         for int in ints {
             if !segments.iter_mut().any(|segment| segment.place(int)) {
-                segments.push(Segment::new(int))
+                segments.push(Segment { spine: int, left: None, right: None, })
             }
         }
         Self { id, segments }
