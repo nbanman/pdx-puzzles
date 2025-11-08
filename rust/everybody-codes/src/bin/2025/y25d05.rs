@@ -103,12 +103,12 @@ impl From<&str> for Sword {
 impl Ord for Sword {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.quality().cmp(&other.quality())
-            .then({
+            .then_with(|| {
                 self.segments.iter()
                     .zip(other.segments.iter())
                     .map(|(a, b)| a.number().cmp(&b.number()))
                     .find(|&ordering| ordering != std::cmp::Ordering::Equal)
-                    .unwrap_or(self.id.cmp(&other.id))
+                    .unwrap_or_else(|| self.id.cmp(&other.id))
             })
     }
 }
@@ -159,8 +159,8 @@ fn default() {
     assert_eq!(31574813, part3(&input3));
 }
 
-// Input parsed (42μs)
-// 1. 2782784532 (8μs)
-// 2. 8637361015798 (92μs)
-// 3. 31574813 (710μs)
-// Total: 856μs
+// Input parsed (41μs)
+// 1. 2782784532 (9μs)
+// 2. 8637361015798 (89μs)
+// 3. 31574813 (664μs)
+// Total: 808μs
