@@ -16,7 +16,7 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse<'a>(input: Input<'a>) -> (Vec<&'a str>, FxHashMap<char, Vec<char>>) {
+fn parse(input: Input<'_>) -> (Vec<&'_ str>, FxHashMap<char, Vec<char>>) {
     let (names, paths) = input.split_once("\n\n").unwrap();
     let names = names.split(',').collect();
     let paths = paths.lines()
@@ -139,7 +139,7 @@ fn part3(input: Input) -> usize {
                     next.extend_from_slice(slice);
                 }
             }
-            std::mem::swap(&mut todo, &mut next);
+            mem::swap(&mut todo, &mut next);
         }
     }
     sum
