@@ -1,6 +1,6 @@
-use std::mem;
 use everybody_codes::utilities::inputs::get_event_inputs;
 use rustc_hash::FxHashMap;
+use std::mem;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 type Input<'a> = &'a str;
@@ -19,10 +19,10 @@ fn main() {
 fn parse(input: Input<'_>) -> (Vec<&'_ str>, FxHashMap<char, Vec<char>>) {
     let (names, paths) = input.split_once("\n\n").unwrap();
     let names = names.split(',').collect();
-    let paths = paths.lines()
+    let paths = paths
+        .lines()
         .map(|line| {
-            let mut iter = line.chars()
-                .filter(|it| it.is_ascii_alphabetic());
+            let mut iter = line.chars().filter(|it| it.is_ascii_alphabetic());
             let k = iter.next().unwrap();
             let v = iter.collect();
             (k, v)
@@ -34,11 +34,12 @@ fn parse(input: Input<'_>) -> (Vec<&'_ str>, FxHashMap<char, Vec<char>>) {
 fn part1(input: Input) -> String {
     let (names, paths) = parse(input);
 
-    let initial: Vec<char> = paths.keys()
+    let initial: Vec<char> = paths
+        .keys()
         .filter(|it| it.is_uppercase())
         .copied()
         .collect();
-    
+
     'outer: for name in names {
         let mut available = &initial;
         for c in name.chars() {
@@ -61,12 +62,13 @@ fn part1(input: Input) -> String {
 
 fn part2(input: Input) -> usize {
     let (names, paths) = parse(input);
-    let initial: Vec<char> = paths.keys()
+    let initial: Vec<char> = paths
+        .keys()
         .filter(|it| it.is_uppercase())
         .copied()
         .collect();
     let mut sum = 0;
-    
+
     'outer: for (idx, &name) in names.iter().enumerate() {
         let mut available = &initial;
         for c in name.chars() {
@@ -104,12 +106,15 @@ fn part3(input: Input) -> usize {
         }
         mem::swap(&mut cur, &mut names[i]);
     }
-    let initial: Vec<char> = paths.keys()
+    let initial: Vec<char> = paths
+        .keys()
         .filter(|it| it.is_uppercase())
         .copied()
         .collect();
     let mut sum = 0;
-    
+
+    let mut cache: [Option<usize>; 512] = [None; 512];
+
     'outer: for name in names {
         let mut available = &initial;
         for c in name.chars() {
@@ -123,26 +128,48 @@ fn part3(input: Input) -> usize {
                 continue 'outer;
             }
         }
-        let max_len = 11 - name.len();
-        let min_len = 7 - name.len();
-        
-        let mut steps = 0;
-        let mut todo: Vec<char> = Vec::new();
-        let mut next: Vec<char> = Vec::new();
-        todo.extend_from_slice(&available);
-        while !todo.is_empty() {
-            steps += 1;
-            if steps > max_len { break; }
-            for c in todo.drain( .. ) {
-                if steps >= min_len { sum += 1; }
-                if let Some(slice) = paths.get(&c) {
-                    next.extend_from_slice(slice);
-                }
-            }
-            mem::swap(&mut todo, &mut next);
-        }
+        let len = name.len();
+        let last = name.as_bytes()[len - 1] as char;
+        let hash = hash_of(last, len);
+        sum += cache[hash]
+            .unwrap_or_else(|| count_names(last, len, hash, &paths, &mut cache));
     }
     sum
+}
+
+fn count_names(
+    c: char,
+    depth: usize,
+    hash: usize,
+    paths: &FxHashMap<char, Vec<char>>,
+    cache: &mut [Option<usize>; 512],
+) -> usize {
+    // base case 1: Max depth reached.
+    if depth == 11 {
+        cache[hash] = Some(1);
+        return 1;
+    }
+
+    let mut name_count = if depth >= 7 { 1 } else { 0 };
+    
+    // base case 2: No children remaining.
+    let Some(next) = paths.get(&c) else {
+        cache[hash] = Some(name_count);
+        return name_count;
+    };
+
+    // otherwise 
+    for &nc in next {
+        let n_hash = hash_of(nc, depth + 1);
+        name_count += cache[n_hash]
+            .unwrap_or_else(|| count_names(nc, depth + 1, n_hash, paths, cache));
+    }
+    cache[hash] = Some(name_count);
+    name_count
+}
+
+fn hash_of(c: char, depth: usize) -> usize {
+    ((c as usize - 97) << 4) | depth
 }
 
 #[test]
@@ -153,8 +180,8 @@ fn default() {
     assert_eq!(1945135, part3(&input3));
 }
 
-// Input parsed (40μs)
-// 1. Ulendris (8μs)
-// 2. 2529 (14μs)
-// 3. 1945135 (14.611ms)
-// Total: 14.681ms
+// Input parsed (28μs)
+// 1. Ulendris (11μs)
+// 2. 2529 (13μs)
+// 3. 1945135 (13μs)
+// Total: 69μs
