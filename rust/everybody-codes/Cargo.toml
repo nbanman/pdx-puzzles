@@ -13,6 +13,9 @@ lazy-regex = { workspace = true }
 anyhow = { workspace = true }
 indexmap = { workspace = true }
 
+[features]
+simd = []
+
 [[bin]]
 name = "ec-y24d01"
 path = "src/bin/2024/y24d01.rs"
