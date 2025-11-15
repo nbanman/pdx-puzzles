@@ -7,7 +7,6 @@ use std::simd::num::SimdUint;
 
 use std::ops::{BitAnd, BitOr};
 use everybody_codes::utilities::inputs::get_event_inputs;
-use itertools::Itertools;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
@@ -180,6 +179,27 @@ impl UnionFind {
     }
 }
 
+fn get_families(dna: &[Dna], child: usize, child_dna: &Dna) -> Option<(usize, usize)> {
+    (0..dna.len())
+        .filter(|&it| it != child)
+        .map(|p1| {
+            let p1_dna = &dna[p1];
+            (p1, child_dna.similarity(p1_dna))
+        })
+        .filter(|&(_, p1_sim)| p1_sim > 60)
+        .flat_map(|(p1, _)| {
+            (0..dna.len())
+                .filter(move |p2| *p2 != child && *p2 != p1)
+                .map(move |p2| (p1, p2))
+        })
+        .find(|&(p1, p2)| {
+            let p1_dna = dna[p1];
+            let p2_dna = dna[p2];
+            let parent_dna = p1_dna | p2_dna;
+            *child_dna == (*child_dna & parent_dna)
+        })
+}
+
 fn part1(input: Input) -> usize {
     let dna = get_dna(input);
     (0..dna.len())
@@ -195,17 +215,6 @@ fn part1(input: Input) -> usize {
         })
         .next()
         .unwrap()
-}
-
-fn get_families(dna: &[Dna], child: usize, child_dna: &Dna) -> Option<(usize, usize)> {
-    (0..dna.len()).tuple_combinations()
-        .filter(|&(a, b)| a != child && b != child)
-        .find(|&(p1, p2)| {
-            let p1_dna = dna[p1];
-            let p2_dna = dna[p2];
-            let parent_dna = p1_dna | p2_dna;
-            *child_dna == (*child_dna & parent_dna)
-        })
 }
 
 fn part2(input: Input) -> usize {
@@ -261,8 +270,8 @@ fn default() {
     assert_eq!(40905, part3(&input3));
 }
 
-// Input parsed (57μs)
-// 1. 6478 (11μs)
-// 2. 316671 (757μs)
-// 3. 40905 (8.421ms)
-// Total: 9.253ms
+// Input parsed (65μs)
+// 1. 6478 (7μs)
+// 2. 316671 (631μs)
+// 3. 40905 (816μs)
+// Total: 1.526ms
