@@ -1,11 +1,99 @@
+#![feature(portable_simd)]
+use core::simd::{Simd, u64x4};
+use std::ops::{BitAnd, BitOr};
+
 use everybody_codes::utilities::inputs::get_event_inputs;
 use itertools::Itertools;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use utilities::{
     minmax::minmax,
     structs::stopwatch::{ReportDuration, Stopwatch},
 };
 
 type Input<'a> = &'a str;
+#[cfg(feature = "simd")]
+#[derive(Debug, Clone, Copy)]
+struct Dna([u64x4; 2]);
+
+#[cfg(not(feature = "simd"))]
+#[derive(Debug, Clone, Copy)]
+struct Dna([u64; 8]);
+
+impl Dna {
+    fn array(value: &str) -> [u64; 8] {
+        let bytes = value.as_bytes();
+        std::array::from_fn(|i| {
+            let bytes = &bytes[i * 16..i * 16 + 16];
+            bytes.iter().fold(0u64, |acc, &b| {
+                (acc << 4) | match b {
+                    b'A' => 1,
+                    b'T' => 2,
+                    b'C' => 4,
+                    b'G' => 8,
+                    b => panic!("{} not a valid symbol", b as char),
+                }
+            })
+        })
+    }
+}
+
+impl BitAnd for Dna {
+    type Output = Dna;
+
+    #[cfg(feature = "simd")]
+    fn bitand(self, rhs: Self) -> Self::Output {
+        let inner: [u64x4; 2] = std::array::from_fn(|i| {
+            self.0[i] & rhs.0[i]
+        });
+        Self(inner)
+    }
+
+    #[cfg(not(feature = "simd"))]
+    fn bitand(self, rhs: Self) -> Self::Output {
+        let inner: [u64; 8] = std::array::from_fn(|i| {
+            self.0[i] & rhs.0[i]
+        });
+        Self(inner)
+    }
+
+}
+
+impl BitOr for Dna {
+    type Output = Dna;
+
+    #[cfg(feature = "simd")]
+    fn bitor(self, rhs: Self) -> Self::Output {
+        let inner: [u64x4; 2] = std::array::from_fn(|i| {
+            self.0[i] | rhs.0[i]
+        });
+        Self(inner)
+    }
+
+    #[cfg(not(feature = "simd"))]
+    fn bitor(self, rhs: Self) -> Self::Output {
+        let inner: [u64; 8] = std::array::from_fn(|i| {
+            self.0[i] | rhs.0[i]
+        });
+        Self(inner)
+    }
+
+}
+
+impl From<&str> for Dna {
+    #[cfg(feature = "simd")]
+    fn from(value: &str) -> Self {
+        let arr = Self::array(value);
+        Dna([
+            u64x4::from_slice(&arr[..4]),
+            u64x4::from_slice(&arr[4..]),
+        ])
+    }
+
+    #[cfg(not(feature = "simd"))]
+    fn from(value: &str) -> Self {
+        Dna(Self::array(value))
+    }
+}
 
 fn main() {
     let mut stopwatch = Stopwatch::new();
@@ -24,6 +112,16 @@ fn parse(input: Input<'_>) -> Vec<&'_ str> {
         .map(|line| {
             let (_, dna) = line.split_once(':').unwrap();
             dna
+        })
+        .collect()
+}
+
+fn get_dna(input: Input) -> Vec<Dna> {
+    input
+        .lines()
+        .map(|line| {
+            let (_, dna) = line.split_once(':').unwrap();
+            dna.into()
         })
         .collect()
 }
@@ -100,93 +198,78 @@ fn part2(input: Input) -> usize {
     sim_sum
 }
 
-fn part3(input: Input) -> usize {
-    let dna = parse(input);
-    let mut tree: [Option<usize>; 500] = [None; 500];
-    let mut next_group = 0;
-    let mut group_merge: Vec<Option<usize>> = Vec::new();
-    'outer: for child in 0..dna.len() {
-        let aa = dna[child];
-        'mid: for (p1, p2) in (0..dna.len())
-            .tuple_combinations()
-            .filter(|&(a, b)| a != child && b != child)
-        {
-            let bb = dna[p1];
-            let cc = dna[p2];
-            for ((a, b), c) in aa.chars().zip(bb.chars()).zip(cc.chars()) {
-                if a != b && a != c {
-                    continue 'mid;
-                }
-            }
-            // parents found; merge them first
-            let p1_group = tree[p1];
-            let p2_group = tree[p2];
-            if p1_group.is_some() && p2_group.is_none() {
-                tree[p2] = p1_group;
-            } else if p2_group.is_some() && p1_group.is_none() {
-                tree[p1] = p2_group;
-            } else if let Some(p1_group) = p1_group && let Some(p2_group) = p2_group {
-                if p1_group != p2_group {
-                    let root1 = get_root(&mut group_merge, p1_group);
-                    let root2 = get_root(&mut group_merge, p2_group);
-                    let (&min, &max) = minmax(&root1, &root2);
-                    if min != max {
-                        group_merge[max] = Some(min);
-                    }
-                }
-            }
-            // merge child with parents
-            if let Some(child_group) = tree[child] {
-                if let Some(p1_group) = tree[p1] {
-                    if child_group != p1_group {
-                        let root1 = get_root(&mut group_merge, child_group);
-                        let root2 = get_root(&mut group_merge, p1_group);
-                        let (&min, &max) = minmax(&root1, &root2);
-                        if min != max {
-                            group_merge[max] = Some(min);
-                        }
-                    }
-                } else {
-                    tree[p1] = Some(child_group);
-                    tree[p2] = Some(child_group);
-                }
-            } else {
-                if let Some(p1_group) = tree[p1] {
-                    tree[child] = Some(p1_group);
-                } else {
-                    let assign = Some(next_group);
-                    tree[child] = assign;
-                    tree[p1] = assign;
-                    tree[p2] = assign;
-                    next_group += 1;
-                    group_merge.push(None);
-                }
-            }
-            continue 'outer;
-        }
-    }
-    // done with finding parents, now need to assign scales to merged groups
-    let mut scales: Vec<Vec<usize>> = vec![Vec::new(); group_merge.len()];
-    for (scale, group) in tree.into_iter().enumerate() {
-        let Some(group) = group else {
-            continue;
-        };
-        scales[get_root(&mut group_merge, group)].push(scale + 1);
-    }
-    let test = scales.into_iter()
-        .max_by_key(|it| it.len())
-        .map(|it| it.iter().sum())
-        .unwrap();
-    test
+struct UnionFind {
+    parent: Vec<usize>,
+    size: Vec<usize>,
 }
 
-fn get_root(group_merge: &mut Vec<Option<usize>>, group: usize) -> usize {
-    let Some(root) = group_merge[group] else {
-        return group;
-    };
-    let root = get_root(group_merge, root);
-    group_merge[group] = Some(root);
-    root
+impl UnionFind {
+    fn new(n: usize) -> Self {
+        Self {
+            parent: (0..n).collect(),
+            size: vec![1; n],
+        }
+    }
+
+    fn find(&mut self, x: usize) -> usize {
+        if self.parent[x] != x {
+            self.parent[x] = self.find(self.parent[x]);
+        }
+        self.parent[x]
+    }
+
+    fn union(&mut self, x: usize, y: usize) -> bool {
+        let x = self.find(x);
+        let y = self.find(y);
+
+        if x == y {
+            return false;
+        }
+
+        if self.size[x] >= self.size[y] {
+            self.parent[y] = x;
+            self.size[x] += self.size[y];
+        } else {
+            self.parent[x] = y;
+            self.size[y] += self.size[x];
+        }
+
+        true
+    }
+}
+
+fn part3(input: Input) -> usize {
+    let dna = get_dna(input);
+    let nuclear_families: Vec<(usize, usize, usize)> = (0..dna.len())
+        .into_par_iter()
+        .filter_map(|child| {
+            let child_dna = dna[child];
+            (0..dna.len()).tuple_combinations()
+                .filter(|&(a, b)| a != child && b != child)
+                .find(|&(p1, p2)| {
+                    let p1_dna = dna[p1];
+                    let p2_dna = dna[p2];
+                    let parent_dna = p1_dna | p2_dna;
+                    child_dna.0 == (child_dna & parent_dna).0
+                })
+                .map(|(p1, p2)| (child, p1, p2))
+        })
+        .collect();
+    
+    let mut tree = UnionFind::new(500);
+    for (a, b, c) in nuclear_families {
+        tree.union(a, b);
+        tree.union(a, c);
+    }
+    let largest_group = tree.size.iter().enumerate()
+        .max_by_key(|&(_, len)| len)
+        .map(|(index, _)| index)
+        .unwrap();
+
+    tree.parent.iter().enumerate()
+        .filter(|&(_, &parent)| parent == largest_group)
+        .map(|(index, _)| index + 1)
+        .sum()
 }
 
 #[test]
