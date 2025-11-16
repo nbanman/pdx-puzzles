@@ -6,7 +6,7 @@ use core::simd::u64x4;
 use std::simd::num::SimdUint;
 
 use everybody_codes::utilities::inputs::get_event_inputs;
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use rayon::iter::{IntoParallelIterator, ParallelBridge, ParallelIterator};
 use std::ops::{BitAnd, BitOr};
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
@@ -126,7 +126,6 @@ impl UnionFind {
         if x == y {
             return false;
         }
-
         if self.size[x] >= self.size[y] {
             self.parent[y] = x;
             self.size[x] += self.size[y];
@@ -134,7 +133,6 @@ impl UnionFind {
             self.parent[x] = y;
             self.size[y] += self.size[x];
         }
-
         true
     }
 
@@ -157,7 +155,7 @@ fn main() {
 }
 
 fn get_dna(input: Input) -> Vec<Dna> {
-    input.lines().map(Dna::from).collect()
+    input.lines().par_bridge().map(Dna::from).collect()
 }
 
 fn get_families(dna: &[Dna], child: usize, child_dna: &Dna) -> Option<(usize, usize)> {
@@ -252,8 +250,8 @@ fn default() {
     assert_eq!(40905, part3(&input3));
 }
 
-// Input parsed (65μs)
-// 1. 6478 (7μs)
-// 2. 316671 (631μs)
-// 3. 40905 (816μs)
-// Total: 1.526ms
+// Input parsed (60μs)
+// 1. 6478 (541μs)
+// 2. 316671 (90μs)
+// 3. 40592 (419μs)
+// Total: 1.116ms
