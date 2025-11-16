@@ -1,7 +1,7 @@
-use std::cmp::max;
-
+use rayon::iter::ParallelIterator;
 use everybody_codes::utilities::inputs::get_event_inputs;
 use itertools::Itertools;
+use rayon::iter::IntoParallelRefIterator;
 use utilities::{minmax::minmax, parsing::get_numbers::ContainsNumbers, structs::stopwatch::{ReportDuration, Stopwatch}};
 
 type Input<'a> = &'a str;
@@ -69,29 +69,31 @@ fn part3(instructions: Input) -> usize {
             (*min, *max)
         })
         .collect();
-    let mut max_cuts = 0;
-    for (a, b) in (0..nails).tuple_combinations() {
-        let mut cuts = 0;
-        for &(ca, cb) in crosses.iter() {
-            if a == ca && b == cb {
-                cuts += 1;
-                continue;
+    let combinations = (0..nails).tuple_combinations().collect::<Vec<(_, _)>>();
+    combinations.par_iter()
+        .map(|&(a, b)| {
+            let mut cuts = 0;
+            for &(ca, cb) in crosses.iter() {
+                if a == ca && b == cb {
+                    cuts += 1;
+                    continue;
+                }
+                let semicircle = ca + 1 .. cb;
+                if semicircle.contains(&a) {
+                    // b must be outside
+                    if b < ca || b > cb {
+                        cuts += 1;
+                    }
+                } else if semicircle.contains(&b) {
+                    if a < ca || a > cb {
+                        cuts += 1;
+                    }
+                }
             }
-            let semicircle = ca + 1 .. cb;
-            if semicircle.contains(&a) {
-                // b must be outside
-                if b < ca || b > cb {
-                    cuts += 1;
-                }
-            } else if semicircle.contains(&b) {
-                if a < ca || a > cb {
-                    cuts += 1;
-                }
-            } 
-        }
-        max_cuts = max(max_cuts, cuts);
-    }
-    max_cuts
+            cuts
+        })
+        .max()
+        .unwrap()
 }
 
 #[test]
@@ -102,8 +104,8 @@ fn default() {
     assert_eq!(2792, part3(&input3));
 }
 
-// Input parsed (43μs)
-// 1. 58 (9μs)
-// 2. 2924358 (8.541ms)
-// 3. 2792 (184.502ms)
-// Total: 193.105ms
+// Input parsed (42μs)
+// 1. 58 (6μs)
+// 2. 2924358 (8.009ms)
+// 3. 2792 (26.008ms)
+// Total: 34.071ms
