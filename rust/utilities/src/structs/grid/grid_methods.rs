@@ -148,6 +148,10 @@ where
 
 /// 2D Grid methods
 impl<T> Grid<T, 2> {
+    pub fn get2(&self, pos: Coord2U) -> Option<&T> {
+        self.data.get(pos.x() + pos.y() * self.width())
+    }
+    
     pub fn height(&self) -> usize {
         self.dimensions[1]
     }
