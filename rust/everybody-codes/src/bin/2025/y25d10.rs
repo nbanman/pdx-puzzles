@@ -1,5 +1,5 @@
 use std::iter::successors;
-use std::sync::{LazyLock, OnceLock};
+use std::sync::LazyLock;
 
 use everybody_codes::utilities::inputs::get_event_inputs;
 use itertools::Itertools;
@@ -11,7 +11,8 @@ use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 type Input<'a> = &'a str;
 type Pos = Coord2U;
-type Board = Grid2<Space>;
+type BasicBoard = Grid2<Space>;
+type AdvancedBoard = Grid2<Hedges>;
 
 fn main() {
     let mut stopwatch = Stopwatch::new();
@@ -37,12 +38,19 @@ static MOVE_TEMPLATE: LazyLock<[Coord2; 8]> = LazyLock::new(|| {
     ]
 });
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Space {
     Sheep,
     Hideout,
     SheepHide,
     Empty,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Hedges {
+    Empty,
+    HomeFree,
+    Hedge,
 }
 
 impl GridDisplay for Space {
@@ -56,10 +64,10 @@ impl GridDisplay for Space {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 struct Chess {
     dragon: Pos,
-    board: Board,
+    board: BasicBoard,
 }
 
 impl Chess {
@@ -221,8 +229,25 @@ struct State {
     turn: Turn,
 }
 
-fn parse(input: Input) -> (Grid2<bool>, State) {
-    let board = Grid2::new2d_map_str(input, |c| c == '#').unwrap();
+fn parse(input: Input) -> (AdvancedBoard, State) {
+    let mut board = AdvancedBoard::new2d_map_str(input, |c| {
+        match c {
+            '#' => Hedges::Hedge,
+            _ => Hedges::Empty,
+        }
+    })
+        .unwrap();
+
+    for x in 0..board.width() {
+        for y in (0..board.height()).rev() {
+            let idx = x + y * board.width();
+            if board[idx] == Hedges::Hedge {
+                board[idx] = Hedges::HomeFree;
+            } else {
+                break;
+            }
+        }
+    }
     let dragon = input.as_bytes().iter().position(|&b| b == b'D').unwrap();
     let dragon = dragon % (board.width() + 1) + dragon / (board.width() + 1) * board.width();
     let sheep = input.as_bytes().iter()
@@ -250,7 +275,7 @@ fn iter_sheep(sheep: u64) -> impl Iterator<Item = usize> {
         })
 }
 
-fn dragon_moves(dragon: usize, board: &Grid2<bool>) -> impl Iterator<Item = usize> {
+fn dragon_moves(dragon: usize, board: &AdvancedBoard) -> impl Iterator<Item = usize> {
     let dragon = Coord2::from(
         (
             (dragon % board.width()) as i64,
@@ -275,9 +300,7 @@ fn dragon_moves(dragon: usize, board: &Grid2<bool>) -> impl Iterator<Item = usiz
         })
 }
 
-fn count_variants(s: State, cache: &mut FxHashMap<State, usize>, board: &Grid2<bool>, history: String) -> usize {
-    static ESCAPING: OnceLock<u64> = OnceLock::new();
-    let &escaping = ESCAPING.get_or_init(|| 1 << board.width());
+fn count_variants(s: State, cache: &mut FxHashMap<State, usize>, board: &AdvancedBoard, history: String) -> usize {
 
     // base case 1: all sheep are eaten
     if s.sheep == 0 {
@@ -286,34 +309,25 @@ fn count_variants(s: State, cache: &mut FxHashMap<State, usize>, board: &Grid2<b
     }
 
     if s.turn == Turn::Sheep {
-        // base case 2: all sheep are on bottom row on their turn so at least one must escape
-        if s.sheep < escaping {
-            cache.insert(s, 0);
+        let sheep_down = iter_sheep(s.sheep)
+            .map(|rev_i| board.len() - 1 - rev_i + board.width())
+            .collect_vec();
+
+        // base case 2: only one sheep left, next to a home free hedge, so it must escape.
+        if sheep_down.len() == 1
+            && (sheep_down[0] >= board.len() || board[sheep_down[0]] == Hedges::HomeFree)
+        {
             return 0;
         }
 
-        // base case 3: there are multiple sheep and all are on the bottom row except for one
-        // trapped behind the dragon, so one of the other sheep must escape
-
-        // only check if there are multiple sheep
-        if s.sheep.count_ones() >= 2 {
-            // only check if there's a sheep trapped by dragon
-            if let Some(potential) = s.dragon.checked_sub(board.width()) {
-                // only check if there's no hideaway
-                if !board[s.dragon] {
-                    let rev = board.len() - potential - 1;
-                    if s.sheep >> rev & 1 == 1 {
-                        // there is a trapped sheep, so get its number value
-                        let sheep_num = 1 << rev;
-                        // this is all the sheep without the trapped sheep
-                        let revised_sheep = s.sheep - sheep_num;
-                        if revised_sheep < escaping {
-                            cache.insert(s, 0);
-                            return 0;
-                        }
-                    }
-                }
-            }
+        // base case 3: all sheep are on verge of escaping or trapped by dragon and thus one
+        // must escape
+        if sheep_down.len() > 1 && sheep_down.into_iter().all(|one_down| {
+            one_down >= board.len()
+                || board[one_down] == Hedges::HomeFree
+                || (board[one_down] == Hedges::Empty && one_down == s.dragon)
+        }) {
+            return 0;
         }
     }
 
@@ -325,7 +339,7 @@ fn count_variants(s: State, cache: &mut FxHashMap<State, usize>, board: &Grid2<b
             for dragon_move in dragon_moves(s.dragon, &board) {
                 let mut new_sheep = s.sheep;
 
-                if !board[dragon_move] { // if no hideaway...
+                if board[dragon_move] == Hedges::Empty { // if no hideaway...
                     let rev_pos = board.len() - 1 - dragon_move;
                     if s.sheep >> rev_pos & 1 == 1 { // if a sheep exists there...
                         // ...remove the sheep
@@ -348,7 +362,7 @@ fn count_variants(s: State, cache: &mut FxHashMap<State, usize>, board: &Grid2<b
 
                     // if below row doesn't have a sheep or dragon, push the state
                     if s.sheep >> below_pos & 1 == 0 {
-                        let below_is_hideaway = board[board.len() - 1 - below_pos];
+                        let below_is_hideaway = board[board.len() - 1 - below_pos] == Hedges::Hedge;
                         if below_is_hideaway || (board.len() - 1 - s.dragon) != below_pos {
                             let og_val = 1 << one_sheep;
                             let below_val = 1 << (one_sheep - board.width());
