@@ -5,8 +5,8 @@ use everybody_codes::utilities::inputs::get_event_inputs;
 use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet};
 use utilities::structs::coord::{Coord2, Coord2U};
-use utilities::structs::grid::Grid2;
 use utilities::structs::grid::grid_display::GridDisplay;
+use utilities::structs::grid::Grid2;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 type Input<'a> = &'a str;
@@ -202,8 +202,8 @@ fn main() {
     stopwatch.start();
     let (input1, input2, input3) = get_event_inputs(25, 10);
     println!("Input parsed ({})", stopwatch.lap().report());
-    // println!("1. {} ({})", part1(&input1), stopwatch.lap().report());
-    // println!("2. {} ({})", part2(&input2), stopwatch.lap().report());
+    println!("1. {} ({})", part1(&input1), stopwatch.lap().report());
+    println!("2. {} ({})", part2(&input2), stopwatch.lap().report());
     println!("3. {} ({})", part3(&input3), stopwatch.lap().report());
     println!("Total: {}", stopwatch.stop().report());
 }
@@ -299,109 +299,148 @@ fn dragon_moves(dragon: usize, board: &Grid2<bool>) -> impl Iterator<Item = usiz
 }
 
 fn part3(input: Input) -> usize {
-    let mut chess_boards = [
-        r"SSS
-..#
-#.#
-#D.",
-        r"SSS
-..#
-..#
-.##
-.D#",
-        r"..S..
-.....
-..#..
-.....
-..D..",
-        r".SS.S
-#...#
-...#.
-##..#
-.####
-##D.#",
-        r"SSS.S
-.....
-#.#.#
-.#.#.
-#.D.#",
-    ];
-    let (board, initial_state) = parse(chess_boards[0]);
-    let mut todo = vec![initial_state];
-    let mut visited: FxHashMap<State, String> = FxHashMap::default();
+    let (board, initial_state) = parse(input);
+    let mut cache: FxHashMap<State, usize> = FxHashMap::default();
+    count_variants(initial_state, &mut cache, &board, String::new())
+}
+
+fn count_variants(s: State, cache: &mut FxHashMap<State, usize>, board: &Grid2<bool>, history: String) -> usize {
+    static ESCAPING: OnceLock<u64> = OnceLock::new();
+    let &escaping = ESCAPING.get_or_init(|| 1 << board.width());
+
+    // base case 1: all sheep are eaten
+    if s.sheep == 0 {
+        cache.insert(s, 1);
+        return 1;
+    }
+
+    if s.turn == Turn::Sheep {
+        // base case 2: all sheep are on bottom row on their turn so at least one must escape
+        if s.sheep < escaping {
+            cache.insert(s, 0);
+            return 0;
+        }
+
+        // base case 3: there are multiple sheep and all are on the bottom row except for one
+        // trapped behind the dragon, so one of the other sheep must escape
+
+        // only check if there are multiple sheep
+        if s.sheep.count_ones() >= 2 {
+            // only check if there's a sheep trapped by dragon
+            if let Some(potential) = s.dragon.checked_sub(board.width()) {
+                // only check if there's no hideaway
+                if !board[s.dragon] {
+                    let rev = board.len() - potential - 1;
+                    if s.sheep >> rev & 1 == 1 {
+                        // there is a trapped sheep, so get its number value
+                        let sheep_num = 1 << rev;
+                        // this is all the sheep without the trapped sheep
+                        let revised_sheep = s.sheep - sheep_num;
+                        if revised_sheep < escaping {
+                            cache.insert(s, 0);
+                            return 0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     let mut variants = 0;
 
-    while !todo.is_empty() {
-        variants += todo.iter().filter(|it| it.sheep == 0).count();
-        todo = todo
-            .into_iter()
-            .filter(|it| it.sheep != 0)
-            .flat_map(|State { dragon, sheep, turn }| {
-                let mut next = Vec::new();
-                match turn {
-                    Turn::Dragon => {
+    let mut next: Vec<State> = Vec::new();
+    match s.turn {
+        Turn::Dragon => {
+            for dragon_move in dragon_moves(s.dragon, &board) {
+                let mut new_sheep = s.sheep;
 
-                        let test_dragon_moves = dragon_moves(dragon, &board).collect_vec();
-                        for dragon_move in dragon_moves(dragon, &board) {
-                            let mut new_sheep = sheep;
-
-                            if !board[dragon_move] { // if no hideaway...
-                                let rev_pos = board.len() - 1 - dragon_move;
-                                if sheep >> rev_pos & 1 == 1 { // if a sheep exists there...
-                                    // ...remove the sheep
-                                    let sheep_pos = 2u64.pow(rev_pos as u32);
-                                    new_sheep -= sheep_pos;
-                                }
-                            }
-                            let next_state = State {
-                                dragon: dragon_move,
-                                sheep: new_sheep,
-                                turn: Turn::Sheep,
-                            };
-                            next.push(next_state);
-                        }
-                    },
-                    Turn::Sheep => {
-                        for one_sheep in iter_sheep(sheep) {
-                            if one_sheep >= board.width() { // if not in bottom row...
-                                let below_pos = one_sheep - board.width();
-                                if sheep >> below_pos & 1 == 0 { // if below row doesn't have a sheep...
-                                    let og_val = 2u64.pow(one_sheep as u32);
-                                    let mut new_sheep = sheep - og_val;
-                                    if (board.len() - 1 - dragon) != below_pos { // if dragon isn't below...
-                                        let below_val = 2u64.pow((one_sheep - board.width()) as u32);
-                                        new_sheep = sheep - og_val + below_val;
-                                    }
-                                    let new_state = State {
-                                        dragon,
-                                        sheep: new_sheep,
-                                        turn: Turn::Dragon,
-                                    };
-                                    if visited.insert(new_state) {
-                                        next.push(new_state);
-                                    }
-                                }
-                            }
-                        }
-                        if next.is_empty() {
-                            let pass_the_sheep = State { dragon, sheep, turn: Turn::Dragon };
-                            if visited.insert(pass_the_sheep) {
-                                next.push(pass_the_sheep);
-                            }
-                        }
-                    },
+                if !board[dragon_move] { // if no hideaway...
+                    let rev_pos = board.len() - 1 - dragon_move;
+                    if s.sheep >> rev_pos & 1 == 1 { // if a sheep exists there...
+                        // ...remove the sheep
+                        let sheep_pos = 1 << rev_pos;
+                        new_sheep -= sheep_pos;
+                    }
                 }
-                next
-            })
-            .collect();
+                let next_state = State {
+                    dragon: dragon_move,
+                    sheep: new_sheep,
+                    turn: Turn::Sheep,
+                };
+                next.push(next_state);
+            }
+        },
+        Turn::Sheep => {
+            for one_sheep in iter_sheep(s.sheep) {
+                if one_sheep >= board.width() { // if not in bottom row...
+                    let below_pos = one_sheep - board.width();
+
+                    // if below row doesn't have a sheep or dragon, push the state
+                    if s.sheep >> below_pos & 1 == 0 {
+                        let below_is_hideaway = board[board.len() - 1 - below_pos];
+                        if below_is_hideaway || (board.len() - 1 - s.dragon) != below_pos {
+                            let og_val = 1 << one_sheep;
+                            let below_val = 1 << (one_sheep - board.width());
+                            let new_sheep = s.sheep - og_val + below_val;
+                            let new_state = State {
+                                dragon: s.dragon,
+                                sheep: new_sheep,
+                                turn: Turn::Dragon,
+                            };
+                            next.push(new_state);
+                        }
+                    }
+                }
+            }
+            if next.is_empty() {
+                let pass_the_sheep = State { dragon: s.dragon, sheep: s.sheep, turn: Turn::Dragon };
+                next.push(pass_the_sheep);
+            }
+        },
+    }
+
+    for next_s in next {
+        let mut history = history.clone();
+        let idx = match s.turn {
+            Turn::Dragon => Some(next_s.dragon),
+            Turn::Sheep => {
+                let diff = s.sheep ^ next_s.sheep;
+                (board.len() - 1).checked_sub(diff.trailing_zeros() as usize)
+            }
+        };
+        if let Some(idx) = idx {
+            if s.turn == Turn::Sheep {
+                history.push_str("S>");
+            } else {
+                history.push_str("D>");
+            }
+            let x = (idx % board.width() + 65) as u8 as char;
+            history.push(x);
+            let y = idx / board.width() + 1;
+            history.push_str(&y.to_string());
+            history.push(' ');
+        }
+        variants += if let Some(&sub_variants) = cache.get(&next_s) {
+            sub_variants
+        } else {
+            let sub_variants = count_variants(next_s, cache, board, history.clone());
+            cache.insert(next_s, sub_variants);
+            sub_variants
+        };
     }
     variants
 }
 
 #[test]
 fn default() {
-    // let (input1, input2, input3) = get_event_inputs(25, 10);
-    // assert_eq!(ZZ, part1(&input1));
-    // assert_eq!(ZZ, part2(&input2));
-    // assert_eq!(ZZ, part3(&input3));
+    let (input1, input2, input3) = get_event_inputs(25, 10);
+    assert_eq!(153, part1(&input1));
+    assert_eq!(1743, part2(&input2));
+    assert_eq!(3270764079035, part3(&input3));
 }
+
+// Input parsed (38μs)
+// 1. 153 (48μs)
+// 2. 1743 (7.676ms)
+// 3. 3270764079035 (529.882ms)
+// Total: 537.656ms
