@@ -1,5 +1,5 @@
 use std::iter::successors;
-use std::sync::OnceLock;
+use std::sync::{LazyLock, OnceLock};
 
 use everybody_codes::utilities::inputs::get_event_inputs;
 use itertools::Itertools;
@@ -12,6 +12,30 @@ use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 type Input<'a> = &'a str;
 type Pos = Coord2U;
 type Board = Grid2<Space>;
+
+fn main() {
+    let mut stopwatch = Stopwatch::new();
+    stopwatch.start();
+    let (input1, input2, input3) = get_event_inputs(25, 10);
+    println!("Input parsed ({})", stopwatch.lap().report());
+    println!("1. {} ({})", part1(&input1), stopwatch.lap().report());
+    println!("2. {} ({})", part2(&input2), stopwatch.lap().report());
+    println!("3. {} ({})", part3(&input3), stopwatch.lap().report());
+    println!("Total: {}", stopwatch.stop().report());
+}
+
+static MOVE_TEMPLATE: LazyLock<[Coord2; 8]> = LazyLock::new(|| {
+    [
+        Coord2::from((-2, -1)),
+        Coord2::from((-1, -2)),
+        Coord2::from((1, -2)),
+        Coord2::from((2, -1)),
+        Coord2::from((2, 1)),
+        Coord2::from((1, 2)),
+        Coord2::from((-1, 2)),
+        Coord2::from((-2, 1)),
+    ]
+});
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Space {
@@ -40,23 +64,10 @@ struct Chess {
 
 impl Chess {
     fn moves(&self, dragon: Pos) -> impl Iterator<Item = Pos> {
-        static MOVE_TEMPLATE: OnceLock<[Coord2; 8]> = OnceLock::new();
         let dragon = Coord2::from((dragon.x() as i64, dragon.y() as i64));
         MOVE_TEMPLATE
-            .get_or_init(|| {
-                [
-                    Coord2::from((-2, -1)),
-                    Coord2::from((-1, -2)),
-                    Coord2::from((1, -2)),
-                    Coord2::from((2, -1)),
-                    Coord2::from((2, 1)),
-                    Coord2::from((1, 2)),
-                    Coord2::from((-1, 2)),
-                    Coord2::from((-2, 1)),
-                ]
-            })
             .into_iter()
-            .filter_map(move |&move_pos| {
+            .filter_map(move |move_pos| {
                 let dragon_move = dragon + move_pos;
                 if dragon_move.x() < 0 || dragon_move.y() < 0 {
                     None
@@ -197,27 +208,6 @@ impl From<&str> for Chess {
     }
 }
 
-fn main() {
-    let mut stopwatch = Stopwatch::new();
-    stopwatch.start();
-    let (input1, input2, input3) = get_event_inputs(25, 10);
-    println!("Input parsed ({})", stopwatch.lap().report());
-    println!("1. {} ({})", part1(&input1), stopwatch.lap().report());
-    println!("2. {} ({})", part2(&input2), stopwatch.lap().report());
-    println!("3. {} ({})", part3(&input3), stopwatch.lap().report());
-    println!("Total: {}", stopwatch.stop().report());
-}
-
-fn part1(input: Input) -> usize {
-    let chess = Chess::from(input);
-    chess.count_sheep(4)
-}
-
-fn part2(input: Input) -> usize {
-    let mut chess = Chess::from(input);
-    chess.count_moving_sheep(20)
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Turn {
     Dragon,
@@ -244,7 +234,7 @@ fn parse(input: Input) -> (Grid2<bool>, State) {
             }
         });
     let state = State { dragon, sheep, turn: Turn::Sheep };
-    (board, state)   
+    (board, state)
 }
 
 fn iter_sheep(sheep: u64) -> impl Iterator<Item = usize> {
@@ -261,7 +251,6 @@ fn iter_sheep(sheep: u64) -> impl Iterator<Item = usize> {
 }
 
 fn dragon_moves(dragon: usize, board: &Grid2<bool>) -> impl Iterator<Item = usize> {
-    static MOVE_TEMPLATE: OnceLock<[Coord2; 8]> = OnceLock::new();
     let dragon = Coord2::from(
         (
             (dragon % board.width()) as i64,
@@ -269,20 +258,8 @@ fn dragon_moves(dragon: usize, board: &Grid2<bool>) -> impl Iterator<Item = usiz
         )
     );
     MOVE_TEMPLATE
-        .get_or_init(|| {
-            [
-                Coord2::from((-2, -1)),
-                Coord2::from((-1, -2)),
-                Coord2::from((1, -2)),
-                Coord2::from((2, -1)),
-                Coord2::from((2, 1)),
-                Coord2::from((1, 2)),
-                Coord2::from((-1, 2)),
-                Coord2::from((-2, 1)),
-            ]
-        })
         .into_iter()
-        .filter_map(move |&move_pos| {
+        .filter_map(move |move_pos| {
             let dragon_move = dragon + move_pos;
             if dragon_move.x() < 0
                 || dragon_move.y() < 0
@@ -296,12 +273,6 @@ fn dragon_moves(dragon: usize, board: &Grid2<bool>) -> impl Iterator<Item = usiz
                 Some(dragon_move)
             }
         })
-}
-
-fn part3(input: Input) -> usize {
-    let (board, initial_state) = parse(input);
-    let mut cache: FxHashMap<State, usize> = FxHashMap::default();
-    count_variants(initial_state, &mut cache, &board, String::new())
 }
 
 fn count_variants(s: State, cache: &mut FxHashMap<State, usize>, board: &Grid2<bool>, history: String) -> usize {
@@ -429,6 +400,22 @@ fn count_variants(s: State, cache: &mut FxHashMap<State, usize>, board: &Grid2<b
         };
     }
     variants
+}
+
+fn part1(input: Input) -> usize {
+    let chess = Chess::from(input);
+    chess.count_sheep(4)
+}
+
+fn part2(input: Input) -> usize {
+    let mut chess = Chess::from(input);
+    chess.count_moving_sheep(20)
+}
+
+fn part3(input: Input) -> usize {
+    let (board, initial_state) = parse(input);
+    let mut cache: FxHashMap<State, usize> = FxHashMap::default();
+    count_variants(initial_state, &mut cache, &board, String::new())
 }
 
 #[test]
