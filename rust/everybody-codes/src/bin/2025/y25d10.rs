@@ -300,7 +300,7 @@ fn dragon_moves(dragon: usize, board: &AdvancedBoard) -> impl Iterator<Item = us
         })
 }
 
-fn count_variants(s: State, cache: &mut FxHashMap<State, usize>, board: &AdvancedBoard, history: String) -> usize {
+fn count_variants(s: State, cache: &mut FxHashMap<State, usize>, board: &AdvancedBoard) -> usize {
 
     // base case 1: all sheep are eaten
     if s.sheep == 0 {
@@ -331,8 +331,6 @@ fn count_variants(s: State, cache: &mut FxHashMap<State, usize>, board: &Advance
         }
     }
 
-    let mut variants = 0;
-
     let mut next: Vec<State> = Vec::new();
     match s.turn {
         Turn::Dragon => {
@@ -359,9 +357,10 @@ fn count_variants(s: State, cache: &mut FxHashMap<State, usize>, board: &Advance
             for one_sheep in iter_sheep(s.sheep) {
                 if one_sheep >= board.width() { // if not in bottom row...
                     let below_pos = one_sheep - board.width();
-
-                    // if below row doesn't have a sheep or dragon, push the state
-                    if s.sheep >> below_pos & 1 == 0 {
+                    let below_space = board[board.len() - 1 - below_pos];
+                    // push the state if below space is not HomeFree and there is no dragon in an
+                    // empty space below
+                    if below_space != Hedges::HomeFree {
                         let below_is_hideaway = board[board.len() - 1 - below_pos] == Hedges::Hedge;
                         if below_is_hideaway || (board.len() - 1 - s.dragon) != below_pos {
                             let og_val = 1 << one_sheep;
@@ -384,31 +383,12 @@ fn count_variants(s: State, cache: &mut FxHashMap<State, usize>, board: &Advance
         },
     }
 
+    let mut variants = 0;
     for next_s in next {
-        let mut history = history.clone();
-        let idx = match s.turn {
-            Turn::Dragon => Some(next_s.dragon),
-            Turn::Sheep => {
-                let diff = s.sheep ^ next_s.sheep;
-                (board.len() - 1).checked_sub(diff.trailing_zeros() as usize)
-            }
-        };
-        if let Some(idx) = idx {
-            if s.turn == Turn::Sheep {
-                history.push_str("S>");
-            } else {
-                history.push_str("D>");
-            }
-            let x = (idx % board.width() + 65) as u8 as char;
-            history.push(x);
-            let y = idx / board.width() + 1;
-            history.push_str(&y.to_string());
-            history.push(' ');
-        }
         variants += if let Some(&sub_variants) = cache.get(&next_s) {
             sub_variants
         } else {
-            let sub_variants = count_variants(next_s, cache, board, history.clone());
+            let sub_variants = count_variants(next_s, cache, board);
             cache.insert(next_s, sub_variants);
             sub_variants
         };
@@ -429,7 +409,7 @@ fn part2(input: Input) -> usize {
 fn part3(input: Input) -> usize {
     let (board, initial_state) = parse(input);
     let mut cache: FxHashMap<State, usize> = FxHashMap::default();
-    count_variants(initial_state, &mut cache, &board, String::new())
+    count_variants(initial_state, &mut cache, &board)
 }
 
 #[test]
@@ -440,8 +420,8 @@ fn default() {
     assert_eq!(3270764079035, part3(&input3));
 }
 
-// Input parsed (38μs)
-// 1. 153 (48μs)
-// 2. 1743 (7.676ms)
-// 3. 3270764079035 (529.882ms)
-// Total: 537.656ms
+// Input parsed (34μs)
+// 1. 153 (34μs)
+// 2. 1743 (7.117ms)
+// 3. 3270764079035 (27.584ms)
+// Total: 34.779ms
