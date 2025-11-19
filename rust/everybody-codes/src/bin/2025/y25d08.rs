@@ -17,31 +17,30 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse(input: Input) -> Vec<isize> {
-    input.get_numbers::<isize>().map(|n| n - 1).collect()
+fn parse(input: Input) -> impl Iterator<Item = isize> {
+    input.get_numbers::<isize>().map(|n| n - 1)
+}
+
+fn crosses(input: Input) -> impl Iterator<Item = (isize, isize)> {
+    parse(input).tuple_windows().map(|(a, b)| {
+        let (&min, &max) = minmax(&a, &b);
+        (min, max)
+    })
 }
 
 fn part1(instructions: Input) -> usize {
     let half = 32 / 2;
-    let instructions = parse(instructions);
 
-    instructions.iter().tuple_windows()
+    parse(instructions).tuple_windows()
         .filter(|&(a, b)| (a - b).abs() == half)
         .count()
 }
 
 fn part2(instructions: Input) -> usize {
-    let instructions = parse(instructions);
-    let crosses = instructions.iter().tuple_windows()
-        .map(|(a, b)| {
-            let (min, max) = minmax(a, b);
-            (*min, *max)
-        });
-
     let mut completed: Vec<(isize, isize)> = Vec::new();
     let mut knots = 0;
 
-    for (a, b) in crosses {
+    for (a, b) in crosses(instructions) {
         for &(ca, cb) in completed.iter() {
             let semicircle = ca + 1 .. cb;
             if semicircle.contains(&a) {
@@ -61,14 +60,8 @@ fn part2(instructions: Input) -> usize {
 }
 
 fn part3(instructions: Input) -> usize {
-    let instructions = parse(instructions);
     let nails = 256;
-    let crosses: Vec<_> = instructions.iter().tuple_windows()
-        .map(|(a, b)| {
-            let (min, max) = minmax(a, b);
-            (*min, *max)
-        })
-        .collect();
+    let crosses: Vec<_> = crosses(instructions).collect();
     let combinations = (0..nails).tuple_combinations().collect::<Vec<(_, _)>>();
     combinations.par_iter()
         .map(|&(a, b)| {
