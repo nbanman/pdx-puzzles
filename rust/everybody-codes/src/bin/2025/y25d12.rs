@@ -63,7 +63,7 @@ fn part3(input: Input) -> usize {
 
     for _ in 0..3 {
         let eligible = clearing.s.iter().enumerate()
-            .filter(|&(_, &b)| b >= b'3')
+            .filter(|&(_, &b)| b >= b'4')
             .map(|(idx, _)| idx)
             .collect_vec();
         let (_, exploded, winner) = eligible
