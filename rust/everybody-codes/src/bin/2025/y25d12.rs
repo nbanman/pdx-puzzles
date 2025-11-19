@@ -61,17 +61,17 @@ fn part3(input: Input) -> usize {
     let mut history = visited.clone();
     let mut winners = Vec::new();
 
+    let peaks = clearing.s.iter().enumerate()
+        .filter(|&(idx, &c)| {
+            clearing.adjacent(idx).all(|adj| c > adj.b)
+        })
+        .map(|(idx, _)| idx)
+        .collect_vec();
+
     for _ in 0..3 {
-        let eligible = clearing.s.iter().enumerate()
-            .filter(|&(idx, &c)| {
-                !history[idx] && clearing
-                    .adjacent(idx)
-                    .all(|adj| c > adj.b)
-            })
-            .map(|(idx, _)| idx)
-            .collect_vec();
-        let (_, exploded, winner) = eligible
+        let (_, exploded, winner) = peaks
             .par_iter()
+            .filter(|&pos| !winners.contains(pos))
             .map(|&pos| {
                 let mut exploded = history.clone();
                 let barrels = solve(&clearing, &mut exploded, vec![pos]);
@@ -94,7 +94,7 @@ fn default() {
 }
 
 // Input parsed (41μs)
-// 1. 240 (29μs)
-// 2. 5731 (111μs)
-// 3. 4135 (10.173ms)
-// Total: 10.359ms
+// 1. 240 (30μs)
+// 2. 5731 (92μs)
+// 3. 4135 (8.774ms)
+// Total: 8.943ms
