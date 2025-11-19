@@ -66,11 +66,7 @@ impl<'a> StrGrid<'a> {
 
     pub fn get_index(&self, idx: usize) -> Option<u8> {
         let b = self.s.get(idx)?;
-        if *b == b'\n' {
-            None
-        } else {
-            Some(*b)
-        }
+        if *b == b'\n' { None } else { Some(*b) }
     }
 
     pub fn get_coord(&self, coord: Pos) -> Option<u8> {
@@ -133,5 +129,11 @@ impl<'a> StrGrid<'a> {
             dir,
             b: a_b,
         })
+    }
+}
+
+impl<'a> From<&'a str> for StrGrid<'a> {
+    fn from(value: &'a str) -> Self {
+        Self::new(value).unwrap()
     }
 }
