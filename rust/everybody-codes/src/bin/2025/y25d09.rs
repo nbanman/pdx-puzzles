@@ -203,7 +203,9 @@ fn part2(input: Input) -> usize {
         .filter_map(|child| {
             let child_dna = dna[child];
             get_families(&dna, child, &child_dna)
-                .map(|(p1, p2)| dna[child].similarity(&dna[p1]) * dna[child].similarity(&dna[p2]))
+                .map(|(p1, p2)| {
+                    child_dna.similarity(&dna[p1]) * child_dna.similarity(&dna[p2])
+                })
         })
         .sum()
 }
