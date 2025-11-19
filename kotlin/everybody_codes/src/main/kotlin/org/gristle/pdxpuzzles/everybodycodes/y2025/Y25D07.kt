@@ -104,19 +104,62 @@ object Y25D07 : Day {
             }
             val len = name.length
             val last = name.last()
-            val hash = ((last - 'a') shl 4) or len
+            val hash = last.hash(len)
             sum += cache[hash].let {
                 if (it >= 0) {
                     it
                 } else {
-                    3
+                    countNames(last, len, hash, paths, cache)
                 }
             }
         }
         return sum
     }
 
+    fun countNames(
+        c: Char,
+        depth: Int,
+        hash: Int,
+        paths: Map<Char, List<Char>>,
+        cache: IntArray
+    ): Int {
+        // base case 1: Max depth reached
+        if (depth == 11) {
+            cache[hash] = 1
+            return 1
+        }
 
+        var nameCount = if (depth >= 7) 1 else 0
+
+        // base case 2: no children remaining
+        val next = paths[c]
+        if (next == null) {
+            cache[hash] = nameCount
+            return nameCount
+        }
+
+        // otherwise
+        for (nc in next) {
+            val nHash = nc.hash(depth + 1)
+            nameCount += cache[nHash].let {
+                if (it >= 0) {
+                    it
+                } else {
+                    countNames(nc, depth + 1, nHash, paths, cache)
+                }
+            }
+        }
+        cache[hash] = nameCount
+        return nameCount
+    }
+
+    fun Char.hash(depth: Int): Int = ((this - 'a') shl 4) or depth
 }
 
 fun main() = Day.runDay(Y25D07::class)
+
+//    [25 Day 7]
+//    Quest 1: Ulendris (1ms)
+//    Quest 2: 2529 (3ms)
+//    Quest 3: 1945135 (0ms)
+//    Total time: 5ms
