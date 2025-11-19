@@ -63,7 +63,11 @@ fn part3(input: Input) -> usize {
 
     for _ in 0..3 {
         let eligible = clearing.s.iter().enumerate()
-            .filter(|&(_, &b)| b >= b'4')
+            .filter(|&(idx, &c)| {
+                !history[idx] && clearing
+                    .adjacent(idx)
+                    .all(|adj| c > adj.b)
+            })
             .map(|(idx, _)| idx)
             .collect_vec();
         let (_, exploded, winner) = eligible
@@ -89,8 +93,8 @@ fn default() {
     assert_eq!(4135, part3(&input3));
 }
 
-// Input parsed (48μs)
-// 1. 240 (36μs)
-// 2. 5731 (146μs)
-// 3. 4135 (36.260ms)
-// Total: 36.501ms
+// Input parsed (41μs)
+// 1. 240 (29μs)
+// 2. 5731 (111μs)
+// 3. 4135 (10.173ms)
+// Total: 10.359ms
