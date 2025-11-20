@@ -1,18 +1,17 @@
 package org.gristle.pdxpuzzles.everybodycodes.y2025
 
 import org.gristle.pdxpuzzles.everybodycodes.utilities.Day
-import org.gristle.pdxpuzzles.utilities.parsing.getInts
 import java.util.ArrayDeque
 
 object Y25D13 : Day {
-    private fun solve(ranges: Sequence<IntRange>, totalTurns: Long): Int {
+    private fun solve(input: String, totalTurns: Long): Int {
         val lock = ArrayDeque<IntRange>(500)
         lock.addLast(1..1)
         var start = 0
         var total = 1
         var forward = true
 
-        for (rng in ranges) {
+        for (rng in ranges(input)) {
             total += rng.last - rng.first + 1
             if (forward) {
                 lock.addLast(rng)
@@ -42,17 +41,23 @@ object Y25D13 : Day {
         error("Unreachable!")
     }
 
+    private fun ranges(input: String): Sequence<IntRange> = input
+        .lineSequence()
+        .map { line ->
+            val rng = line.split('-').map { it.toInt() }
+            val lo = rng[0]
+            val hi = rng.getOrElse(1) { lo }
+            lo..hi
+        }
+
     override fun part1(input: String): Int {
-        val ranges = input.getInts().map { it..it }
-        return solve(ranges, 2025)
+        return solve(input, 2025)
     }
     override fun part2(input: String): Int {
-        val ranges = input.getInts().chunked(2).map { (a, b) -> a..b }
-        return solve(ranges, 20_252_025)
+        return solve(input, 20_252_025)
     }
     override fun part3(input: String): Int {
-        val ranges = input.getInts().chunked(2).map { (a, b) -> a..b }
-        return solve(ranges, 202_520_252_025)
+        return solve(input, 202_520_252_025)
     }
 }
 
