@@ -50,15 +50,9 @@ object Y25D13 : Day {
             lo..hi
         }
 
-    override fun part1(input: String): Int {
-        return solve(input, 2025)
-    }
-    override fun part2(input: String): Int {
-        return solve(input, 20_252_025)
-    }
-    override fun part3(input: String): Int {
-        return solve(input, 202_520_252_025)
-    }
+    override fun part1(input: String): Int = solve(input, 2025)
+    override fun part2(input: String): Int = solve(input, 20_252_025)
+    override fun part3(input: String): Int = solve(input, 202_520_252_025)
 }
 
 fun main() = Day.runDay(Y25D13::class)
