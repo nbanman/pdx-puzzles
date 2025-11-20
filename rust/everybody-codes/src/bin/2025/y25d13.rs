@@ -79,8 +79,8 @@ fn default() {
     assert_eq!(217823, part3(&input3));
 }
 
-// Input parsed (38μs)
-// 1. 353 (6μs)
-// 2. 7613 (7μs)
-// 3. 217823 (25μs)
-// Total: 80μs
+// Input parsed (28μs)
+// 1. 353 (8μs)
+// 2. 7613 (6μs)
+// 3. 217823 (20μs)
+// Total: 65μs
