@@ -39,7 +39,7 @@ fn solve(input: Input, total_turns: u64) -> u32 {
 
     // use mod math to eliminate a bunch of full circles.
     let dial_len: u32 = lock.iter().map(|(a, b)| b - a + 1).sum();
-    let mut turns_left = (total_turns % dial_len as u64) as u32;
+    let mut turns_remaining = (total_turns % dial_len as u64) as u32;
 
     // Iterate through the ranges. On each pass, lower turns_left by the # of numbers in that range.
     // When the # of numbers is higher than the remaining target, you know that the turn is in that
@@ -48,14 +48,14 @@ fn solve(input: Input, total_turns: u64) -> u32 {
     for i in 0..lock.len() {
         let &(lo, hi) = lock.get(i).unwrap();
         let numbers = hi - lo + 1;
-        if turns_left < numbers {
+        if turns_remaining < numbers {
             return if i < reverse_point {
-                lo + turns_left
+                lo + turns_remaining
             } else {
-                hi - turns_left
+                hi - turns_remaining
             }
         }
-        turns_left -= numbers;
+        turns_remaining -= numbers;
     }
     unreachable!()
 }
