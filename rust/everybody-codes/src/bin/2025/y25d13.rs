@@ -1,7 +1,6 @@
 use std::collections::VecDeque;
 use everybody_codes::utilities::inputs::get_event_inputs;
-use itertools::Itertools;
-use utilities::{parsing::get_numbers::ContainsNumbers, structs::stopwatch::{ReportDuration, Stopwatch}};
+use utilities::{structs::stopwatch::{ReportDuration, Stopwatch}};
 
 type Input<'a> = &'a str;
 
@@ -16,7 +15,7 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn solve(ranges: impl Iterator<Item = (u32, u32)>, total_turns: u64) -> u32 {
+fn solve(input: Input, total_turns: u64) -> u32 {
     // ranges stored in VecDeque to approximate 'circular' layout of the ranges
     let mut lock: VecDeque<(u32, u32)> = VecDeque::with_capacity(500);
     lock.push_back((1, 1));
@@ -29,7 +28,7 @@ fn solve(ranges: impl Iterator<Item = (u32, u32)>, total_turns: u64) -> u32 {
     // This bool cycles on and off, telling us to place ranges forward or backward on the lock.
     let mut forward = true;
 
-    for (lo, hi) in ranges {
+    for (lo, hi) in ranges(input) {
         if forward {
             lock.push_back((lo, hi));
         } else {
@@ -62,25 +61,25 @@ fn solve(ranges: impl Iterator<Item = (u32, u32)>, total_turns: u64) -> u32 {
     unreachable!()
 }
 
+fn ranges(input: Input) -> impl Iterator<Item = (u32, u32)> {
+    input.lines().map(|line| {
+        let mut rng = line.split('-');
+        let lo = rng.next().unwrap().parse::<u32>().unwrap();
+        let hi = rng.next()
+            .map(|it| it.parse::<u32>().unwrap())
+            .unwrap_or_else(|| lo);
+        (lo, hi)
+    })
+}
+
 fn part1(input: Input) -> u32 {
-    let ranges = input
-        .get_numbers()
-        .map(|n| (n, n));
-    solve(ranges, 2025)
+    solve(input, 2025)
 }
 fn part2(input: Input) -> u32 {
-    let ranges = input
-        .get_numbers()
-        .tuples()
-        .map(|(a, b)| (a, b));
-    solve(ranges, 20_252_025)
+    solve(input, 20_252_025)
 }
 fn part3(input: Input) -> u32 {
-    let ranges = input
-        .get_numbers()
-        .tuples()
-        .map(|(a, b)| (a, b));
-    solve(ranges, 202_520_252_025)
+    solve(input, 202_520_252_025)
 }
 
 #[test]
