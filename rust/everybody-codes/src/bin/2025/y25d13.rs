@@ -20,11 +20,6 @@ fn solve(input: Input, total_turns: u64) -> u32 {
     let mut lock: VecDeque<(u32, u32)> = VecDeque::with_capacity(500);
     lock.push_back((1, 1));
 
-    // we don't know how many ranges there are in the lock to start, so we track it as we
-    // iterate. When the left half gets pushed on to the Deque, the index will shift so
-    // this will ensure that we start at the 12 o'clock position once the lock is built.
-    let mut start = 0;
-
     // This bool cycles true/false, telling us to place ranges forward or backward on the lock.
     let mut forward = true;
 
@@ -32,20 +27,18 @@ fn solve(input: Input, total_turns: u64) -> u32 {
         if forward {
             lock.push_back((lo, hi));
         } else {
-            start += 1;
             lock.push_front((lo, hi))
         }
         forward = !forward;
     }
 
-    // rotate the deque so that it starts at '1'. Keep track of the point where the numbers need
-    // to be reversed.
-    lock.rotate_left(start);
-    let reverse_point = lock.len() - start;
-
-    let dial_len: u32 = lock.iter().map(|(a, b)| b - a + 1).sum();
+    // calculate the point in the lock where the ranges start to be reversed, then rotate the
+    // deque so that those ranges are at the end
+    let reverse_point = lock.len() / 2 + 1;
+    lock.rotate_right(reverse_point);
 
     // use mod math to eliminate a bunch of full circles.
+    let dial_len: u32 = lock.iter().map(|(a, b)| b - a + 1).sum();
     let mut turns_left = (total_turns % dial_len as u64) as u32;
 
     // Iterate through the ranges. On each pass, lower turns_left by the # of numbers in that range.
