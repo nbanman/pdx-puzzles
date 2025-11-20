@@ -1,36 +1,38 @@
 package org.gristle.pdxpuzzles.everybodycodes.y2025
 
 import org.gristle.pdxpuzzles.everybodycodes.utilities.Day
-import org.gristle.pdxpuzzles.utilities.math.isEven
 import org.gristle.pdxpuzzles.utilities.parsing.getInts
 import java.util.ArrayDeque
 
 object Y25D13 : Day {
     private fun solve(ranges: Sequence<IntRange>, totalTurns: Long): Int {
-        val lock = ArrayDeque<Pair<IntRange, Boolean>>(500)
-        lock.addLast(1..1 to true)
+        val lock = ArrayDeque<IntRange>(500)
+        lock.addLast(1..1)
         var start = 0
         var total = 1
+        var forward = true
 
-        for ((idx, rng) in ranges.withIndex()) {
+        for (rng in ranges) {
             total += rng.last - rng.first + 1
-            if (idx.isEven()) {
-                lock.addLast(rng to true)
+            if (forward) {
+                lock.addLast(rng)
             } else {
                 start++
-                lock.addFirst(rng to false)
+                lock.addFirst(rng)
             }
+            forward = !forward
         }
 
         val totalTurns = (totalTurns + 1) % total
         var turns = 0
 
         for (i in start..start + lock.size) {
-            val (rng, isForward) = lock.elementAt(i % lock.size)
+            val idx = i % lock.size
+            val rng = lock.elementAt(idx % lock.size)
             turns += rng.last - rng.first + 1
             if (turns >= totalTurns) {
                 val diff = (turns - totalTurns).toInt()
-                return if (isForward) {
+                return if (idx >= start) {
                     rng.last - diff
                 } else {
                     rng.first + diff
