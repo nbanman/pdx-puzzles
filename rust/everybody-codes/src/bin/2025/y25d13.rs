@@ -26,15 +26,10 @@ fn solve(ranges: impl Iterator<Item = (u32, u32)>, total_turns: u64) -> u32 {
     // this will ensure that we start at the 12 o'clock position once the lock is built.
     let mut start = 0;
 
-    // The total number of spots on the lock, not the range, but as if the range were exploded.
-    // Starts at 1 to account for the 12 o'clock spot that is not in the input.
-    let mut total = 1;
-
     // This bool cycles on and off, telling us to place ranges forward or backward on the lock.
     let mut forward = true;
 
     for (lo, hi) in ranges {
-        total += hi - lo + 1;
         if forward {
             lock.push_back((lo, hi));
         } else {
@@ -44,9 +39,11 @@ fn solve(ranges: impl Iterator<Item = (u32, u32)>, total_turns: u64) -> u32 {
         forward = !forward;
     }
 
+    let dial_len: u32 = lock.iter().map(|(a, b)| b - a + 1).sum();
+
     // use mod math to eliminate a bunch of full circles. Also bump turns by one, which allows
     // the below loop to load the appropriate hi/lo pair.
-    let total_turns = ((total_turns + 1) % total as u64) as u32;
+    let total_turns = ((total_turns + 1) % dial_len as u64) as u32;
     let mut turns = 0;
     
     for i in start.. {
