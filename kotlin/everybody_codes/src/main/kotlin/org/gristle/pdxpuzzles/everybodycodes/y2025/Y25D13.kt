@@ -7,36 +7,33 @@ object Y25D13 : Day {
     private fun solve(input: String, totalTurns: Long): Int {
         val lock = ArrayDeque<IntRange>(500)
         lock.addLast(1..1)
-        var start = 0
-        var total = 1
         var forward = true
 
         for (rng in ranges(input)) {
-            total += rng.last - rng.first + 1
             if (forward) {
                 lock.addLast(rng)
             } else {
-                start++
                 lock.addFirst(rng)
             }
             forward = !forward
         }
 
-        val totalTurns = (totalTurns + 1) % total
-        var turns = 0
+        val start = (lock.size - 1) / 2
+        val dialLength = lock.sumOf { rng -> rng.last - rng.first + 1 }
+        var turnsRemaining = (totalTurns % dialLength).toInt()
 
         for (i in start..start + lock.size) {
             val idx = i % lock.size
             val rng = lock.elementAt(idx % lock.size)
-            turns += rng.last - rng.first + 1
-            if (turns >= totalTurns) {
-                val diff = (turns - totalTurns).toInt()
+            val numbers = rng.last - rng.first + 1
+            if (turnsRemaining < numbers) {
                 return if (idx >= start) {
-                    rng.last - diff
+                    rng.first + turnsRemaining
                 } else {
-                    rng.first + diff
+                    rng.last - turnsRemaining
                 }
             }
+            turnsRemaining -= numbers
         }
         error("Unreachable!")
     }
