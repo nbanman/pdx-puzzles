@@ -44,8 +44,10 @@ fn solve(ranges: impl Iterator<Item = (u32, u32)>, total_turns: u64) -> u32 {
         forward = !forward;
     }
 
+    // use mod math to eliminate a bunch of full circles. Also bump turns by one, which allows
+    // the below loop to load the appropriate hi/lo pair.
     let total_turns = ((total_turns + 1) % total as u64) as u32;
-    let mut turns= 0;
+    let mut turns = 0;
     
     for i in start.. {
         let i = i % lock.len();
