@@ -25,7 +25,7 @@ fn solve(input: Input, total_turns: u64) -> u32 {
     // this will ensure that we start at the 12 o'clock position once the lock is built.
     let mut start = 0;
 
-    // This bool cycles on and off, telling us to place ranges forward or backward on the lock.
+    // This bool cycles true/false, telling us to place ranges forward or backward on the lock.
     let mut forward = true;
 
     for (lo, hi) in ranges(input) {
@@ -38,25 +38,31 @@ fn solve(input: Input, total_turns: u64) -> u32 {
         forward = !forward;
     }
 
+    // rotate the deque so that it starts at '1'. Keep track of the point where the numbers need
+    // to be reversed.
+    lock.rotate_left(start);
+    let reverse_point = lock.len() - start;
+
     let dial_len: u32 = lock.iter().map(|(a, b)| b - a + 1).sum();
 
-    // use mod math to eliminate a bunch of full circles. Also bump turns by one, which allows
-    // the below loop to load the appropriate hi/lo pair.
-    let total_turns = ((total_turns + 1) % dial_len as u64) as u32;
-    let mut turns = 0;
-    
-    for i in start.. {
-        let i = i % lock.len();
+    // use mod math to eliminate a bunch of full circles.
+    let mut turns_left = (total_turns % dial_len as u64) as u32;
+
+    // Iterate through the ranges. On each pass, lower turns_left by the # of numbers in that range.
+    // When the # of numbers is higher than the remaining target, you know that the turn is in that
+    // range. Depending on whether the range is added to the left or right of the initial position,
+    // you either add from the low part of the range or subtract from the high part of the range.
+    for i in 0..lock.len() {
         let &(lo, hi) = lock.get(i).unwrap();
-        turns += hi - lo + 1;
-        if turns >= total_turns {
-            let diff = turns - total_turns;
-            return if i >= start {
-                hi - diff
+        let numbers = hi - lo + 1;
+        if turns_left < numbers {
+            return if i < reverse_point {
+                lo + turns_left
             } else {
-                lo + diff
+                hi - turns_left
             }
         }
+        turns_left -= numbers;
     }
     unreachable!()
 }
