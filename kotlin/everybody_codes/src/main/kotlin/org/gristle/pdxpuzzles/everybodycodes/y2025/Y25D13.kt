@@ -39,7 +39,7 @@ object Y25D13 : Day {
                 }
             }
         }
-        throw IllegalStateException("Unreachable!")
+        error("Unreachable!")
     }
 
     override fun part1(input: String): Int {
