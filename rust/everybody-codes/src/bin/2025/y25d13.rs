@@ -17,35 +17,22 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn part1(input: Input) -> u32 {
-    let mut lock = VecDeque::with_capacity(51);
-    lock.push_back(1);
-    let mut start = 0;
-    for (idx, n) in input.get_numbers::<u32>().enumerate() {
-        if idx & 1 == 0 {
-            lock.push_back(n);
-        } else {
-            start += 1;
-            lock.push_front(n);
-        }
-    }
-    *lock.get((start + 2025) % lock.len()).unwrap()
-}
-
-fn solve(input: Input, total_turns: u64) -> u64 {
+fn solve(ranges: impl Iterator<Item = RangeInclusive<u64>>, total_turns: u64) -> u64 {
     let mut lock: VecDeque<(RangeInclusive<u64>, bool)> = VecDeque::with_capacity(500);
     lock.push_back((1..=1, true));
     let mut start = 0;
     let mut total: u64 = 1;
-    for (idx, (a, b)) in input.get_numbers::<u64>().tuples().enumerate() {
+
+    for (idx, rng) in ranges.enumerate() {
+        total += rng.end() - rng.start() + 1;
         if idx & 1 == 0 {
-            lock.push_back((a..=b, true));
+            lock.push_back((rng, true));
         } else {
             start += 1;
-            lock.push_front((a..=b, false))
+            lock.push_front((rng, false))
         }      
-        total += b - a + 1;
     }
+
     let total_turns = (total_turns + 1) % total;
     let mut turns: u64 = 0;
     
@@ -63,12 +50,20 @@ fn solve(input: Input, total_turns: u64) -> u64 {
     }
     unreachable!()
 }
+
+fn part1(input: Input) -> u64 {
+    let ranges = input.get_numbers().map(|n| n..=n);
+    solve(ranges, 2025)
+}
+
 fn part2(input: Input) -> u64 {
-    solve(input, 20_252_025)
+    let ranges = input.get_numbers().tuples().map(|(a, b)| a..=b);
+    solve(ranges, 20_252_025)
 }
 
 fn part3(input: Input) -> u64 {
-    solve(input, 202_520_252_025)
+    let ranges = input.get_numbers().tuples().map(|(a, b)| a..=b);
+    solve(ranges, 202_520_252_025)
 }
 
 #[test]
