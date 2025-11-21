@@ -59,19 +59,19 @@ impl From<&str> for Floor {
 }
 
 #[derive(Debug)]
-struct SymmetricFloor([u64; 17]);
+struct SymmetricFloor([u32; 17]);
 
 impl SymmetricFloor {
-    const MASK: u64 = 17_179_869_183;
+    const MASK: u32 = 131_071;
 
     fn next(&self) -> Self {
         let shaken = self.0.map(|row| {
-            let shl = (row << 1) & Self::MASK;
+            let shl = (row << 1) | (row & 1) & Self::MASK;
             let shr = row >> 1;
             shl ^ shr
         });
 
-        let inner: [u64; 17] = std::array::from_fn(|i| {
+        let inner: [u32; 17] = std::array::from_fn(|i| {
             let up = if i == 0 {
                 0
             } else {
@@ -89,7 +89,7 @@ impl SymmetricFloor {
     }
 
     fn active(&self) -> u64 {
-        self.0.iter().map(|row| row.count_ones() as u64).sum::<u64>() * 2
+        self.0.iter().map(|row| row.count_ones() as u64).sum::<u64>() * 4
     }
 }
 
@@ -124,14 +124,18 @@ fn part2(input: Input) -> u64 {
 }
 
 fn part3(input: Input) -> u64 {
-    let floor = SymmetricFloor([0u64; 17]);
-    let center = input.as_bytes()[0..input.as_bytes().len() / 2].iter()
-        .fold(0u64, |acc, &b| {
-            match b {
-                b'#' => acc << 1 | 1,
-                b'.' => acc << 1,
-                b'\n' => acc,
-                _ => unreachable!(),
+    let floor = SymmetricFloor([0u32; 17]);
+    let center = input.as_bytes()[0..input.as_bytes().len() / 2].iter().enumerate()
+        .fold(0u32, |acc, (idx, &b)| {
+            if idx % 9 > 3 {
+                acc
+            } else {
+                match b {
+                    b'#' => acc << 1 | 1,
+                    b'.' => acc << 1,
+                    b'\n' => acc,
+                    _ => unreachable!(),
+                }
             }
         });
 
@@ -148,8 +152,8 @@ fn part3(input: Input) -> u64 {
         .skip(1)
         .take(cycle_length)
     {
-        let floor_center = floor.0[13..17].iter()
-            .fold(0u64, |acc, &row| acc << 8 | (row >> 13 & 0xFF));
+        let floor_center = floor.0[13..].iter()
+            .fold(0u32, |acc, &row| acc << 4 | (row & 0xF));
         if floor_center == center {
             cycle_sum += floor.active();
         }
@@ -168,8 +172,8 @@ fn default() {
     assert_eq!(1012942728, part3(&input3));
 }
 
-// Input parsed (29μs)
-// 1. 474 (9μs)
-// 2. 1170584 (148μs)
-// 3. 1012942728 (121μs)
-// Total: 311μs
+// Input parsed (30μs)
+// 1. 474 (6μs)
+// 2. 1170584 (145μs)
+// 3. 1012942728 (82μs)
+// Total: 266μs
