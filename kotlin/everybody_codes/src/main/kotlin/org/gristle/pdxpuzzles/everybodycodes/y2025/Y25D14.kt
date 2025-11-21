@@ -40,15 +40,14 @@ object Y25D14 : Day {
         fun active(): Int = value.sumOf { row -> row.countOneBits() }
     }
 
-    @JvmInline
-    value class SymmetricFloor(val value: IntArray = IntArray(17)) {
+    class SymmetricFloor(val value: IntArray = IntArray(17), val shaken: IntArray = IntArray(17)) {
         fun next() {
             val mask = 131_071
-            val shaken = IntArray(17) { i ->
+            for (i in 0 until shaken.size) {
                 val row = value[i]
                 val shiftLeft = (row shl 1) or (row and 1) and mask
                 val shiftRight = row shr 1
-                shiftLeft xor shiftRight
+                shaken[i] = shiftLeft xor shiftRight
             }
             for ((i, row) in value.withIndex()) {
                 val up = if (i == 0) 0 else shaken[i - 1]
