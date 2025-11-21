@@ -1,15 +1,17 @@
+#![feature(const_trait_impl)]
+
 use everybody_codes::utilities::inputs::get_event_inputs;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 type Input<'a> = &'a str;
 
 #[derive(Debug)]
-struct Floor {
-    tiles: Vec<u64>,
-    shaken: Vec<u64>,
+struct Floor<const N: usize> {
+    tiles: [u64; N],
+    shaken: [u64; N],
 }
 
-impl Floor {
+impl<const N: usize> Floor<N> {
     fn next(&mut self, mask: u64) -> &Self {
         for i in 0..self.shaken.len() {
             let row = self.tiles[i];
@@ -18,17 +20,13 @@ impl Floor {
             self.shaken[i] = shl ^ shr
         }
         for (i, row) in self.tiles.iter_mut().enumerate() {
-                let up = if i == 0 {
-                    0
-                } else {
-                    self.shaken[i - 1]
-                };
-                let down = if i == self.shaken.len() - 1 {
-                    0
-                } else {
-                    self.shaken[i + 1]
-                };
-                *row = !(*row ^ (up ^ down)) & mask;
+            let up = if i == 0 { 0 } else { self.shaken[i - 1] };
+            let down = if i == self.shaken.len() - 1 {
+                0
+            } else {
+                self.shaken[i + 1]
+            };
+            *row = !(*row ^ (up ^ down)) & mask;
         }
         self
     }
@@ -38,20 +36,23 @@ impl Floor {
     }
 }
 
-impl From<&str> for Floor {
+impl<const N: usize> From<&str> for Floor<N> {
     fn from(value: &str) -> Self {
-        let tiles: Vec<u64> = value
-            .lines()
-            .map(|line| {
-                line.as_bytes().iter().fold(0u64, |acc, &b| match b {
+        let mut lines = value.lines();
+        let tiles = std::array::from_fn(|_| {
+            lines
+                .next()
+                .unwrap()
+                .as_bytes()
+                .iter()
+                .fold(0u64, |acc, &b| match b {
                     b'#' => (acc << 1) | 1,
                     b'.' => acc << 1,
                     b'\n' => acc,
                     _ => unreachable!(),
                 })
-            })
-            .collect();
-        let shaken = vec![0u64; tiles.len()];
+        });
+        let shaken = [0u64; N];
         Self { tiles, shaken }
     }
 }
@@ -72,25 +73,24 @@ impl SymmetricFloor {
             let shr = row >> 1;
             self.shaken[i] = shl ^ shr
         }
-        
+
         for (i, row) in self.tiles.iter_mut().enumerate() {
-            let up = if i == 0 {
-                0
-            } else {
-                self.shaken[i - 1]
-            };
+            let up = if i == 0 { 0 } else { self.shaken[i - 1] };
             let down = if i == 16 {
                 self.shaken[i]
             } else {
                 self.shaken[i + 1]
             };
             *row = !(*row ^ (up ^ down)) & Self::MASK
-            
         }
     }
 
     fn active(&self) -> u64 {
-        self.tiles.iter().map(|row| row.count_ones() as u64).sum::<u64>() * 4
+        self.tiles
+            .iter()
+            .map(|row| row.count_ones() as u64)
+            .sum::<u64>()
+            * 4
     }
 }
 
@@ -105,9 +105,8 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn sum_all_active(input: Input, rounds: usize) -> u64 {
-    let mut floor: Floor = input.into();
-    let mask = 2u64.pow(input.chars().position(|c| c == '\n').unwrap() as u32) - 1;
+fn sum_all_active<const N: usize>(mut floor: Floor<N>, rounds: usize) -> u64 {
+    let mask = 2u64.pow(N as u32) - 1;
     let mut active = 0;
     for _ in 0..rounds {
         active += floor.next(mask).active();
@@ -116,16 +115,23 @@ fn sum_all_active(input: Input, rounds: usize) -> u64 {
 }
 
 fn part1(input: Input) -> u64 {
-    sum_all_active(input, 10)
+    let floor: Floor<10> = input.into();
+    sum_all_active(floor, 10)
 }
 
 fn part2(input: Input) -> u64 {
-    sum_all_active(input, 2025)
+    let floor: Floor<34> = input.into();
+    sum_all_active(floor, 2025)
 }
 
 fn part3(input: Input) -> u64 {
-    let mut floor = SymmetricFloor { tiles: [0; 17], shaken: [0; 17] };
-    let center = input.as_bytes()[0..input.as_bytes().len() / 2].iter().enumerate()
+    let mut floor = SymmetricFloor {
+        tiles: [0; 17],
+        shaken: [0; 17],
+    };
+    let center = input.as_bytes()[0..input.as_bytes().len() / 2]
+        .iter()
+        .enumerate()
         .fold(0u32, |acc, (idx, &b)| {
             if idx % 9 > 3 {
                 acc
@@ -149,7 +155,8 @@ fn part3(input: Input) -> u64 {
 
     for index in 0..cycle_length {
         floor.next();
-        let floor_center = floor.tiles[13..].iter()
+        let floor_center = floor.tiles[13..]
+            .iter()
             .fold(0u32, |acc, &row| acc << 4 | (row & 0xF));
         if floor_center == center {
             cycle_sum += floor.active();
@@ -169,8 +176,8 @@ fn default() {
     assert_eq!(1012942728, part3(&input3));
 }
 
-// Input parsed (27μs)
-// 1. 474 (9μs)
-// 2. 1170584 (89μs)
-// 3. 1012942728 (24μs)
-// Total: 153μs
+// Input parsed (26μs)
+// 1. 474 (8μs)
+// 2. 1170584 (74μs)
+// 3. 1012942728 (25μs)
+// Total: 137μs
