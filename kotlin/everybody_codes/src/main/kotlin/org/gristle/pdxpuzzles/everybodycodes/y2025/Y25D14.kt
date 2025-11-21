@@ -58,13 +58,6 @@ object Y25D14 : Day {
                 else -> error("'$c' should not be in input")
             }
         }
-        val centerMask = (2.pow(8) - 1).toULong()
-        val matchesCenter: Floor.() -> Boolean = {
-            center == value.subList(13, 21).fold(0uL) { acc, row ->
-                val trimmed = row shr 13 and centerMask
-                acc shl 8 or trimmed
-            }
-        }
 
         val mask = 17179869183uL
 
@@ -81,7 +74,11 @@ object Y25D14 : Day {
             .drop(1)
             .take(cycleLength)
         ) {
-            if (floor.matchesCenter()) {
+            val floorCenter = floor.value.subList(13, 21).fold(0uL) { acc, row ->
+                val trimmed = row shr 13 and 0xFFuL
+                acc shl 8 or trimmed
+            }
+            if (floorCenter == center) {
                 cycleSum += floor.active()
             }
             if (index == remainder) {
@@ -93,3 +90,8 @@ object Y25D14 : Day {
 }
 
 fun main() = Day.runDay(Y25D14::class)
+
+//    Quest 1: 474 (5ms)
+//    Quest 2: 1170584 (26ms)
+//    Quest 3: 1012942728 (28ms)
+//    Total time: 60ms
