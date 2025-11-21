@@ -4,42 +4,66 @@ import org.gristle.pdxpuzzles.everybodycodes.utilities.Day
 import org.gristle.pdxpuzzles.utilities.math.pow
 
 object Y25D14 : Day {
-    @JvmInline
-    value class Floor(val value: List<ULong>) {
+    @OptIn(ExperimentalUnsignedTypes::class)
+    class Floor(val value: ULongArray, val shaken: ULongArray) {
         companion object {
             fun from(s: String): Floor {
-                val value = s.lines().map { line ->
-                    line.fold(0uL) { acc, c ->
-                        when (c) {
-                            '#' -> acc shl 1 or 1uL
-                            '.' -> acc shl 1
-                            '\n' -> acc
-                            else -> error("$c not a valid character")
+                val value = s.lines()
+                    .map { line ->
+                        line.fold(0uL) { acc, c ->
+                            when (c) {
+                                '#' -> acc shl 1 or 1uL
+                                '.' -> acc shl 1
+                                '\n' -> acc
+                                else -> error("$c not a valid character")
+                            }
                         }
-                    }
-                }
-                return Floor(value)
+                    }.toULongArray()
+                val shaken = ULongArray(value.size)
+                return Floor(value, shaken)
             }
         }
 
         fun next(mask: ULong): Floor {
-            val shaken = value.asSequence().map { row ->
-                ((row shl 1) and mask) xor (row shr 1)
+            for (i in 0 until shaken.size) {
+                val row = value[i]
+                shaken[i] = ((row shl 1) and mask) xor (row shr 1)
             }
-            val inner = (sequenceOf(0uL) + shaken + sequenceOf(0uL))
-                .windowed(3)
-                .zip(value.asSequence())
-                .map { (abut, row) -> (row xor (abut[0] xor abut[2])).inv() and mask }
-                .toList()
-            return Floor(inner)
+            for ((i, row) in value.withIndex()) {
+                val up = if (i == 0) 0uL else shaken[i - 1]
+                val down = if (i == shaken.lastIndex) 0uL else shaken[i + 1]
+                value[i] = mask and ((row xor (up xor down)).inv())
+            }
+            return this
         }
 
         fun active(): Int = value.sumOf { row -> row.countOneBits() }
     }
 
+    @JvmInline
+    value class SymmetricFloor(val value: IntArray = IntArray(17)) {
+        fun next() {
+            val mask = 131_071
+            val shaken = IntArray(17) { i ->
+                val row = value[i]
+                val shiftLeft = (row shl 1) or (row and 1) and mask
+                val shiftRight = row shr 1
+                shiftLeft xor shiftRight
+            }
+            for ((i, row) in value.withIndex()) {
+                val up = if (i == 0) 0 else shaken[i - 1]
+                val down = if (i == 16) shaken[i] else shaken[i + 1]
+                value[i] = mask and ((row xor (up xor down)).inv())
+            }
+        }
+
+        fun active(): Int = value.sumOf { row -> row.countOneBits() } * 4
+    }
+
     fun sumAllActive(input: String, rounds: Int): Int {
         val floor = Floor.from(input)
         val mask = (2.pow(input.indexOf('\n')) - 1).toULong()
+        (0 until rounds)
         return generateSequence(floor) { it.next(mask) }
             .drop(1)
             .take(rounds)
@@ -49,17 +73,21 @@ object Y25D14 : Day {
     override fun part1(input: String): Int = sumAllActive(input, 10)
     override fun part2(input: String): Int = sumAllActive(input, 2025)
     override fun part3(input: String): Int {
-        val floor = Floor(List(34) { 0uL })
-        val center = input.fold(0uL) { acc, c ->
-            when (c) {
-                '#' -> acc shl 1 or 1uL
-                '.' -> acc shl 1
-                '\n' -> acc
-                else -> error("'$c' should not be in input")
+        val floor = SymmetricFloor()
+        val center = input
+            .take(input.length / 2)
+            .foldIndexed(0) { idx, acc, c ->
+                if (idx % 9 > 3) {
+                    acc
+                } else {
+                    when (c) {
+                        '#' -> acc shl 1 or 1
+                        '.' -> acc shl 1
+                        '\n' -> acc
+                        else -> error("'$c' should not be in input")
+                    }
+                }
             }
-        }
-
-        val mask = 17179869183uL
 
         // skip the first round b/c it has nothing in it and does not cycle
         val totalRounds = 999_999_999
@@ -69,15 +97,10 @@ object Y25D14 : Day {
         var cycleSum = 0
         var remainderSum = 0
 
-        for ((index, floor) in generateSequence(floor) { it.next(mask) }
-            .withIndex()
-            .drop(1)
-            .take(cycleLength)
-        ) {
-            val floorCenter = floor.value.subList(13, 21).fold(0uL) { acc, row ->
-                val trimmed = row shr 13 and 0xFFuL
-                acc shl 8 or trimmed
-            }
+        for (index in 0 until cycleLength) {
+            floor.next()
+            val floorCenter = (13 until 17)
+                .fold(0) { acc, rowIdx -> acc shl 4 or (floor.value[rowIdx] and 0xF) }
             if (floorCenter == center) {
                 cycleSum += floor.active()
             }
@@ -91,7 +114,7 @@ object Y25D14 : Day {
 
 fun main() = Day.runDay(Y25D14::class)
 
-//    Quest 1: 474 (5ms)
-//    Quest 2: 1170584 (26ms)
-//    Quest 3: 1012942728 (28ms)
-//    Total time: 60ms
+//    Quest 1: 474 (3ms)
+//    Quest 2: 1170584 (6ms)
+//    Quest 3: 1012942728 (2ms)
+//    Total time: 12ms
