@@ -1,5 +1,4 @@
 use everybody_codes::utilities::inputs::get_event_inputs;
-use std::iter::successors;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 type Input<'a> = &'a str;
@@ -58,37 +57,40 @@ impl From<&str> for Floor {
 }
 
 #[derive(Debug)]
-struct SymmetricFloor([u32; 17]);
+struct SymmetricFloor {
+    tiles: [u32; 17],
+    shaken: [u32; 17],
+}
 
 impl SymmetricFloor {
     const MASK: u32 = 131_071;
 
-    fn next(&self) -> Self {
-        let shaken = self.0.map(|row| {
+    fn next(&mut self) {
+        for i in 0..self.shaken.len() {
+            let row = self.tiles[i];
             let shl = (row << 1) | (row & 1) & Self::MASK;
             let shr = row >> 1;
-            shl ^ shr
-        });
-
-        let inner: [u32; 17] = std::array::from_fn(|i| {
+            self.shaken[i] = shl ^ shr
+        }
+        
+        for (i, row) in self.tiles.iter_mut().enumerate() {
             let up = if i == 0 {
                 0
             } else {
-                shaken[i - 1]
+                self.shaken[i - 1]
             };
-            let row = self.0[i];
             let down = if i == 16 {
-                shaken[i]
+                self.shaken[i]
             } else {
-                shaken[i + 1]
+                self.shaken[i + 1]
             };
-            !(row ^ (up ^ down)) & Self::MASK
-        });
-        Self(inner)
+            *row = !(*row ^ (up ^ down)) & Self::MASK
+            
+        }
     }
 
     fn active(&self) -> u64 {
-        self.0.iter().map(|row| row.count_ones() as u64).sum::<u64>() * 4
+        self.tiles.iter().map(|row| row.count_ones() as u64).sum::<u64>() * 4
     }
 }
 
@@ -122,7 +124,7 @@ fn part2(input: Input) -> u64 {
 }
 
 fn part3(input: Input) -> u64 {
-    let floor = SymmetricFloor([0u32; 17]);
+    let mut floor = SymmetricFloor { tiles: [0; 17], shaken: [0; 17] };
     let center = input.as_bytes()[0..input.as_bytes().len() / 2].iter().enumerate()
         .fold(0u32, |acc, (idx, &b)| {
             if idx % 9 > 3 {
@@ -145,12 +147,9 @@ fn part3(input: Input) -> u64 {
     let mut cycle_sum = 0;
     let mut remainder_sum = 0;
 
-    for (index, floor) in successors(Some(floor), |it| Some(it.next()))
-        .enumerate()
-        .skip(1)
-        .take(cycle_length)
-    {
-        let floor_center = floor.0[13..].iter()
+    for index in 0..cycle_length {
+        floor.next();
+        let floor_center = floor.tiles[13..].iter()
             .fold(0u32, |acc, &row| acc << 4 | (row & 0xF));
         if floor_center == center {
             cycle_sum += floor.active();
@@ -170,8 +169,8 @@ fn default() {
     assert_eq!(1012942728, part3(&input3));
 }
 
-// Input parsed (30μs)
-// 1. 474 (6μs)
-// 2. 1170584 (145μs)
-// 3. 1012942728 (82μs)
-// Total: 266μs
+// Input parsed (27μs)
+// 1. 474 (9μs)
+// 2. 1170584 (89μs)
+// 3. 1012942728 (24μs)
+// Total: 153μs
