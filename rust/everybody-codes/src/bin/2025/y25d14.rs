@@ -8,22 +8,33 @@ use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 type Input<'a> = &'a str;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 struct Floor(Vec<u64>);
 
 impl Floor {
     fn next(&self, mask: u64) -> Self {
-        let shaken = self.0.iter().map(|&row| {
-            let shl = (row << 1) & mask;
-            let shr = row >> 1;
-            shl ^ shr
-        });
-        let inner = std::iter::once(0u64)
-            .chain(shaken)
-            .chain(std::iter::once(0))
-            .tuple_windows::<(_, _, _)>()
-            .zip(self.0.iter())
-            .map(|((up, _, down), &row)| !(row ^ (up ^ down)) & mask)
+        let shaken = self.0.iter()
+            .map(|&row| {
+                let shl = (row << 1) & mask;
+                let shr = row >> 1;
+                shl ^ shr
+            })
+            .collect_vec();
+
+        let inner = self.0.iter().enumerate()
+            .map(|(i, &row)| {
+                let up = if i == 0 {
+                    0
+                } else {
+                    shaken[i - 1]
+                };
+                let down = if i == shaken.len() - 1 {
+                    0
+                } else {
+                    shaken[i + 1]
+                };
+                !(row ^ (up ^ down)) & mask
+            })
             .collect();
         Self(inner)
     }
@@ -74,6 +85,42 @@ impl Display for Floor {
     }
 }
 
+#[derive(Debug)]
+struct SymmetricFloor([u64; 17]);
+
+impl SymmetricFloor {
+
+    const MASK: u64 = 17_179_869_183;
+
+    fn next(&self) -> Self {
+        let shaken = self.0.map(|row| {
+            let shl = (row << 1) & Self::MASK;
+            let shr = row >> 1;
+            shl ^ shr
+        });
+
+        let inner: [u64; 17] = std::array::from_fn(|i| {
+            let up = if i == 0 {
+                0
+            } else {
+                shaken[i - 1]
+            };
+            let row = self.0[i];
+            let down = if i == 16 {
+                shaken[i]
+            } else {
+                shaken[i + 1]
+            };
+            !(row ^ (up ^ down)) & Self::MASK
+        });
+        Self(inner)
+    }
+
+    fn active(&self) -> u64 {
+        self.0.iter().map(|row| row.count_ones() as u64).sum::<u64>() * 2
+    }
+}
+
 fn main() {
     let mut stopwatch = Stopwatch::new();
     stopwatch.start();
@@ -105,17 +152,16 @@ fn part2(input: Input) -> u64 {
 }
 
 fn part3(input: Input) -> u64 {
-    let floor = Floor(vec![0u64; 34]);
-    let center = input.as_bytes().iter().fold(0u64, |acc, &b| {
-        match b {
-            b'#' => acc << 1 | 1,
-            b'.' => acc << 1,
-            b'\n' => acc,
-            _ => unreachable!(),
-        }
-    });
-
-    let mask = 17_179_869_183;
+    let floor = SymmetricFloor([0u64; 17]);
+    let center = input.as_bytes()[0..input.as_bytes().len() / 2].iter()
+        .fold(0u64, |acc, &b| {
+            match b {
+                b'#' => acc << 1 | 1,
+                b'.' => acc << 1,
+                b'\n' => acc,
+                _ => unreachable!(),
+            }
+        });
 
     // skip the first round b/c it has nothing in it and does not cycle
     let total_rounds = 999_999_999;
@@ -125,12 +171,12 @@ fn part3(input: Input) -> u64 {
     let mut cycle_sum = 0;
     let mut remainder_sum = 0;
 
-    for (index, floor) in successors(Some(floor), |it| Some(it.next(mask)))
+    for (index, floor) in successors(Some(floor), |it| Some(it.next()))
         .enumerate()
         .skip(1)
         .take(cycle_length)
     {
-        let floor_center = floor.0[13..21].iter()
+        let floor_center = floor.0[13..17].iter()
             .fold(0u64, |acc, &row| acc << 8 | (row >> 13 & 0xFF));
         if floor_center == center {
             cycle_sum += floor.active();
@@ -150,8 +196,8 @@ fn default() {
     assert_eq!(1012942728, part3(&input3));
 }
 
-// Input parsed (30μs)
-// 1. 474 (7μs)
-// 2. 1170584 (261μs)
-// 3. 1012942728 (471μs)
-// Total: 772μs
+// Input parsed (29μs)
+// 1. 474 (9μs)
+// 2. 1170584 (148μs)
+// 3. 1012942728 (121μs)
+// Total: 311μs
