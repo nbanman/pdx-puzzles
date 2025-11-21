@@ -1,6 +1,3 @@
-#![feature(int_lowest_highest_one)]
-
-use std::fmt::Display;
 use std::iter::successors;
 use everybody_codes::utilities::inputs::get_event_inputs;
 use itertools::Itertools;
@@ -58,30 +55,6 @@ impl From<&str> for Floor {
             })
             .collect();
         Self(inner)
-    }
-}
-
-impl Display for Floor {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let size = self.0.iter()
-            .map(|&n| n.highest_one().unwrap() + 1)
-            .max()
-            .unwrap();
-        let mut grid = String::new();
-        for &n in self.0.iter() {
-            let mut n = n;
-            for _ in 0..size {
-                if n & 1 == 1 {
-                    grid.push('#');
-                } else {
-                    grid.push('.');
-                }
-                n = n >> 1;
-            }
-            grid.push('\n')
-        }
-        grid.pop();
-        write!(f, "{grid}")
     }
 }
 
