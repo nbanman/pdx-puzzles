@@ -114,13 +114,6 @@ fn part3(input: Input) -> u64 {
             _ => unreachable!(),
         }
     });
-    let center_mask = 2u64.pow(8) - 1;
-    let matches_center = |floor: &Floor| {
-        center == floor.0[13..21].iter().fold(0u64, |acc, &row| {
-            let row = row >> 13 & center_mask;
-            acc << 8 | row
-        })
-    };
 
     let mask = 17_179_869_183;
 
@@ -137,7 +130,9 @@ fn part3(input: Input) -> u64 {
         .skip(1)
         .take(cycle_length)
     {
-        if matches_center(&floor) {
+        let floor_center = floor.0[13..21].iter()
+            .fold(0u64, |acc, &row| acc << 8 | (row >> 13 & 0xFF));
+        if floor_center == center {
             cycle_sum += floor.active();
         }
         if index == remainder {
