@@ -1,49 +1,47 @@
-use std::iter::successors;
 use everybody_codes::utilities::inputs::get_event_inputs;
-use itertools::Itertools;
+use std::iter::successors;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
 type Input<'a> = &'a str;
 
 #[derive(Debug)]
-struct Floor(Vec<u64>);
+struct Floor {
+    tiles: Vec<u64>,
+    shaken: Vec<u64>,
+}
 
 impl Floor {
-    fn next(&self, mask: u64) -> Self {
-        let shaken = self.0.iter()
-            .map(|&row| {
-                let shl = (row << 1) & mask;
-                let shr = row >> 1;
-                shl ^ shr
-            })
-            .collect_vec();
-
-        let inner = self.0.iter().enumerate()
-            .map(|(i, &row)| {
+    fn next(&mut self, mask: u64) -> &Self {
+        for i in 0..self.shaken.len() {
+            let row = self.tiles[i];
+            let shl = (row << 1) & mask;
+            let shr = row >> 1;
+            self.shaken[i] = shl ^ shr
+        }
+        for (i, row) in self.tiles.iter_mut().enumerate() {
                 let up = if i == 0 {
                     0
                 } else {
-                    shaken[i - 1]
+                    self.shaken[i - 1]
                 };
-                let down = if i == shaken.len() - 1 {
+                let down = if i == self.shaken.len() - 1 {
                     0
                 } else {
-                    shaken[i + 1]
+                    self.shaken[i + 1]
                 };
-                !(row ^ (up ^ down)) & mask
-            })
-            .collect();
-        Self(inner)
+                *row = !(*row ^ (up ^ down)) & mask;
+        }
+        self
     }
 
     fn active(&self) -> u64 {
-        self.0.iter().map(|row| row.count_ones() as u64).sum()
+        self.tiles.iter().map(|row| row.count_ones() as u64).sum()
     }
 }
 
 impl From<&str> for Floor {
     fn from(value: &str) -> Self {
-        let inner = value
+        let tiles: Vec<u64> = value
             .lines()
             .map(|line| {
                 line.as_bytes().iter().fold(0u64, |acc, &b| match b {
@@ -54,7 +52,8 @@ impl From<&str> for Floor {
                 })
             })
             .collect();
-        Self(inner)
+        let shaken = vec![0u64; tiles.len()];
+        Self { tiles, shaken }
     }
 }
 
@@ -105,14 +104,13 @@ fn main() {
 }
 
 fn sum_all_active(input: Input, rounds: usize) -> u64 {
-    let floor: Floor = input.into();
+    let mut floor: Floor = input.into();
     let mask = 2u64.pow(input.chars().position(|c| c == '\n').unwrap() as u32) - 1;
-    (0..rounds)
-        .scan(floor, |state, _| {
-            *state = state.next(mask);
-            Some(state.active())
-        })
-        .sum()
+    let mut active = 0;
+    for _ in 0..rounds {
+        active += floor.next(mask).active();
+    }
+    active
 }
 
 fn part1(input: Input) -> u64 {
