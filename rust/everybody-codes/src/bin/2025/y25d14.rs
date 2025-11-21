@@ -62,7 +62,6 @@ impl From<&str> for Floor {
 struct SymmetricFloor([u64; 17]);
 
 impl SymmetricFloor {
-
     const MASK: u64 = 17_179_869_183;
 
     fn next(&self) -> Self {
