@@ -1,9 +1,8 @@
 #![feature(int_lowest_highest_one)]
 
 use std::fmt::Display;
-
+use std::iter::successors;
 use everybody_codes::utilities::inputs::get_event_inputs;
-use indexmap::IndexSet;
 use itertools::Itertools;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
@@ -106,8 +105,7 @@ fn part2(input: Input) -> u64 {
 }
 
 fn part3(input: Input) -> u64 {
-    let mut floor = Floor(vec![0u64; 34]);
-    let total_rounds = 1_000_000_000;
+    let floor = Floor(vec![0u64; 34]);
     let center = input.as_bytes().iter().fold(0u64, |acc, &b| {
         match b {
             b'#' => acc << 1 | 1,
@@ -116,48 +114,37 @@ fn part3(input: Input) -> u64 {
             _ => unreachable!(),
         }
     });
-
     let center_mask = 2u64.pow(8) - 1;
-    let get_center = |floor: &Floor| {
-        floor.0[13..21].iter().fold(0u64, |acc, &row| {
+    let matches_center = |floor: &Floor| {
+        center == floor.0[13..21].iter().fold(0u64, |acc, &row| {
             let row = row >> 13 & center_mask;
             acc << 8 | row
         })
     };
 
-    let mask = 17179869183;
-    let mut history = IndexSet::with_capacity(5000);
-    history.insert(floor.clone());
-    loop {
-        floor = floor.next(mask);
-        if !history.insert(floor.clone()) {
-            break;
+    let mask = 17_179_869_183;
+
+    // skip the first round b/c it has nothing in it and does not cycle
+    let total_rounds = 999_999_999;
+    let cycle_length = 4095;
+    let cycles = (total_rounds / cycle_length) as u64;
+    let remainder = total_rounds % cycle_length;
+    let mut cycle_sum = 0;
+    let mut remainder_sum = 0;
+
+    for (index, floor) in successors(Some(floor), |it| Some(it.next(mask)))
+        .enumerate()
+        .skip(1)
+        .take(cycle_length)
+    {
+        if matches_center(&floor) {
+            cycle_sum += floor.active();
+        }
+        if index == remainder {
+            remainder_sum = cycle_sum;
         }
     }
-    let first_instance = history.iter().position(|hist| floor == *hist).unwrap();
-    let pre_active: u64 = history
-        .iter()
-        .take(first_instance)
-        .filter(|&it| get_center(it) == center)
-        .map(|it| it.active())
-        .sum();
-    let cycle = (history.len() - first_instance) as u64;
-    let cycled_total_rounds = total_rounds - pre_active;
-    let cycles = cycled_total_rounds / cycle;
-    let cycle_active: u64 = history[first_instance..]
-        .iter()
-        .filter(|&it| get_center(it) == center)
-        .map(|it| it.active())
-        .sum::<u64>();
-    let remainder = cycled_total_rounds % cycle;
-    let remainder_active = history[first_instance..]
-        .iter()
-        .take(remainder as usize)
-        .filter(|&it| get_center(it) == center)
-        .map(|it| it.active())
-        .sum::<u64>();
-
-    pre_active + cycle_active * cycles + remainder_active
+    cycle_sum * cycles + remainder_sum
 }
 
 #[test]
@@ -169,7 +156,7 @@ fn default() {
 }
 
 // Input parsed (30μs)
-// 1. 474 (6μs)
-// 2. 1170584 (270μs)
-// 3. 1012942728 (1.345ms)
-// Total: 1.655ms
+// 1. 474 (7μs)
+// 2. 1170584 (261μs)
+// 3. 1012942728 (471μs)
+// Total: 772μs
