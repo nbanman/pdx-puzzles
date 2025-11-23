@@ -5,21 +5,21 @@ use utilities::{
     enums::cardinals::Cardinal,
     structs::{
         coord::{Coord2, Coord2U},
-        stopwatch::{ReportDuration, Stopwatch}
+        stopwatch::{ReportDuration, Stopwatch},
     },
 };
 
 type Input<'a> = &'a str;
 type Pos = Coord2;
-type UPos = Coord2U;
+type CompressedPos = Coord2U;
 
 struct WallData {
     hz_walls: FxHashMap<i64, Vec<i64>>,
     vt_walls: FxHashMap<i64, Vec<i64>>,
     hz_dots: Vec<i64>,
     vt_dots: Vec<i64>,
-    start: UPos,
-    end: UPos,
+    start: CompressedPos,
+    end: CompressedPos,
 }
 
 fn main() {
@@ -84,14 +84,12 @@ fn get_wall_data(input: Input) -> WallData {
         // create wall and add it
         match dir {
             Cardinal::North | Cardinal::South => {
-                let ranges =vt_walls.entry(next.x())
-                    .or_insert_with(Vec::new);
+                let ranges = vt_walls.entry(next.x()).or_insert_with(Vec::new);
                 ranges.push(turtle.y());
                 ranges.push(next.y());
             }
             Cardinal::East | Cardinal::West => {
-                let ranges = hz_walls.entry(next.y())
-                    .or_insert_with(Vec::new);
+                let ranges = hz_walls.entry(next.y()).or_insert_with(Vec::new);
                 ranges.push(turtle.x());
                 ranges.push(next.x());
             }
@@ -109,12 +107,12 @@ fn get_wall_data(input: Input) -> WallData {
     let hz_dots: Vec<i64> = hz_dots.into_iter().sorted_unstable().collect();
     let vt_dots: Vec<i64> = vt_dots.into_iter().sorted_unstable().collect();
 
-    let start = UPos::new2d(
+    let start = CompressedPos::new2d(
         hz_dots.binary_search(&0).unwrap(),
         vt_dots.binary_search(&0).unwrap(),
     );
 
-    let end = UPos::new2d(
+    let end = CompressedPos::new2d(
         hz_dots.binary_search(&real_end.x()).unwrap(),
         vt_dots.binary_search(&real_end.y()).unwrap(),
     );
@@ -139,7 +137,7 @@ fn get_wall_data(input: Input) -> WallData {
 
 #[derive(Debug, PartialEq, Eq)]
 struct State {
-    pos: UPos,
+    pos: CompressedPos,
     real_pos: Pos,
     weight: usize,
 }
@@ -169,23 +167,29 @@ fn shortest_path(input: Input) -> usize {
     let mut next: Vec<State> = Vec::new();
 
     while !todo.is_empty() {
-        for State { pos, real_pos, weight } in todo.drain(..) {
+        for State {
+            pos,
+            real_pos,
+            weight,
+        } in todo.drain(..)
+        {
             if pos == end {
                 return weight;
             }
-
-            for adj in Cardinal::entries()
+            for adj_pos in Cardinal::entries()
                 .into_iter()
-                .filter_map(|dir| move_pos(pos, dir, &hz_walls, &vt_walls, &hz_dots, &vt_dots))
+                .filter_map(|dir| {
+                    move_pos(pos, dir, &hz_walls, &vt_walls, &hz_dots, &vt_dots)
+                })
             {
-                if !visited.insert(adj) {
+                if !visited.insert(adj_pos) {
                     continue;
                 }
-                let real_adj = Pos::new2d(hz_dots[adj.x()], vt_dots[adj.y()]);
-                let adj_weight = weight + real_pos.manhattan_distance(real_adj);
+                let adj_real_pos = get_real_pos(adj_pos, &hz_dots, &vt_dots);
+                let adj_weight = weight + real_pos.manhattan_distance(adj_real_pos);
                 let adj_state = State {
-                    pos: adj,
-                    real_pos: real_adj,
+                    pos: adj_pos,
+                    real_pos: adj_real_pos,
                     weight: adj_weight,
                 };
                 next.push(adj_state);
@@ -193,25 +197,21 @@ fn shortest_path(input: Input) -> usize {
         }
         std::mem::swap(&mut todo, &mut next);
     }
-
     unreachable!()
 }
 
-fn get_real_pos(pos: UPos, hz_dots: &Vec<i64>, vt_dots: &Vec<i64>) -> Pos {
-    Pos::new2d(
-        hz_dots[pos.x()],
-        vt_dots[pos.y()],
-    )
+fn get_real_pos(pos: CompressedPos, hz_dots: &Vec<i64>, vt_dots: &Vec<i64>) -> Pos {
+    Pos::new2d(hz_dots[pos.x()], vt_dots[pos.y()])
 }
 
 fn move_pos(
-    pos: UPos,
+    pos: CompressedPos,
     dir: Cardinal,
     hz_walls: &FxHashMap<i64, Vec<i64>>,
     vt_walls: &FxHashMap<i64, Vec<i64>>,
     hz_dots: &Vec<i64>,
-    vt_dots: &Vec<i64>
-) -> Option<UPos> {
+    vt_dots: &Vec<i64>,
+) -> Option<CompressedPos> {
     let new_x = match dir {
         Cardinal::North | Cardinal::South => pos.x(),
         Cardinal::East => {
@@ -220,7 +220,7 @@ fn move_pos(
                 return None;
             }
             new_x
-        },
+        }
         Cardinal::West => pos.x().checked_sub(1)?,
     };
     let new_y = match dir {
@@ -231,38 +231,28 @@ fn move_pos(
                 return None;
             }
             new_y
-        },
+        }
         Cardinal::North => pos.y().checked_sub(1)?,
     };
     let real_pos = get_real_pos(pos, hz_dots, vt_dots);
-
     let one_over = real_pos.move_direction(dir, 1).unwrap();
 
-    let no_hz_conflict = hz_walls.get(&one_over.y())
-        .map(|walls| {
-            if let Err(n) = walls.binary_search(&one_over.x()) && (n & 1 == 0) {
-                true
-            } else {
-                false
-            }
-        })
-        .unwrap_or(true);
-
-    let no_wall_conflict = no_hz_conflict && vt_walls.get(&one_over.x())
-        .map(|walls| {
-            if let Err(n) = walls.binary_search(&one_over.y()) && (n & 1 == 0) {
-                true
-            } else {
-                false
-            }
-        })
-        .unwrap_or(true);
+    let no_hz_conflict = check_conflict(hz_walls, one_over.x(), one_over.y());
+    let no_wall_conflict = no_hz_conflict
+        && check_conflict(vt_walls, one_over.y(), one_over.x());
 
     if no_wall_conflict {
-        Some(UPos::new2d(new_x, new_y))
+        Some(CompressedPos::new2d(new_x, new_y))
     } else {
         None
     }
+}
+
+fn check_conflict(walls: &FxHashMap<i64, Vec<i64>>, a: i64, b: i64) -> bool {
+    walls
+        .get(&b)
+        .map(|walls| matches!(walls.binary_search(&a), Err(n) if n & 1 == 0))
+        .unwrap_or(true)
 }
 
 fn part1(input: Input) -> usize {
