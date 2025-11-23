@@ -1,5 +1,3 @@
-use std::collections::BinaryHeap;
-
 use everybody_codes::utilities::inputs::get_event_inputs;
 use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -22,7 +20,6 @@ struct WallData {
     vt_dots: Vec<i64>,
     start: UPos,
     end: UPos,
-    real_end: Pos,
 }
 
 fn main() {
@@ -137,7 +134,6 @@ fn get_wall_data(input: Input) -> WallData {
         vt_dots,
         start,
         end,
-        real_end,
     }
 }
 
@@ -146,19 +142,6 @@ struct State {
     pos: UPos,
     real_pos: Pos,
     weight: usize,
-    f: usize,
-}
-
-impl Ord for State {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        other.f.cmp(&self.f).then(other.weight.cmp(&self.weight))
-    }
-}
-
-impl PartialOrd for State {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(other.f.cmp(&self.f).then(other.weight.cmp(&self.weight)))
-    }
 }
 
 fn shortest_path(input: Input) -> usize {
@@ -169,50 +152,48 @@ fn shortest_path(input: Input) -> usize {
         vt_dots,
         start,
         end,
-        real_end,
     } = get_wall_data(input);
-    let heuristic = |pos: Pos| {
-        real_end.manhattan_distance(pos)
-    };
 
     let start = State {
         pos: start,
         real_pos: Pos::origin(),
         weight: 0,
-        f: heuristic(Pos::origin()),
     };
 
-    let mut open = BinaryHeap::new();
-    open.push(start);
+    let mut visited = FxHashSet::default();
+    visited.insert(start.pos);
 
-    let mut closed = FxHashSet::default();
+    let mut todo = Vec::new();
+    todo.push(start);
 
-    while let Some(State { pos, real_pos, weight, f: _ }) = open.pop() {
-        if !closed.insert(pos) {
-            continue;
-        }
-        if pos == end {
-            return weight;
-        }
+    let mut next: Vec<State> = Vec::new();
 
-        for adj in Cardinal::entries()
-            .into_iter()
-            .filter_map(|dir| move_pos(pos, dir, &hz_walls, &vt_walls, &hz_dots, &vt_dots))
-        {
-            if closed.contains(&adj) {
-                continue;
+    while !todo.is_empty() {
+        for State { pos, real_pos, weight } in todo.drain(..) {
+            if pos == end {
+                return weight;
             }
-            let real_adj = Pos::new2d(hz_dots[adj.x()], vt_dots[adj.y()]);
-            let adj_weight = weight + real_pos.manhattan_distance(real_adj);
-            let adj_state = State {
-                pos: adj,
-                real_pos: real_adj,
-                weight: adj_weight,
-                f: adj_weight + heuristic(real_adj),
-            };
-            open.push(adj_state);
+
+            for adj in Cardinal::entries()
+                .into_iter()
+                .filter_map(|dir| move_pos(pos, dir, &hz_walls, &vt_walls, &hz_dots, &vt_dots))
+            {
+                if !visited.insert(adj) {
+                    continue;
+                }
+                let real_adj = Pos::new2d(hz_dots[adj.x()], vt_dots[adj.y()]);
+                let adj_weight = weight + real_pos.manhattan_distance(real_adj);
+                let adj_state = State {
+                    pos: adj,
+                    real_pos: real_adj,
+                    weight: adj_weight,
+                };
+                next.push(adj_state);
+            }
         }
+        std::mem::swap(&mut todo, &mut next);
     }
+
     unreachable!()
 }
 
