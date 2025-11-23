@@ -238,7 +238,7 @@ fn move_pos(
 
     let one_over = real_pos.move_direction(dir, 1).unwrap();
 
-    let cromulent = hz_walls.get(&one_over.y())
+    let no_hz_conflict = hz_walls.get(&one_over.y())
         .map(|walls| {
             if let Err(n) = walls.binary_search(&one_over.x()) && (n & 1 == 0) {
                 true
@@ -248,7 +248,7 @@ fn move_pos(
         })
         .unwrap_or(true);
 
-    let cromulent = cromulent && vt_walls.get(&one_over.x())
+    let no_wall_conflict = no_hz_conflict && vt_walls.get(&one_over.x())
         .map(|walls| {
             if let Err(n) = walls.binary_search(&one_over.y()) && (n & 1 == 0) {
                 true
@@ -258,7 +258,7 @@ fn move_pos(
         })
         .unwrap_or(true);
 
-    if cromulent {
+    if no_wall_conflict {
         Some(UPos::new2d(new_x, new_y))
     } else {
         None
@@ -268,11 +268,9 @@ fn move_pos(
 fn part1(input: Input) -> usize {
     shortest_path(input)
 }
-
 fn part2(input: Input) -> usize {
     shortest_path(input)
 }
-
 fn part3(input: Input) -> usize {
     shortest_path(input)
 }
