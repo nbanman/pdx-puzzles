@@ -1,4 +1,4 @@
-use std::{collections::BinaryHeap, ops::RangeInclusive};
+use std::collections::BinaryHeap;
 
 use everybody_codes::utilities::inputs::get_event_inputs;
 use itertools::Itertools;
@@ -9,26 +9,20 @@ use utilities::{
         coord::{Coord2, Coord2U},
         stopwatch::{ReportDuration, Stopwatch}
     },
-    minmax::minmax,
 };
 
 type Input<'a> = &'a str;
 type Pos = Coord2;
 type UPos = Coord2U;
 
-#[derive(Debug)]
-struct Wall {
-    point: i64,
-    orthogonal: RangeInclusive<i64>,
-}
-
 struct WallData {
-    hz_walls: FxHashMap<i64, Vec<Wall>>,
-    vt_walls: FxHashMap<i64, Vec<Wall>>,
+    hz_walls: FxHashMap<i64, Vec<i64>>,
+    vt_walls: FxHashMap<i64, Vec<i64>>,
     hz_dots: Vec<i64>,
     vt_dots: Vec<i64>,
     start: UPos,
     end: UPos,
+    real_end: Pos,
 }
 
 fn main() {
@@ -43,13 +37,13 @@ fn main() {
 }
 
 fn get_wall_data(input: Input) -> WallData {
-    let mut hz = Vec::new();
-    let mut vt = Vec::new();
+    let mut hz_walls = FxHashMap::default();
+    let mut vt_walls = FxHashMap::default();
     let mut hz_dots: FxHashSet<i64> = FxHashSet::default();
     let mut vt_dots: FxHashSet<i64> = FxHashSet::default();
     let mut dir = Cardinal::North;
     let mut turtle = Pos::origin();
-    let mut end = Pos::origin();
+    let mut real_end = Pos::origin();
 
     let add_dots = |pos: Pos, hz_dots: &mut FxHashSet<i64>, vt_dots: &mut FxHashSet<i64>| {
         hz_dots.insert(pos.x() - 1);
@@ -82,7 +76,7 @@ fn get_wall_data(input: Input) -> WallData {
         // if this is the first or last iteration, the distance traveled is actually one shorter. So adjust distance
         // and also record the end point.
         if idx == 0 || idx == last_index {
-            end = turtle.move_direction(dir, distance).unwrap();
+            real_end = turtle.move_direction(dir, distance).unwrap();
             distance -= 1;
         }
 
@@ -93,43 +87,30 @@ fn get_wall_data(input: Input) -> WallData {
         // create wall and add it
         match dir {
             Cardinal::North | Cardinal::South => {
-                let (&min, &max) = minmax(&turtle.y(), &next.y());
-                vt.push(Wall {
-                    point: next.x(),
-                    orthogonal: min..=max,
-                });
+                let ranges =vt_walls.entry(next.x())
+                    .or_insert_with(Vec::new);
+                ranges.push(turtle.y());
+                ranges.push(next.y());
             }
             Cardinal::East | Cardinal::West => {
-                let (&min, &max) = minmax(&turtle.x(), &next.x());
-                hz.push(Wall {
-                    point: next.y(),
-                    orthogonal: min..=max,
-                });
+                let ranges = hz_walls.entry(next.y())
+                    .or_insert_with(Vec::new);
+                ranges.push(turtle.x());
+                ranges.push(next.x());
             }
         }
-
         turtle = next;
     }
 
     // add start and end points as positions that the state can travel to
     hz_dots.insert(0);
-    hz_dots.insert(end.x());
+    hz_dots.insert(real_end.x());
     vt_dots.insert(0);
-    vt_dots.insert(end.y());
+    vt_dots.insert(real_end.y());
 
     // convert the set of dots to an ordered list
     let hz_dots: Vec<i64> = hz_dots.into_iter().sorted_unstable().collect();
     let vt_dots: Vec<i64> = vt_dots.into_iter().sorted_unstable().collect();
-
-    let mut hz_walls = FxHashMap::default();
-    let mut vt_walls = FxHashMap::default();
-
-    for wall in hz {
-        hz_walls.entry(wall.point).or_insert(Vec::new()).push(wall);
-    }
-    for wall in vt {
-        vt_walls.entry(wall.point).or_insert(Vec::new()).push(wall);
-    }
 
     let start = UPos::new2d(
         hz_dots.binary_search(&0).unwrap(),
@@ -137,9 +118,17 @@ fn get_wall_data(input: Input) -> WallData {
     );
 
     let end = UPos::new2d(
-        hz_dots.binary_search(&end.x()).unwrap(),
-        vt_dots.binary_search(&end.y()).unwrap(),
+        hz_dots.binary_search(&real_end.x()).unwrap(),
+        vt_dots.binary_search(&real_end.y()).unwrap(),
     );
+
+    for walls in hz_walls.values_mut() {
+        walls.sort_unstable();
+    }
+
+    for walls in vt_walls.values_mut() {
+        walls.sort_unstable();
+    }
 
     WallData {
         hz_walls,
@@ -148,6 +137,7 @@ fn get_wall_data(input: Input) -> WallData {
         vt_dots,
         start,
         end,
+        real_end,
     }
 }
 
@@ -178,11 +168,9 @@ fn shortest_path(input: Input) -> usize {
         hz_dots,
         vt_dots,
         start,
-        end
+        end,
+        real_end,
     } = get_wall_data(input);
-
-    let real_end = get_real_pos(end, &hz_dots, &vt_dots);
-
     let heuristic = |pos: Pos| {
         real_end.manhattan_distance(pos)
     };
@@ -238,8 +226,8 @@ fn get_real_pos(pos: UPos, hz_dots: &Vec<i64>, vt_dots: &Vec<i64>) -> Pos {
 fn move_pos(
     pos: UPos,
     dir: Cardinal,
-    hz_walls: &FxHashMap<i64, Vec<Wall>>,
-    vt_walls: &FxHashMap<i64, Vec<Wall>>,
+    hz_walls: &FxHashMap<i64, Vec<i64>>,
+    vt_walls: &FxHashMap<i64, Vec<i64>>,
     hz_dots: &Vec<i64>,
     vt_dots: &Vec<i64>
 ) -> Option<UPos> {
@@ -270,15 +258,23 @@ fn move_pos(
     let one_over = real_pos.move_direction(dir, 1).unwrap();
 
     let cromulent = hz_walls.get(&one_over.y())
-        .map(|walls| walls.iter().all(|wall| {
-            !wall.orthogonal.contains(&one_over.x())
-        }))
+        .map(|walls| {
+            if let Err(n) = walls.binary_search(&one_over.x()) && (n & 1 == 0) {
+                true
+            } else {
+                false
+            }
+        })
         .unwrap_or(true);
 
     let cromulent = cromulent && vt_walls.get(&one_over.x())
-        .map(|walls| walls.iter().all(|wall| {
-            !wall.orthogonal.contains(&one_over.y())
-        }))
+        .map(|walls| {
+            if let Err(n) = walls.binary_search(&one_over.y()) && (n & 1 == 0) {
+                true
+            } else {
+                false
+            }
+        })
         .unwrap_or(true);
 
     if cromulent {
