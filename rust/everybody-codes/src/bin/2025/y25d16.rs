@@ -63,6 +63,9 @@ fn part3(notes: Input) -> u64 {
     let mut high = low + gallop;
     let mut high_sum = sum_bricks(&spell, high);
     while high_sum <= blocks {
+        if high_sum == blocks {
+            return high;
+        }
         high += gallop;
         high_sum = sum_bricks(&spell, high);
     }
@@ -85,8 +88,8 @@ fn default() {
     assert_eq!(97929823831789, part3(&input3));
 }
 
-// Input parsed (33μs)
-// 1. 232 (9μs)
-// 2. 148135882752 (8μs)
-// 3. 97929823831789 (17μs)
-// Total: 71μs
+// Input parsed (26μs)
+// 1. 232 (8μs)
+// 2. 148135882752 (5μs)
+// 3. 97929823831789 (14μs)
+// Total: 56μs
