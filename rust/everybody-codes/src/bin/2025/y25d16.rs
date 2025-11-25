@@ -15,34 +15,18 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse(input: Input) -> Vec<u64> {
-    input.get_numbers().collect()
-}
-
-fn get_spell(elements: &mut Vec<u64>, cur: &mut Vec<u64>, wall: &[u64]) -> bool {
-    if cur.as_slice() == wall {
-        return true;
-    }
-    let n = *elements.last().unwrap();
-    let len = wall.len() as u64;
-    for n in n + 1..len {
-        let mask: Vec<u64> = (0..len).map(|i| if (i + 1) % n == 0 { 1 } else { 0 }).collect();
-        for (cur_col, brick) in cur.iter_mut().zip(&mask) {
-            *cur_col += brick;
-        }
-        if cur.iter().zip(wall).all(|(cur_col, wall)| cur_col <= wall) {
-            elements.push(n);
-            if get_spell(elements, cur, wall) {
-                return true;
-            } else {
-                elements.pop();
+fn get_spell(notes: Input) -> Vec<u64> {
+    let mut wall: Vec<u64> = notes.get_numbers().collect();
+    let mut spell = Vec::new();
+    for n in 1..=wall.len() {
+        if wall[n - 1] > 0 {
+            spell.push(n as u64);
+            for k in (n - 1..wall.len()).step_by(n) {
+                wall[k] -= 1;
             }
         }
-        for (cur_col, brick) in cur.iter_mut().zip(&mask) {
-            *cur_col -= brick;
-        }
     }
-    false
+    spell
 }
 
 fn sum_bricks(spell: &[u64], len: u64) -> u64 {
@@ -51,31 +35,24 @@ fn sum_bricks(spell: &[u64], len: u64) -> u64 {
         .sum()
 }
 
-fn part1(input: Input) -> u64 {
-    sum_bricks(&parse(input), 90)
+fn part1(notes: Input) -> u64 {
+    sum_bricks(&notes.get_numbers().collect_vec(), 90)
 }
 
-fn part2(input: Input) -> u64 {
-    let wall = parse(input);
-    let mut elements = vec![1];
-    let mut cur = vec![1; wall.len()];
-    get_spell(&mut elements, &mut cur, &wall);
-    elements.into_iter().product()
+fn part2(notes: Input) -> u64 {
+    get_spell(notes).into_iter().product()
 }
 
-fn part3(input: Input) -> u64 {
-    let wall = parse(input);
-    let mut elements = vec![1];
-    let mut cur = vec![1; wall.len()];
-    get_spell(&mut elements, &mut cur, &wall);
+fn part3(notes: Input) -> u64 {
+    let spell = get_spell(notes);
     let blocks: u64 = 202_520_252_025_000;
 
     // calculate the low end by using f64s to give fractional columns based on the highest value
     // instruction and then pretending that the LCM is that highest value instruction. That gets
     // you very close but a few more columns will be built out (but not completed) by the number 
     // of bricks, since some of those fractional columns will have to be built. 
-    let highest = elements.last().unwrap().to_owned() as f64;
-    let portion_sum = elements.iter()
+    let highest = spell.last().unwrap().to_owned() as f64;
+    let portion_sum = spell.iter()
         .map(|&i| highest / i as f64)
         .sum::<f64>();
     let low = (blocks as f64 / (portion_sum / highest)).ceil() as u64;
@@ -84,17 +61,17 @@ fn part3(input: Input) -> u64 {
     // will increase by modest amounts until the high number is above the number of blocks reached.
     let gallop = 10;
     let mut high = low + gallop;
-    let mut high_sum = sum_bricks(&elements, high);
+    let mut high_sum = sum_bricks(&spell, high);
     while high_sum <= blocks {
         high += gallop;
-        high_sum = sum_bricks(&elements, high);
+        high_sum = sum_bricks(&spell, high);
     }
     let potentials = (low..high).collect_vec();
 
     // use binary search to find the answer. Ok would be an exact match, which won't happen. Err
     // will give the index of the value that's just a bit higher than the exact match, but any block
     // beyond an exact match would create another column. So we subtract one from the index.
-    match potentials.binary_search_by_key(&blocks, |&cols| sum_bricks(&elements, cols)) {
+    match potentials.binary_search_by_key(&blocks, |&cols| sum_bricks(&spell, cols)) {
         Ok(idx) => potentials[idx],
         Err(idx) => potentials[idx - 1],
     }
@@ -102,14 +79,14 @@ fn part3(input: Input) -> u64 {
 
 #[test]
 fn default() {
-    // let (input1, input2, input3) = get_event_inputs(25, 16);
-    // assert_eq!(ZZ, part1(&input1));
-    // assert_eq!(ZZ, part2(&input2));
-    // assert_eq!(ZZ, part3(&input3));
+    let (input1, input2, input3) = get_event_inputs(25, 16);
+    assert_eq!(232, part1(&input1));
+    assert_eq!(148135882752, part2(&input2));
+    assert_eq!(97929823831789, part3(&input3));
 }
 
-// Input parsed (26μs)
-// 1. 232 (8μs)
-// 2. 148135882752 (27μs)
-// 3. 97929823831789 (1.724ms)
-// Total: 1.789ms
+// Input parsed (33μs)
+// 1. 232 (9μs)
+// 2. 148135882752 (8μs)
+// 3. 97929823831789 (17μs)
+// Total: 71μs
