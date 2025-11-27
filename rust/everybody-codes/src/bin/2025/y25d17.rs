@@ -3,7 +3,7 @@ use std::hash::{Hash, Hasher};
 
 use everybody_codes::utilities::inputs::get_event_inputs;
 use itertools::Itertools;
-use rustc_hash::FxHashSet;
+use rustc_hash::{FxHashMap, FxHashSet};
 use utilities::structs::grid::{Grid2, GridAdjacent, GridIterator};
 use utilities::{
     enums::cardinals::Cardinal,
@@ -147,9 +147,16 @@ fn part3(notes: Input) -> usize {
         .try_collect_grid(volcano.width - 1)
         .unwrap();
 
+    let mut min_seconds = 0;
+
     for radius in 10..(volcano.width() - 1) / 2 - 1 {
-        if let Some(answer) = a_star(&volcano, start, center, radius) {
-            return answer;
+        if min_seconds <= 30 * (radius + 1) - 1 {
+            match a_star(&volcano, start, center, radius) {
+                Ok(seconds) => {
+                    return seconds * radius
+                },
+                Err(seconds) => { min_seconds = seconds; },
+            }
         }
     }
     unreachable!()
@@ -160,7 +167,9 @@ fn a_star(
     start: Pos,
     center: Pos,
     radius: usize,
-) -> Option<usize> {
+) -> Result<usize, usize> {
+    let mut min_seconds = usize::MAX;
+    let mut parents: FxHashMap<(usize, Cardinal), (usize, Cardinal)> = FxHashMap::default();
     let heuristic = |pos: Pos, phase: Cardinal| {
         let mut pos = pos;
         let mut h = 0;
@@ -188,6 +197,7 @@ fn a_star(
         seconds: 0,
         phase: Cardinal::East,
         f: heuristic(start, Cardinal::East),
+        parent: None,
     };
     open.push(initial_state);
     let mut closed: FxHashSet<(Pos, Cardinal)> = FxHashSet::default();
@@ -197,6 +207,7 @@ fn a_star(
         seconds,
         phase,
         f: f,
+        parent,
     }) = open.pop()
     {
         // if pos == Pos::from((6, 0)) && phase == Cardinal::North {
@@ -224,9 +235,56 @@ fn a_star(
         //         }
         //     }
         // }
+
         if pos == start && phase == Cardinal::North {
-            return Some(seconds * radius);
+            let mut idx = volcano.index_of(pos).unwrap();
+            let mut to_highlight = vec![idx];
+            let mut parent = parent;
+            while let Some(parent_inner) = parent {
+                to_highlight.push(parent_inner.0);
+                parent = parents.get(&parent_inner).cloned();
+            }
+            let mut rep = String::new();
+            let start_idx = start.y() * volcano.width() + start.x();
+            let center_idx = center.y() * volcano.width() + center.x();
+            for y in start.y() - 5..center.y() + radius + 5 {
+                for x in center.x() - radius - 5..center.x() + radius + 5 {
+                    let idx = y * volcano.width() + x;
+                    if idx == start_idx {
+                        rep.push('S');
+                    } else if idx == center_idx {
+                        rep.push('@');
+                    } else {
+                        let (r, s) = volcano[idx];
+                        let s = ((s as u8) + b'0') as char;
+                        if r <= radius {
+                            rep.push('.');
+                        } else {
+                            if to_highlight.contains(&idx) {
+                                rep.push_str("\x1b[31m");
+                                rep.push(s);
+                                rep.push_str("\x1b[0m");
+                            } else {
+                                rep.push(s);
+                            }
+                        }
+                    }
+                }
+                rep.push('\n');
+            }
+            rep.pop();
+            println!("Radius: {radius}, seconds: {seconds}");
+            println!("{rep}");
+            return if seconds <= 30 * (radius + 1) - 1 {
+                Ok(seconds)
+            } else {
+                Err(seconds)
+            };
         }
+        if parent.is_some() {
+            parents.insert((volcano.index_of(pos).unwrap(), phase), parent.unwrap());
+        }
+
         for GridAdjacent {
             index: _,
             pos: adj_pos,
@@ -242,7 +300,7 @@ fn a_star(
             // ac2: backtracking once quadrant checkpoint reached
             if match phase {
                 Cardinal::North => adj_pos.y() > center.y(),
-                Cardinal::East => adj_pos.x() < center.x(),
+                Cardinal::East => adj_pos.x() < center.x() - 10,
                 Cardinal::South => adj_pos.y() < center.y(),
                 Cardinal::West => adj_pos.x() > center.x(),
             } {
@@ -279,22 +337,18 @@ fn a_star(
             let adj_sec = seconds + adj_sec;
             let adj_f = adj_sec + heuristic(adj_pos, adj_phase);
 
-            // ac4: ran out of time
-            if adj_f > (radius + 1) * 30 {
-                continue;
-            }
-
             let adj_state = State {
                 pos: adj_pos,
                 seconds: adj_sec,
                 phase: adj_phase,
                 f: adj_f,
+                parent: Some((volcano.index_of(pos).unwrap(), phase)),
             };
             // println!("-> {:?}", adj_state);
             open.push(adj_state);
         }
     }
-    None
+    Err(usize::MAX)
 }
 
 #[derive(Debug, Eq, PartialEq, Hash)]
@@ -303,6 +357,7 @@ struct State {
     seconds: usize,
     phase: Cardinal,
     f: usize,
+    parent: Option<(usize, Cardinal)>,
 }
 
 impl Ord for State {
