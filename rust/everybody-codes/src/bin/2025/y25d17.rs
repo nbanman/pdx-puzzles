@@ -1,9 +1,8 @@
-use std::collections::{BinaryHeap, HashSet};
-use std::hash::{Hash, Hasher};
+use std::collections::BinaryHeap;
+use std::hash::Hash;
 
 use everybody_codes::utilities::inputs::get_event_inputs;
-use itertools::Itertools;
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashSet;
 use utilities::structs::grid::{Grid2, GridAdjacent, GridIterator};
 use utilities::{
     enums::cardinals::Cardinal,
@@ -55,7 +54,7 @@ fn part1(notes: Input) -> usize {
                     .unwrap()
                     .in_range(&center, 10)
         })
-        .map(|(idx, &b)| (b - b'0') as usize)
+        .map(|(_, &b)| (b - b'0') as usize)
         .sum()
 }
 
@@ -168,8 +167,6 @@ fn a_star(
     center: Pos,
     radius: usize,
 ) -> Result<usize, usize> {
-    let mut min_seconds = usize::MAX;
-    let mut parents: FxHashMap<(usize, Cardinal), (usize, Cardinal)> = FxHashMap::default();
     let heuristic = |pos: Pos, phase: Cardinal| {
         let mut pos = pos;
         let mut h = 0;
@@ -197,7 +194,6 @@ fn a_star(
         seconds: 0,
         phase: Cardinal::East,
         f: heuristic(start, Cardinal::East),
-        parent: None,
     };
     open.push(initial_state);
     let mut closed: FxHashSet<(Pos, Cardinal)> = FxHashSet::default();
@@ -206,85 +202,20 @@ fn a_star(
         pos,
         seconds,
         phase,
-        f: f,
-        parent,
+        f: _,
     }) = open.pop()
     {
-        // if pos == Pos::from((6, 0)) && phase == Cardinal::North {
-        //     println!("observe {:?} carefully", pos);
-        // }
         if !closed.insert((pos, phase)) {
             continue;
         }
-        // println!("{:?}, phase: {}, seconds: {}, f: {}", pos, phase, seconds, f);
-        // match phase {
-        //     Cardinal::East => {},
-        //     Cardinal::South => {
-        //         if pos.y() == center.y() {
-        //             println!("phase change! {}", phase)
-        //         }
-        //     }
-        //     Cardinal::West => {
-        //         if pos.x() == center.x() {
-        //             println!("phase change! {}", phase)
-        //         }
-        //     }
-        //     Cardinal::North => {
-        //         if pos.y() == center.y() {
-        //             println!("phase change! {}", phase)
-        //         }
-        //     }
-        // }
 
         if pos == start && phase == Cardinal::North {
-            let mut idx = volcano.index_of(pos).unwrap();
-            let mut to_highlight = vec![idx];
-            let mut parent = parent;
-            while let Some(parent_inner) = parent {
-                to_highlight.push(parent_inner.0);
-                parent = parents.get(&parent_inner).cloned();
-            }
-            let mut rep = String::new();
-            let start_idx = start.y() * volcano.width() + start.x();
-            let center_idx = center.y() * volcano.width() + center.x();
-            for y in start.y() - 5..center.y() + radius + 5 {
-                for x in center.x() - radius - 5..center.x() + radius + 5 {
-                    let idx = y * volcano.width() + x;
-                    if idx == start_idx {
-                        rep.push('S');
-                    } else if idx == center_idx {
-                        rep.push('@');
-                    } else {
-                        let (r, s) = volcano[idx];
-                        let s = ((s as u8) + b'0') as char;
-                        if r <= radius {
-                            rep.push('.');
-                        } else {
-                            if to_highlight.contains(&idx) {
-                                rep.push_str("\x1b[31m");
-                                rep.push(s);
-                                rep.push_str("\x1b[0m");
-                            } else {
-                                rep.push(s);
-                            }
-                        }
-                    }
-                }
-                rep.push('\n');
-            }
-            rep.pop();
-            println!("Radius: {radius}, seconds: {seconds}");
-            println!("{rep}");
             return if seconds <= 30 * (radius + 1) - 1 {
                 Ok(seconds)
             } else {
                 Err(seconds)
             };
         }
-        if parent.is_some() {
-            parents.insert((volcano.index_of(pos).unwrap(), phase), parent.unwrap());
-        }
-
         for GridAdjacent {
             index: _,
             pos: adj_pos,
@@ -297,12 +228,12 @@ fn a_star(
                 continue;
             }
 
-            // ac2: backtracking once quadrant checkpoint reached
+            // ac2: no significant backtracking once quadrant checkpoint reached
             if match phase {
-                Cardinal::North => adj_pos.y() > center.y(),
+                Cardinal::North => adj_pos.y() > center.y() + 10,
                 Cardinal::East => adj_pos.x() < center.x() - 10,
-                Cardinal::South => adj_pos.y() < center.y(),
-                Cardinal::West => adj_pos.x() > center.x(),
+                Cardinal::South => adj_pos.y() < center.y() - 10,
+                Cardinal::West => adj_pos.x() > center.x() + 10,
             } {
                 continue;
             }
@@ -342,9 +273,7 @@ fn a_star(
                 seconds: adj_sec,
                 phase: adj_phase,
                 f: adj_f,
-                parent: Some((volcano.index_of(pos).unwrap(), phase)),
             };
-            // println!("-> {:?}", adj_state);
             open.push(adj_state);
         }
     }
@@ -357,7 +286,6 @@ struct State {
     seconds: usize,
     phase: Cardinal,
     f: usize,
-    parent: Option<(usize, Cardinal)>,
 }
 
 impl Ord for State {
@@ -374,8 +302,14 @@ impl PartialOrd for State {
 
 #[test]
 fn default() {
-    // let (input1, input2, input3) = get_event_inputs(25, 17);
-    // assert_eq!(ZZ, part1(&input1));
-    // assert_eq!(ZZ, part2(&input2));
-    // assert_eq!(ZZ, part3(&input3));
+    let (input1, input2, input3) = get_event_inputs(25, 17);
+    assert_eq!(1584, part1(&input1));
+    assert_eq!(66183, part2(&input2));
+    assert_eq!(42069, part3(&input3));
 }
+
+// Input parsed (40μs)
+// 1. 1584 (25μs)
+// 2. 66183 (74μs)
+// 3. 42069 (33.728ms)
+// Total: 33.872ms
