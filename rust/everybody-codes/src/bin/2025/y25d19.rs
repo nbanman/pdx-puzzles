@@ -1,17 +1,17 @@
-use std::ops::Range;
+use std::{
+    cmp::{max, min},
+    ops::RangeInclusive,
+};
 
 use everybody_codes::utilities::inputs::get_event_inputs;
 use itertools::Itertools;
 use utilities::{
     parsing::get_numbers::ContainsNumbers,
-    structs::{
-        coord::Coord2U,
-        stopwatch::{ReportDuration, Stopwatch},
-    },
+    structs::stopwatch::{ReportDuration, Stopwatch},
 };
 
 type Input<'a> = &'a str;
-type Pos = Coord2U;
+type Bird = RangeInclusive<usize>;
 
 fn main() {
     let mut stopwatch = Stopwatch::new();
@@ -27,63 +27,75 @@ fn main() {
 #[derive(Debug, Clone)]
 struct Wall {
     x: usize,
-    gaps: Vec<Range<usize>>,
+    gaps: Vec<RangeInclusive<usize>>,
 }
 
 trait Flappy {
-    fn altitude(self, wall: &Wall) -> impl Iterator<Item = usize>;
+    fn altitude(self, x: usize, wall: &Wall) -> impl Iterator<Item = Self>;
 }
 
-impl Flappy for Pos {
-    fn altitude(self, wall: &Wall) -> impl Iterator<Item = usize> {
-        let dist = self.x() - wall.x;
-        let min = self.y().checked_sub(dist).unwrap_or_default();
-        let even_or_odd = (self.y() & 1) ^ (dist & 1);
-        (min..=self.y() + dist)
-            .filter(move |&y| (y & 1) == even_or_odd)
-            .filter(move |y| wall.gaps.iter().any(|it| it.contains(y)))
+impl Flappy for Bird {
+    fn altitude(self, x: usize, wall: &Wall) -> impl Iterator<Item = Self> {
+        let dist = wall.x - x;
+        let min_alt = self.start().checked_sub(dist).unwrap_or_default();
+        let max_alt = self.end() + dist;
+        wall.gaps.iter().filter_map(move |gap| {
+            let mut gap_min = max(min_alt, *gap.start());
+            if gap_min & 1 != wall.x & 1 {
+                gap_min += 1;
+            }
+            let mut gap_max = min(max_alt, *gap.end());
+            if gap_max & 1 != wall.x & 1 {
+                gap_max -= 1;
+            }
+            if gap_min <= gap_max {
+                Some(gap_min..=gap_max)
+            } else {
+                None
+            }
+        })
     }
 }
 
 fn build_walls(notes: Input) -> Vec<Wall> {
-    let mut walls = vec![Wall { x: 0, gaps: vec![0..1] }];
-    walls.extend(
-        notes
-            .get_numbers::<usize>()
-            .tuples::<(_, _, _)>()
-            .chunk_by(|(x, _, _)| *x)
-            .into_iter()
-            .map(|chunk| {
-                let x = chunk.0;
-                let gaps = chunk.1.map(|(_, lo, size)| lo..lo + size).collect();
-                Wall { x, gaps }
-            })
-    );
-
-    walls
+    notes
+        .get_numbers::<usize>()
+        .tuples::<(_, _, _)>()
+        .chunk_by(|(x, _, _)| *x)
+        .into_iter()
+        .map(|chunk| {
+            let x = chunk.0;
+            let gaps = chunk
+                .1
+                .map(|(_, lo, size)| lo..=lo + size - 1)
+                .sorted_unstable_by_key(|rng| *rng.start())
+                .collect();
+            Wall { x, gaps }
+        })
+        .collect()
 }
 
 fn min_flaps(notes: Input) -> usize {
-    let mut walls = build_walls(notes);
-    let start = walls.pop().unwrap();
-    for gap in start.gaps {
-        'outer: for y in gap {
-            let mut birds = vec![Pos::from((start.x, y))];
-            for wall in walls.iter().rev() {
-                birds = birds
-                    .into_iter()
-                    .flat_map(|bird| bird.altitude(wall))
-                    .unique()
-                    .map(|y| Pos::from((wall.x, y)))
-                    .collect();
-                if birds.is_empty() {
-                    continue 'outer;
-                }
+    let walls = build_walls(notes);
+    let mut birds = vec![0..=0];
+    let mut x = 0;
+    for wall in walls.iter() {
+        birds = birds
+            .into_iter()
+            .flat_map(|bird| bird.altitude(x, wall))
+            .collect();
+
+        // combine any birds that have overlapping ranges
+        for i in (0..birds.len() - 1).rev() {
+            if birds[i].end() >= birds[i + 1].start() {
+                birds[i] = *birds[i].start()..=*birds[i + 1].end();
+                birds.remove(i + 1);
             }
-            return (start.x + y) / 2;
         }
+        x = wall.x;
     }
-    unreachable!()
+
+    (x + birds[0].start()) / 2
 }
 
 fn part1(notes: Input) -> usize {
@@ -126,6 +138,12 @@ fn test2() {
 fn default() {
     let (input1, input2, input3) = get_event_inputs(25, 19);
     assert_eq!(51, part1(&input1));
-    // assert_eq!(ZZ, part2(&input2));
-    // assert_eq!(ZZ, part3(&input3));
+    assert_eq!(784, part2(&input2));
+    assert_eq!(4542717, part3(&input3));
 }
+
+// Input parsed (34μs)
+// 1. 51 (9μs)
+// 2. 784 (15μs)
+// 3. 4542717 (31μs)
+// Total: 92μs
