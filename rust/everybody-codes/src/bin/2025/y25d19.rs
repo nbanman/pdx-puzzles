@@ -40,14 +40,8 @@ impl Flappy for Bird {
         let min_alt = self.start().checked_sub(dist).unwrap_or_default();
         let max_alt = self.end() + dist;
         wall.gaps.iter().filter_map(move |gap| {
-            let mut gap_min = max(min_alt, *gap.start());
-            if gap_min & 1 != wall.x & 1 {
-                gap_min += 1;
-            }
-            let mut gap_max = min(max_alt, *gap.end());
-            if gap_max & 1 != wall.x & 1 {
-                gap_max -= 1;
-            }
+            let gap_min = max(min_alt, *gap.start());
+            let gap_max = min(max_alt, *gap.end());
             if gap_min <= gap_max {
                 Some(gap_min..=gap_max)
             } else {
@@ -67,7 +61,20 @@ fn build_walls(notes: Input) -> Vec<Wall> {
             let x = chunk.0;
             let gaps = chunk
                 .1
-                .map(|(_, lo, size)| lo..=lo + size - 1)
+                .map(|(_, lo, size)| {
+                    // note here that I'm narrowing the wall gap sizes to correspond to where the bird's altitude
+                    // can be at the time of passing the wall. Walls whose x is even must have even tops and bottoms
+                    // of gaps. Walls whose x is odd must have odd tops and bottoms of gaps.
+                    let mut lo = lo;
+                    let mut hi = lo + size - 1;
+                    if lo & 1 != x & 1 {
+                        lo += 1;
+                    }
+                    if hi & 1 != x & 1 {
+                        hi -= 1;
+                    }
+                    lo..=hi
+                })
                 .sorted_unstable_by_key(|rng| *rng.start())
                 .collect();
             Wall { x, gaps }
