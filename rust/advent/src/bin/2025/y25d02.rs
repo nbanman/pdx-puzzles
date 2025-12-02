@@ -36,13 +36,8 @@ fn get_next_invalid_1(n: u64) -> u64 {
     }
 }
 
-fn get_digits(mut n: u64) -> u32 {
-    let mut count = 0;
-    while n > 0 {
-        n /= 10;
-        count += 1;
-    }
-    count
+fn get_digits(n: u64) -> u32 {
+    n.ilog10() + 1
 }
 
 fn next_if_odd(digits: u32) -> u64 {
