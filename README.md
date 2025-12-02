@@ -1,7 +1,5 @@
 # pdx-puzzles
 
-My Github is littered with various puzzle repositories, of which this is only the latest. But honestly, hopefully the last. I hope that I've learned enough about Git, Github, and project structuring that I can use this for multiple puzzle events and multiple languages.
-
 Feel free to clone, lmk if you need any help setting things up. 
 
 ## Quick Links:
