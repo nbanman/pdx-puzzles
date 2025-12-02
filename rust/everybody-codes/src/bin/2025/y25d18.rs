@@ -165,9 +165,14 @@ fn part3(notes: Input) -> i64 {
 
 #[test]
 fn default() {
-    // let (input1, input2, input3) = get_event_inputs(25, 18);
-    // assert_eq!(ZZ, part1(&input1));
-    // assert_eq!(ZZ, part2(&input2));
-    // assert_eq!(ZZ, part3(&input3));
+    let (input1, input2, input3) = get_event_inputs(25, 18);
+    assert_eq!(2067316, part1(&input1));
+    assert_eq!(15481956620, part2(&input2));
+    assert_eq!(485271, part3(&input3));
 }
 
+// Input parsed (44μs)
+// 1. 2067316 (16μs)
+// 2. 15481956620 (86μs)
+// 3. 485271 (148μs)
+// Total: 298μs
