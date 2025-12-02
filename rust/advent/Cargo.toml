@@ -1023,46 +1023,46 @@ path = "src/bin/2024/y24d25.rs"
 name = "advent-y25d01"
 path = "src/bin/2025/y25d01.rs"
 
-# [[bin]]
-# name = "advent-y25d02"
-# path = "src/bin/2025/y25d02.rs"
+[[bin]]
+name = "advent-y25d02"
+path = "src/bin/2025/y25d02.rs"
 
-# [[bin]]
-# name = "advent-y25d03"
-# path = "src/bin/2025/y25d03.rs"
+#[[bin]]
+#name = "advent-y25d03"
+#path = "src/bin/2025/y25d03.rs"
 
-# [[bin]]
-# name = "advent-y25d04"
-# path = "src/bin/2025/y25d04.rs"
+#[[bin]]
+#name = "advent-y25d04"
+#path = "src/bin/2025/y25d04.rs"
 
-# [[bin]]
-# name = "advent-y25d05"
-# path = "src/bin/2025/y25d05.rs"
+#[[bin]]
+#name = "advent-y25d05"
+#path = "src/bin/2025/y25d05.rs"
 
-# [[bin]]
-# name = "advent-y25d06"
-# path = "src/bin/2025/y25d06.rs"
+#[[bin]]
+#name = "advent-y25d06"
+#path = "src/bin/2025/y25d06.rs"
 
-# [[bin]]
-# name = "advent-y25d07"
-# path = "src/bin/2025/y25d07.rs"
+#[[bin]]
+#name = "advent-y25d07"
+#path = "src/bin/2025/y25d07.rs"
 
-# [[bin]]
-# name = "advent-y25d08"
-# path = "src/bin/2025/y25d08.rs"
+#[[bin]]
+#name = "advent-y25d08"
+#path = "src/bin/2025/y25d08.rs"
 
-# [[bin]]
-# name = "advent-y25d09"
-# path = "src/bin/2025/y25d09.rs"
+#[[bin]]
+#name = "advent-y25d09"
+#path = "src/bin/2025/y25d09.rs"
 
-# [[bin]]
-# name = "advent-y25d10"
-# path = "src/bin/2025/y25d10.rs"
+#[[bin]]
+#name = "advent-y25d10"
+#path = "src/bin/2025/y25d10.rs"
 
-# [[bin]]
-# name = "advent-y25d11"
-# path = "src/bin/2025/y25d11.rs"
+#[[bin]]
+#name = "advent-y25d11"
+#path = "src/bin/2025/y25d11.rs"
 
-# [[bin]]
-# name = "advent-y25d12"
-# path = "src/bin/2025/y25d12.rs"
+#[[bin]]
+#name = "advent-y25d12"
+#path = "src/bin/2025/y25d12.rs"
