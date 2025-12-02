@@ -30,10 +30,10 @@ fn parse_input(input: &str) -> Input {
 fn get_next_invalid_1(n: u64) -> u64 {
     let digits = get_digits(n);
     if digits & 1 == 1 {
-        return next_if_odd(digits);
+        next_if_odd(digits)
+    } else {
+        get_next_by_portion(n, 2, digits)
     }
-
-    get_next_by_portion(n, 2, digits)
 }
 
 fn get_digits(mut n: u64) -> u32 {
@@ -52,13 +52,15 @@ fn next_if_odd(digits: u32) -> u64 {
         5 => 100100,
         7 => 10001000,
         9 => 1000010000,
-        d => panic!("{} is invalid! must be off between 1-9", d),
+        d => panic!("{} is invalid! must be odd between 1-9", d),
     }
 }
 
 fn get_next_by_portion(n: u64, portion: u32, digits: u32) -> u64 {
     let top = n / (10u64.pow(digits / portion * (portion - 1)));
-    let candidate = (1..portion).fold(top, |acc, _| acc * 10u64.pow(digits / portion) + top);
+    let candidate = (1..portion).fold(top, |acc, _| {
+        acc * 10u64.pow(digits / portion) + top
+    });
     if candidate >= n {
         return candidate;
     }
