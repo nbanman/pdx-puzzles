@@ -26,7 +26,7 @@ object Y25D16 : Day {
         val blocks = 202_520_252_025_000L
         val highest = spell.last().toDouble()
         val portionSum = spell.sumOf { highest / it }
-        val low = ceil(blocks / (portionSum / highest)).toLong()
+        var low = ceil(blocks / (portionSum / highest)).toLong()
         val gallop = 10
         var high = low + gallop
         var highSum = sumBricks(spell, high)
@@ -36,9 +36,16 @@ object Y25D16 : Day {
             highSum = sumBricks(spell, high)
         }
 
+        while (low + 1 < high) {
+            val mid = (low + high) / 2
+            if (sumBricks(spell, mid) < blocks) {
+                low = mid
+            } else {
+                high = mid
+            }
+        }
 
-
-        return 3
+        return low
     }
 }
 
