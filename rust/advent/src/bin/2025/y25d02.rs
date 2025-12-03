@@ -211,11 +211,11 @@ fn count_invalid_1(lo: u64, hi: u64) -> u64 {
 
 fn count_invalid_2(lo: u64, hi: u64) -> u64 {
     let digits = get_digits(lo);
-    let test = match digits {
-        1 => vec![0],
-        2 | 4 | 8 => InvalidIds::new(lo, hi, digits, 2).into_iter().collect_vec(),
-        3 | 9 => InvalidIds::new(lo, hi, digits, 3).into_iter().collect_vec(),
-        5 | 7 | 11 => InvalidIds::new(lo, hi, digits, digits).into_iter().collect_vec(),
+    match digits {
+        1 => 0,
+        2 | 4 | 8 => InvalidIds::new(lo, hi, digits, 2).into_iter().sum(),
+        3 | 9 => InvalidIds::new(lo, hi, digits, 3).into_iter().sum(),
+        5 | 7 | 11 => InvalidIds::new(lo, hi, digits, digits).into_iter().sum(),
         6 | 10 => {
             let halves = InvalidIds::new(lo, hi, digits, 2);
             let others = InvalidIds::new(lo, hi, digits, digits / 2);
@@ -225,11 +225,10 @@ fn count_invalid_2(lo: u64, hi: u64) -> u64 {
             )
                 .into_iter()
                 .dedup()
-                .collect_vec()
+                .sum()
         },
         _ => panic!("This solver only goes to 11 digits!"),
-    };
-    test.into_iter().sum()
+    }
 }
 
 fn solve<F>(ids: &Input, count_invalid: F) -> Output
@@ -275,7 +274,7 @@ fn test2() {
     assert_eq!(4174379265, part2(&input));
 }
 
-// Input parsed (20μs)
+// Input parsed (21μs)
 // 1. 28846518423 (8μs)
-// 2. 31578210022 (14μs)
-// Total: 45μs
+// 2. 31578210022 (9μs)
+// Total: 40μs
