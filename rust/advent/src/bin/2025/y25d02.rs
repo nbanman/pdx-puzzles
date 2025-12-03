@@ -1,3 +1,4 @@
+use std::cmp::{max, min};
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
 use utilities::{
@@ -8,6 +9,167 @@ use utilities::{
 type Input = Vec<(u64, u64)>;
 type Output = u64;
 
+struct InvalidIds {
+    n: u64,
+    hi: u64,
+    digits: u32,
+    portion: u32,
+    portion_digits: u32,
+    top: u64,
+    done: bool,
+}
+
+impl InvalidIds {
+    fn new(n: u64, hi: u64, digits: u32, portion: u32) -> Self {
+        let top = n / (10u64.pow(digits / portion * (portion - 1)));
+        let portion_digits = digits / portion;
+        Self {
+            n,
+            hi,
+            digits,
+            portion,
+            portion_digits,
+            top,
+            done: false,
+        }
+    }
+}
+
+impl Iterator for InvalidIds {
+    type Item = u64;
+    fn next(&mut self) -> Option<u64> {
+        if self.done {
+            return None;
+        }
+        let candidate = (1..self.portion).fold(self.top, |acc, _| {
+            acc * 10u64.pow(self.digits / self.portion) + self.top
+        });
+
+        if candidate > self.hi {
+            self.done = true;
+            return None;
+        }
+
+        self.top += 1;
+        if get_digits(self.top) != self.portion_digits {
+            // rolled over
+            self.done = true;
+        }
+
+        if candidate >= self.n {
+            return Some(candidate);
+        }
+
+        // escape valve
+        self.next()
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum ZipperStatus {
+    Zipping,
+    Iter1Done,
+    Iter2Done,
+    Done,
+}
+
+pub struct ZipAndSort<T, U> {
+    iter1: T,
+    iter2: U,
+    peek1: Option<u64>,
+    peek2: Option<u64>,
+    status: ZipperStatus,
+}
+
+impl<T, U> ZipAndSort<T, U>
+where
+    T: Iterator<Item = u64>,
+    U: Iterator<Item = u64>,
+{
+    fn new(iter1: T, iter2: U) -> Self {
+        Self {
+            iter1,
+            iter2,
+            peek1: None,
+            peek2: None,
+            status: ZipperStatus::Zipping,
+        }
+    }
+}
+
+impl <T, U> Iterator for ZipAndSort<T, U>
+where
+    T: Iterator<Item = u64>,
+    U: Iterator<Item = u64>,
+{
+    type Item = u64;
+    fn next(&mut self) -> Option<Self::Item> {
+        // early return if done
+        if self.status == ZipperStatus::Done {
+            return None;
+        }
+
+        // load up "peekable" areas so that they can be compared and stored
+        if self.peek1.is_none() && self.status != ZipperStatus::Iter1Done {
+            self.peek1 = self.iter1.next();
+            if self.peek1.is_none() {
+                if self.status == ZipperStatus::Iter2Done {
+                    self.status = ZipperStatus::Done;
+                    return None
+                } else {
+                    self.status = ZipperStatus::Iter1Done;
+                }
+            }
+        }
+
+        if self.peek2.is_none() && self.status != ZipperStatus::Iter2Done {
+            self.peek2 = self.iter2.next();
+            if self.peek2.is_none() {
+                if self.status == ZipperStatus::Iter1Done {
+                    self.status = ZipperStatus::Done;
+                    return None
+                } else {
+                    self.status = ZipperStatus::Iter2Done;
+                }
+            }
+
+        }
+
+        match self.status {
+            ZipperStatus::Zipping => {
+                let Some(peek1) = self.peek1 else {
+                    panic!("peek1 is None");
+                };
+                let Some(peek2) = self.peek2 else {
+                    panic!("peek2 is None");
+                };
+                if peek1 < peek2 {
+                    self.peek1 = None;
+                    Some(peek1)
+                } else {
+                    self.peek2 = None;
+                    Some(peek2)
+                }
+            },
+            ZipperStatus::Iter1Done => {
+                let Some(peek2) = self.peek2 else {
+                    panic!("peek2 is None");
+                };
+                self.peek2 = None;
+                Some(peek2)
+            },
+            ZipperStatus::Iter2Done => {
+                let Some(peek1) = self.peek1 else {
+                    panic!("peek1 is None");
+                };
+                self.peek1 = None;
+                Some(peek1)
+
+            },
+            ZipperStatus::Done => None
+        }
+    }
+}
 fn main() {
     let mut stopwatch = Stopwatch::new();
     stopwatch.start();
@@ -19,99 +181,72 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse_input(input: &str) -> Input {
-    input
-        .get_numbers()
-        .tuples()
-        .map(|(lo, hi)| (lo, hi))
-        .collect()
-}
-
-fn get_next_invalid_1(n: u64) -> u64 {
-    let digits = get_digits(n);
-    if digits & 1 == 1 {
-        next_if_odd(digits)
-    } else {
-        get_next_by_portion(n, 2, digits)
-    }
-}
-
 fn get_digits(n: u64) -> u32 {
     n.ilog10() + 1
 }
 
-fn next_if_odd(digits: u32) -> u64 {
-    match digits {
-        1 => 11,
-        3 => 1010,
-        5 => 100100,
-        7 => 10001000,
-        9 => 1000010000,
-        d => panic!("{} is invalid! must be odd between 1-9", d),
-    }
+fn parse_input(input: &str) -> Input {
+    input
+        .get_numbers()
+        .tuples()
+        .flat_map(|(lo, hi)| {
+            let lo_digits = get_digits(lo);
+            let hi_digits = get_digits(hi);
+            (lo_digits..=hi_digits).map(move |digits| {
+                let lo = max(lo, 10u64.pow(digits - 1));
+                let hi = min(hi, 10u64.pow(digits) - 1);
+                (lo, hi)
+            })
+        })
+        .collect()
 }
 
-fn get_next_by_portion(n: u64, portion: u32, digits: u32) -> u64 {
-    let top = n / (10u64.pow(digits / portion * (portion - 1)));
-    let candidate = (1..portion).fold(top, |acc, _| {
-        acc * 10u64.pow(digits / portion) + top
-    });
-    if candidate >= n {
-        return candidate;
+fn count_invalid_1(lo: u64, hi: u64) -> u64 {
+    let digits = get_digits(lo);
+    if digits & 1 == 1 {
+        return 0;
     }
-    (1..portion).fold(top + 1, |acc, _| {
-        acc * 10u64.pow(digits / portion) + top + 1
-    })
+    InvalidIds::new(lo, hi, digits, 2).into_iter().sum()
 }
 
-fn get_next_invalid_2(n: u64) -> u64 {
-    let digits = get_digits(n);
-    if digits == 1 {
-        return 11;
-    }
-    let portions = match digits {
-        2 => vec![2],
-        3 => vec![3],
-        4 => vec![2],
-        5 => vec![5],
-        6 => vec![2, 3],
-        7 => vec![7],
-        8 => vec![2],
-        9 => vec![3],
-        10 => vec![2, 5],
-        d => panic!("{} is invalid!", d),
+fn count_invalid_2(lo: u64, hi: u64) -> u64 {
+    let digits = get_digits(lo);
+    let test = match digits {
+        1 => vec![0],
+        2 | 4 | 8 => InvalidIds::new(lo, hi, digits, 2).into_iter().collect_vec(),
+        3 | 9 => InvalidIds::new(lo, hi, digits, 3).into_iter().collect_vec(),
+        5 | 7 | 11 => InvalidIds::new(lo, hi, digits, digits).into_iter().collect_vec(),
+        6 | 10 => {
+            let halves = InvalidIds::new(lo, hi, digits, 2);
+            let others = InvalidIds::new(lo, hi, digits, digits / 2);
+            ZipAndSort::new(
+                halves.into_iter(),
+                others.into_iter(),
+            )
+                .into_iter()
+                .dedup()
+                .collect_vec()
+        },
+        _ => panic!("This solver only goes to 11 digits!"),
     };
-    portions
-        .into_iter()
-        .map(|portion| get_next_by_portion(n, portion, digits))
-        .min()
-        .unwrap()
+    test.into_iter().sum()
 }
 
-fn solve<F>(ids: &Input, get_next_invalid: F) -> Output
+fn solve<F>(ids: &Input, count_invalid: F) -> Output
 where
-    F: Fn(u64) -> u64,
+    F: Fn(u64, u64) -> u64,
 {
-    let mut invalid_ids = 0;
-    for &(lo, hi) in ids {
-        let mut n = lo;
-        while n <= hi {
-            let next_invalid = get_next_invalid(n);
-            if next_invalid <= hi {
-                invalid_ids += next_invalid;
-            }
-            n = next_invalid + 1;
-        }
-    }
-    invalid_ids
+    ids.iter()
+        .map(|&(lo, hi)| count_invalid(lo, hi))
+        .sum()
 }
 
 fn part1(ids: &Input) -> Output {
-    solve(ids, get_next_invalid_1)
+    solve(ids, count_invalid_1)
 }
 
 fn part2(ids: &Input) -> Output {
-    solve(ids, get_next_invalid_2)
+    solve(ids, count_invalid_2)
 }
 
 #[test]
