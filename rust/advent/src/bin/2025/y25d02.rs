@@ -213,22 +213,25 @@ fn count_invalid_2(lo: u64, hi: u64) -> u64 {
     let digits = get_digits(lo);
     match digits {
         1 => 0,
-        2 | 4 | 8 => InvalidIds::new(lo, hi, digits, 2).into_iter().sum(),
+        2 | 4 | 8 | 16 => InvalidIds::new(lo, hi, digits, 2).into_iter().sum(),
         3 | 9 => InvalidIds::new(lo, hi, digits, 3).into_iter().sum(),
-        5 | 7 | 11 => InvalidIds::new(lo, hi, digits, digits).into_iter().sum(),
-        6 | 10 => {
-            let halves = InvalidIds::new(lo, hi, digits, 2);
-            let others = InvalidIds::new(lo, hi, digits, digits / 2);
-            ZipAndSort::new(
-                halves.into_iter(),
-                others.into_iter(),
-            )
-                .into_iter()
-                .dedup()
-                .sum()
-        },
-        _ => panic!("This solver only goes to 11 digits!"),
+        6 | 10 | 14 | 18 => zip_and_sort(lo, hi, digits, 2, 2),
+        12 | 20 => zip_and_sort(lo, hi, digits, 2, 4),
+        15 => zip_and_sort(lo, hi, digits, 3, 3),
+        d => InvalidIds::new(lo, hi, d, d).into_iter().sum(),
     }
+}
+
+fn zip_and_sort(lo: u64, hi: u64, digits: u32, a_portion: u32, b_divisor: u32) -> u64 {
+    let a = InvalidIds::new(lo, hi, digits, a_portion);
+    let b = InvalidIds::new(lo, hi, digits, digits / b_divisor);
+    ZipAndSort::new(
+        a.into_iter(),
+        b.into_iter(),
+    )
+        .into_iter()
+        .dedup()
+        .sum()
 }
 
 fn solve<F>(ids: &Input, count_invalid: F) -> Output
@@ -272,6 +275,22 @@ fn test2() {
 824824821-824824827,2121212118-2121212124";
     let input = parse_input(input);
     assert_eq!(4174379265, part2(&input));
+}
+
+#[test]
+fn challenge_input1() {
+    let input = r"11-42,95-115,998-7012,1188511880-2188511890,222220-222224,1698522-1698528,446443-646449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2321212124";
+    let input = parse_input(input);
+    assert_eq!(21327161532716, part1(&input));
+    assert_eq!(21346784611163, part2(&input));
+}
+
+#[test]
+fn challenge_input2() {
+    let input = r"11-42,95-115,998-7012,222220-222224,446443-646449,1698522-1698528,38593856-38593862,824824821-824824827,1188511880-2321212124,202001202277-532532532530";
+    let input = parse_input(input);
+    assert_eq!(121412594604227157, part1(&input));
+    assert_eq!(122614329477263799, part2(&input));
 }
 
 // Input parsed (21μs)
