@@ -26,4 +26,9 @@ class Y25D03(private val input: String) : Day {
     override fun part2() = solve(12)
 }
 
-fun main() = Day.benchmarkDay(Y25D03::class)
+fun main() = Day.runDay(Y25D03::class)
+
+//    Class creation: 1ms
+//    Part 1: 17343 (3ms)
+//    Part 2: 172664333119298 (4ms)
+//    Total time: 9ms
