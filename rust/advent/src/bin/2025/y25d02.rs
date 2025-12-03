@@ -9,6 +9,17 @@ use utilities::{
 type Input = Vec<(u64, u64)>;
 type Output = u64;
 
+fn main() {
+    let mut stopwatch = Stopwatch::new();
+    stopwatch.start();
+    let input = get_input(25, 2).unwrap();
+    let input = parse_input(&input);
+    println!("Input parsed ({})", stopwatch.lap().report());
+    println!("1. {} ({})", part1(&input), stopwatch.lap().report());
+    println!("2. {} ({})", part2(&input), stopwatch.lap().report());
+    println!("Total: {}", stopwatch.stop().report());
+}
+
 struct InvalidIds {
     n: u64,
     hi: u64,
@@ -170,17 +181,6 @@ where
         }
     }
 }
-fn main() {
-    let mut stopwatch = Stopwatch::new();
-    stopwatch.start();
-    let input = get_input(25, 2).unwrap();
-    let input = parse_input(&input);
-    println!("Input parsed ({})", stopwatch.lap().report());
-    println!("1. {} ({})", part1(&input), stopwatch.lap().report());
-    println!("2. {} ({})", part2(&input), stopwatch.lap().report());
-    println!("Total: {}", stopwatch.stop().report());
-}
-
 fn get_digits(n: u64) -> u32 {
     n.ilog10() + 1
 }
@@ -213,23 +213,19 @@ fn count_invalid_2(lo: u64, hi: u64) -> u64 {
     let digits = get_digits(lo);
     match digits {
         1 => 0,
-        2 | 4 | 8 | 16 => InvalidIds::new(lo, hi, digits, 2).into_iter().sum(),
-        3 | 9 => InvalidIds::new(lo, hi, digits, 3).into_iter().sum(),
+        2 | 4 | 8 | 16 => InvalidIds::new(lo, hi, digits, 2).sum(),
+        3 | 9 => InvalidIds::new(lo, hi, digits, 3).sum(),
         6 | 10 | 14 | 18 => zip_and_sort(lo, hi, digits, 2, 2),
         12 | 20 => zip_and_sort(lo, hi, digits, 2, 4),
         15 => zip_and_sort(lo, hi, digits, 3, 3),
-        d => InvalidIds::new(lo, hi, d, d).into_iter().sum(),
+        d => InvalidIds::new(lo, hi, d, d).sum(),
     }
 }
 
 fn zip_and_sort(lo: u64, hi: u64, digits: u32, a_portion: u32, b_divisor: u32) -> u64 {
     let a = InvalidIds::new(lo, hi, digits, a_portion);
     let b = InvalidIds::new(lo, hi, digits, digits / b_divisor);
-    ZipAndSort::new(
-        a.into_iter(),
-        b.into_iter(),
-    )
-        .into_iter()
+    ZipAndSort::new(a, b)
         .dedup()
         .sum()
 }
