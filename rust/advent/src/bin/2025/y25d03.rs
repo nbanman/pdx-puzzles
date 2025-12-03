@@ -15,27 +15,29 @@ fn main() {
 }
 
 fn part1(input: Input) -> Output {
-    input.lines()
-        .map(|line| {
-            let bytes = line.as_bytes();
-            let highest = bytes[0..bytes.len() - 1].iter().max().unwrap();
-            let high_pos = bytes.iter().position(|b| b == highest).unwrap();
-            let next = bytes[high_pos + 1..].iter().max().unwrap();
-            (*highest - b'0') as usize * 10 + (*next - b'0') as usize
-        })
-        .sum()
+    solve(input, 2)
 }
 
 fn part2(input: Input) -> Output {
+    solve(input, 12)
+}
+
+fn solve(input: Input, digits: usize) -> Output {
     input.lines()
         .map(|line| {
             let bytes = line.as_bytes();
             let len = bytes.len();
             let mut left = 0;
-            (0..12).rev().fold(0usize, |acc, i| {
+            (0..digits).rev().fold(0usize, |acc, i| {
                 let bytes = &bytes[left..len - i];
-                let highest = bytes.iter().max().unwrap();
-                let high_pos = bytes.iter().position(|b| b == highest).unwrap();
+                let mut highest = 0;
+                let mut high_pos = 0;
+                for (idx, &byte) in bytes.iter().enumerate() {
+                    if byte > highest {
+                        highest = byte;
+                        high_pos = idx;
+                    }
+                }
                 left += high_pos + 1;
                 let highest = (highest - b'0') as usize;
                 acc * 10 + highest
@@ -47,8 +49,8 @@ fn part2(input: Input) -> Output {
 #[test]
 fn default() {
     let input = get_input(25, 3).unwrap();
-    // assert_eq!(YY, part1(&input));
-    // assert_eq!(YY, part2(&input));
+    assert_eq!(17343, part1(&input));
+    assert_eq!(172664333119298, part2(&input));
 }
 
 #[test]
@@ -68,3 +70,8 @@ fn test2() {
 818181911112111";
     assert_eq!(3121910778619, part2(&input));
 }
+
+// Input parsed (27μs)
+// 1. 17343 (30μs)
+// 2. 172664333119298 (57μs)
+// Total: 118μs
