@@ -215,9 +215,10 @@ fn count_invalid_2(lo: u64, hi: u64) -> u64 {
         1 => 0,
         2 | 4 | 8 | 16 => InvalidIds::new(lo, hi, digits, 2).sum(),
         3 | 9 => InvalidIds::new(lo, hi, digits, 3).sum(),
-        6 | 10 | 14 | 18 => zip_and_sort(lo, hi, digits, 2, 2),
+        6 | 10 | 14 => zip_and_sort(lo, hi, digits, 2, 2),
         12 | 20 => zip_and_sort(lo, hi, digits, 2, 4),
         15 => zip_and_sort(lo, hi, digits, 3, 3),
+        18 => zip_and_sort(lo, hi, digits, 2, 6),
         d => InvalidIds::new(lo, hi, d, d).sum(),
     }
 }
