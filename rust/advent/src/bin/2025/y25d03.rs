@@ -37,6 +37,9 @@ fn solve(input: Input, digits: usize) -> Output {
                         highest = byte;
                         high_pos = idx;
                     }
+                    if byte == b'9' {
+                        break;
+                    }
                 }
                 left += high_pos + 1;
                 let highest = (highest - b'0') as usize;
@@ -71,7 +74,7 @@ fn test2() {
     assert_eq!(3121910778619, part2(&input));
 }
 
-// Input parsed (23μs)
-// 1. 17343 (25μs)
-// 2. 172664333119298 (44μs)
-// Total: 94μs
+// Input parsed (25μs)
+// 1. 17343 (21μs)
+// 2. 172664333119298 (35μs)
+// Total: 84μs
