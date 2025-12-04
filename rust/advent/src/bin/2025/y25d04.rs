@@ -89,7 +89,7 @@ fn test2() {
     assert_eq!(43, part2(&input));
 }
 
-// Input parsed (29μs)
-// 1. 1604 (1.380ms)
-// 2. 9397 (27.140ms)
-// Total: 28.553ms
+    // Input parsed (24μs)
+    // 1. 1604 (1.134ms)
+    // 2. 9397 (12.946ms)
+    // Total: 14.108ms
