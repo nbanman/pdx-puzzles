@@ -8,19 +8,18 @@ class Y25D04(private val input: String) : Day {
         val grid = input.toMutableGrid { c -> c == '@' }
         var totalRemoved = 0
         do {
-            val removable = grid.withIndex()
-                .filter { (idx, b) ->
+            val removable = grid.asSequence().withIndex()
+                .count { (idx, b) ->
                     if (b) {
-                        grid.getNeighbors(idx, true).count { it } < 4
+                        val movable = grid.getNeighbors(idx, true).count { it } < 4
+                        if (loop && movable) grid[idx] = false
+                        movable
                     } else {
                         false
                     }
                 }
-            for ((idx, _) in removable) {
-                grid[idx] = false
-            }
-            totalRemoved += removable.size
-        } while (loop && removable.isNotEmpty())
+            totalRemoved += removable
+        } while (loop && removable != 0)
         return totalRemoved
     }
 
@@ -31,6 +30,6 @@ class Y25D04(private val input: String) : Day {
 fun main() = Day.runDay(Y25D04::class)
 
 //    Class creation: 1ms
-//    Part 1: 1604 (22ms)
-//    Part 2: 9397 (90ms)
-//    Total time: 114ms
+//    Part 1: 1604 (23ms)
+//    Part 2: 9397 (68ms)
+//    Total time: 93ms

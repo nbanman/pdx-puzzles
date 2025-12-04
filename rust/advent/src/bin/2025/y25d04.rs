@@ -1,5 +1,4 @@
 use advent::utilities::get_input::get_input;
-use itertools::Itertools;
 use utilities::structs::{grid::Grid2, stopwatch::{ReportDuration, Stopwatch}};
 
 type Input<'a> = &'a str;
@@ -19,29 +18,24 @@ fn solve(input: Input, run_until_stable: bool) -> usize {
     let mut grid = Grid2::new2d_map_str(input, |c| c == '@').unwrap();
     let mut total_removed = 0;
     loop {
-        let removable = grid.iter().enumerate()
-            .filter_map(|(idx, &b)| {
-                if b {
+        let removable = (0..grid.len())
+            .filter(|&idx| {
+                if grid[idx] {
                     let movable = grid.adjacent(idx, true)
                         .unwrap()
                         .filter(|adj| *adj.value)
                         .count() < 4;
-                    if movable {
-                        Some(idx)
-                    } else {
-                        None
+                    if run_until_stable && movable {
+                        grid[idx] = false;
                     }
+                    movable
                 } else {
-                    None
+                    false
                 }
-                
             })
-            .collect_vec();
-        for &idx in removable.iter() {
-            grid[idx] = false;
-        }
-        total_removed += removable.len();
-        if !run_until_stable || removable.is_empty() {
+            .count();
+        total_removed += removable;
+        if !run_until_stable || removable == 0 {
             break;
         }
     }
