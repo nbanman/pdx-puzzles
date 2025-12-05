@@ -2,7 +2,6 @@ package org.gristle.pdxpuzzles.advent.y2025
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
 import org.gristle.pdxpuzzles.utilities.parsing.blankSplit
-import org.gristle.pdxpuzzles.utilities.parsing.getLongList
 import org.gristle.pdxpuzzles.utilities.parsing.getLongs
 import kotlin.math.max
 
@@ -31,10 +30,16 @@ class Y25D05(input: String) : Day {
             }
         } while (changed)
 
-        ids = idStr.getLongList()
+        ids = idStr.getLongs().sorted().toList()
     }
 
-    override fun part1() = ids.count { id -> ranges.any { it.contains(id) } }
+    override fun part1() = ranges.sumOf { rng ->
+        val below = ids.binarySearch(rng.first)
+            .let { if (it < 0) -it - 1 else it }
+        val within = ids.binarySearch(rng.last)
+            .let { if (it < 0) -it - 1 else it }
+        within - below
+    }
 
     override fun part2(): Long {
         return ranges.sumOf { it.last - it.first + 1 }
@@ -43,7 +48,7 @@ class Y25D05(input: String) : Day {
 
 fun main() = Day.runDay(Y25D05::class)
 
-//    Class creation: 6ms
-//    Part 1: 652 (5ms)
+//    Class creation: 7ms
+//    Part 1: 652 (1ms)
 //    Part 2: 341753674214273 (2ms)
-//    Total time: 14ms
+//    Total time: 11ms
