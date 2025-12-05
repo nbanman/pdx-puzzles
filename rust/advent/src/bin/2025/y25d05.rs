@@ -23,7 +23,7 @@ fn parse_input(input: &str) -> Input {
     let (ranges, ids) = input.split_once("\n\n").unwrap();
     let mut ranges: Ranges = ranges.get_numbers().tuples().sorted_unstable().collect();
     condense_ranges(&mut ranges);
-    let ids: Vec<u64> = ids.get_numbers().collect();
+    let ids: Vec<u64> = ids.get_numbers().sorted_unstable().collect();
     (ranges, ids)
 }
 
@@ -47,9 +47,13 @@ fn condense_ranges(ranges: &mut Ranges) {
 
 fn part1(input: &Input) -> usize {
     let (ranges, ids) = input;
-    ids.iter()
-        .filter(|&id| ranges.iter().any(|(from, to)| id >= from && id <= to))
-        .count()
+    ranges.iter()
+        .map(|(start, end)| {
+            let below = ids.binary_search(start).unwrap_or_else(|e| e);
+            let within = ids.binary_search(end).unwrap_or_else(|e| e);
+            within - below
+        })
+        .sum()
 }
 
 fn part2(input: &Input) -> u64 {
@@ -66,6 +70,6 @@ fn default() {
 }
 
 // Input parsed (71μs)
-// 1. 652 (38μs)
+// 1. 652 (9μs)
 // 2. 341753674214273 (2μs)
-// Total: 113μs
+// Total: 84μs
