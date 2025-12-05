@@ -15,3 +15,15 @@ fun IntRange.overlaps(other: IntRange): Boolean = if (first <= other.first) {
 } else {
     other.last >= first
 }
+
+fun LongRange.overlaps(other: LongRange): Boolean = if (first <= other.first) {
+    last >= other.first
+} else {
+    other.last >= first
+}
+
+/**
+ * Returns true if an IntRange is a superset of another IntRange; otherwise false.
+ */
+fun LongRange.containsAll(other: LongRange): Boolean =
+    first <= other.first && last >= other.last
