@@ -23,7 +23,7 @@ fn solve(manifold: &str) -> [u64; 2] {
     let mut next = vec![0u64; width - 1];
     todo[manifold.iter().position(|&b| b == b'S').unwrap()] = 1;
 
-    for row in (0..manifold.len()).step_by(width * 2) {
+    for row in (width * 2..manifold.len()).step_by(width * 2) {
         for (pos, &timeline) in todo.iter().enumerate() {
             if timeline == 0 {
                 continue;
