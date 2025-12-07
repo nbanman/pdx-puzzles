@@ -8,17 +8,17 @@ class Y25D07(manifold: String) : Day {
 
     init {
         val width = manifold.indexOf('\n') + 1
-        val finished = manifold.length - width * 2 + 1
+        val finished = (manifold.length - width * 2 + 1) / width
 
         var splits = 0
 
         var todo = LongArray(width - 1)
         todo[manifold.indexOf('S')] = 1
         var next = LongArray(width - 1)
-        for (row in width * 2 until manifold.length step width * 2) {
+        for (row in 2 .. finished) {
             for ((pos, timeline) in todo.withIndex()) {
                 if (timeline == 0L) continue
-                if (manifold[pos + row] == '^') {
+                if (manifold[pos + row * width] == '^') {
                     splits++
                     for (offset in -1..1 step(2)) {
                         next[pos + offset] += timeline
@@ -27,12 +27,11 @@ class Y25D07(manifold: String) : Day {
                     next[pos] += timeline
                 }
             }
-            if (row == finished) break
             todo = next
             next = LongArray(width - 1)
         }
         p1Answer = splits
-        p2Answer = next.sum()
+        p2Answer = todo.sum()
     }
 
     override fun part1() = p1Answer
