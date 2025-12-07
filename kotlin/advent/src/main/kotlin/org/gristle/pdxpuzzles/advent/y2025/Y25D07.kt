@@ -1,79 +1,52 @@
 package org.gristle.pdxpuzzles.advent.y2025
 
 import org.gristle.pdxpuzzles.advent.utilities.Day
-import org.gristle.pdxpuzzles.utilities.algorithms.Graph
-import org.gristle.pdxpuzzles.utilities.iteration.pollUntil
 import org.gristle.pdxpuzzles.utilities.objects.toGrid
-import java.util.PriorityQueue
 
 class Y25D07(input: String) : Day {
-    private val manifold = input.toGrid()
-    private val start = manifold.indexOf('S')
-    private val bottomRow = manifold.size - manifold.width
+    private val p1Answer: Int
+    private val p2Answer: Long
 
-    override fun part1(): Int {
+    init {
+        val manifold = input.toGrid()
+        val finished = manifold.size - manifold.width * 2
+
         var splits = 0
 
-        val moveDown: (Int) -> List<Int> = { pos: Int ->
-            if (pos >= bottomRow) {
-                emptyList()
-            } else {
-                val down = pos + manifold.width
-                if (manifold[down] == '^') {
+        var todo = LongArray(manifold.width)
+        todo[manifold.indexOf('S')] = 1
+        var next = LongArray(manifold.width)
+        for (row in 0 until manifold.size step manifold.width) {
+            for ((pos, timeline) in todo.withIndex()) {
+                if (timeline == 0L) continue
+                if (manifold[pos + row] == '^') {
                     splits++
-                    listOf(down - 1, down + 1)
-                } else {
-                    listOf(down)
-                }
-            }
-        }
-        Graph.bfs(startId = start, defaultEdges = moveDown,)
-        return splits
-    }
-
-    override fun part2(): Long {
-        var totalTimelines = 0L
-        var todo = PriorityQueue(
-            compareBy<Pair<Int, Long>> { it.first }.thenByDescending { it.second }
-        )
-        todo.add(start to 1L)
-        var next = PriorityQueue(
-            compareBy<Pair<Int, Long>> { it.first }.thenByDescending { it.second }
-        )
-        val visited = mutableSetOf<Int>()
-        val mergeTracker = mutableMapOf<Int, Long>()
-        while (todo.isNotEmpty()) {
-            while (true) {
-                val (pos, timelines) = todo
-                    .pollUntil { (pos) -> visited.add(pos) }
-                    ?: break
-                val down = pos + manifold.width
-                if (down >= bottomRow) {
-                    totalTimelines += timelines
-                    continue
-                }
-                if (manifold[down] == '^') {
                     for (offset in -1..1 step(2)) {
-                        val aPos = down + offset
-                        val other = mergeTracker.getOrDefault(aPos, 0)
-                        mergeTracker[aPos] = timelines + other
-                        next.add(aPos to timelines + other)
+                        next[pos + offset] += timeline
                     }
                 } else {
-                    val other = mergeTracker.getOrDefault(down, 0)
-                    mergeTracker[down] = timelines + other
-                    next.add(down to timelines + other)
+                    next[pos] += timeline
                 }
             }
-            mergeTracker.clear()
-            visited.clear()
-            todo = next.apply { next = todo }
+            if (row == finished) break
+            todo = next
+            next = LongArray(manifold.width)
         }
-        return totalTimelines
+        p1Answer = splits
+        p2Answer = next.sum()
     }
+
+    override fun part1() = p1Answer
+
+    override fun part2() = p2Answer
 }
 
 fun main() = Day.runDay(Y25D07::class)
+
+//    Class creation: 7ms
+//    Part 1: 1533 (1ms)
+//    Part 2: 10733529153890 (2ms)
+//    Total time: 11ms
 
 @Suppress("unused")
 private val test = listOf(""".......S.......
