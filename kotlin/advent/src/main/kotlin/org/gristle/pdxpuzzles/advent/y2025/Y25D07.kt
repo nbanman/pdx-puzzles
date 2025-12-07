@@ -15,7 +15,7 @@ class Y25D07(manifold: String) : Day {
         var todo = LongArray(width - 1)
         todo[manifold.indexOf('S')] = 1
         var next = LongArray(width - 1)
-        for (row in 0 until manifold.length step width) {
+        for (row in 0 until manifold.length step width * 2) {
             for ((pos, timeline) in todo.withIndex()) {
                 if (timeline == 0L) continue
                 if (manifold[pos + row] == '^') {
