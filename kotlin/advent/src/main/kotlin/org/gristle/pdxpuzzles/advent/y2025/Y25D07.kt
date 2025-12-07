@@ -40,7 +40,7 @@ class Y25D07(manifold: String) : Day {
     override fun part2() = p2Answer
 }
 
-fun main() = Day.benchmarkDay(Y25D07::class)
+fun main() = Day.runDay(Y25D07::class)
 
 //    Class creation: 2ms
 //    Part 1: 1533 (1ms)
