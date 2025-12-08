@@ -6,9 +6,10 @@ use core::simd::u64x4;
 use std::simd::num::SimdUint;
 
 use everybody_codes::utilities::inputs::get_event_inputs;
-use rayon::iter::{IntoParallelIterator, ParallelBridge, ParallelIterator};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use std::ops::{BitAnd, BitOr};
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
+use utilities::structs::union_find::UnionFind;
 
 type Input<'a> = &'a str;
 #[cfg(feature = "simd")]
@@ -99,50 +100,6 @@ impl From<&str> for Dna {
     }
 }
 
-struct UnionFind {
-    parent: Vec<usize>,
-    size: Vec<usize>,
-}
-
-impl UnionFind {
-    fn new(n: usize) -> Self {
-        Self {
-            parent: (0..n).collect(),
-            size: vec![1; n],
-        }
-    }
-
-    fn find(&mut self, x: usize) -> usize {
-        if self.parent[x] != x {
-            self.parent[x] = self.find(self.parent[x]);
-        }
-        self.parent[x]
-    }
-
-    fn union(&mut self, x: usize, y: usize) -> bool {
-        let x = self.find(x);
-        let y = self.find(y);
-
-        if x == y {
-            return false;
-        }
-        if self.size[x] >= self.size[y] {
-            self.parent[y] = x;
-            self.size[x] += self.size[y];
-        } else {
-            self.parent[x] = y;
-            self.size[y] += self.size[x];
-        }
-        true
-    }
-
-    fn update(&mut self) {
-        for i in 0..self.parent.len() {
-            self.find(i);
-        }
-    }
-}
-
 fn main() {
     let mut stopwatch = Stopwatch::new();
     stopwatch.start();
@@ -155,7 +112,7 @@ fn main() {
 }
 
 fn get_dna(input: Input) -> Vec<Dna> {
-    input.lines().par_bridge().map(Dna::from).collect()
+    input.lines().map(Dna::from).collect()
 }
 
 fn get_families(dna: &[Dna], child: usize, child_dna: &Dna) -> Option<(usize, usize)> {
@@ -255,5 +212,5 @@ fn default() {
 // Input parsed (60μs)
 // 1. 6478 (541μs)
 // 2. 316671 (90μs)
-// 3. 40592 (419μs)
+// 3. 40905 (419μs)
 // Total: 1.116ms
