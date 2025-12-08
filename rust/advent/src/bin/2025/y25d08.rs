@@ -1,6 +1,5 @@
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
-use ordered_float::OrderedFloat;
 use utilities::{
     parsing::get_numbers::ContainsNumbers,
     structs::{
@@ -32,18 +31,17 @@ fn main() {
 }
 
 trait Junction {
-    fn dist(&self, other: &Self) -> OrderedFloat<f32>;
+    fn dist(&self, other: &Self) -> usize;
 }
 
 impl Junction for JBox {
-    fn dist(&self, other: &Self) -> OrderedFloat<f32> {
-        let inner = self
+    fn dist(&self, other: &Self) -> usize {
+        self
             .0
             .iter()
             .zip(other.0)
             .map(|(a, b)| a.abs_diff(b).pow(2))
-            .sum::<usize>();
-        OrderedFloat((inner as f32).sqrt())
+            .sum::<usize>()
     }
 }
 
@@ -97,10 +95,10 @@ fn part2(junction_boxes: &Input) -> Output {
     unreachable!()
 }
 
-// Input parsed (52μs)
-// 1. 181584 (55.922ms)
-// 2. 8465902405 (56.054ms)
-// Total: 112.041ms
+// Input parsed (42μs)
+// 1. 181584 (19.766ms)
+// 2. 8465902405 (19.225ms)
+// Total: 39.040ms
 
 #[cfg(test)]
 mod tests {
