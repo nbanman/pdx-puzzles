@@ -5,6 +5,7 @@ import org.gristle.pdxpuzzles.utilities.math.pow
 import org.gristle.pdxpuzzles.utilities.objects.MCoord
 import org.gristle.pdxpuzzles.utilities.objects.UnionFind
 import org.gristle.pdxpuzzles.utilities.parsing.getInts
+import java.util.PriorityQueue
 import kotlin.math.sqrt
 
 class Y25D08(input: String) : Day {
@@ -18,16 +19,13 @@ class Y25D08(input: String) : Day {
     }
 
     private fun connections(boxes: List<MCoord>) = sequence<Pair<Int, Int>> {
-        val lengths = mutableListOf<Triple<Float, Int, Int>>()
+        val lengths = PriorityQueue<Triple<Float, Int, Int>>(compareBy { it.first })
         for (i in 0 until boxes.lastIndex) {
             for (j in i + 1 until boxes.size) {
                 lengths.add(Triple(boxes[i].dist(boxes[j]), i, j))
             }
         }
-        lengths.sortBy { it.first }
-        for ((_, i, j) in lengths) {
-            yield(i to j)
-        }
+        while (lengths.isNotEmpty()) yield(lengths.poll().let { it.second to it.third })
     }
 
     override fun part1(): Int {
@@ -52,11 +50,9 @@ class Y25D08(input: String) : Day {
     }
 }
 
-fun main() = Day.runDay(Y25D08::class)
+fun main() = Day.benchmarkDay(Y25D08::class)
 
-//    Hot: Parts 1 and 2: 387315 us/op [Average]
-
-//    Class creation: 6ms
-//    Part 1: 181584 (223ms)
-//    Part 2: 8465902405 (199ms)
-//    Total time: 429ms
+//    Class creation: 5ms
+//    Part 1: 181584 (95ms)
+//    Part 2: 8465902405 (79ms)
+//    Total time: 180ms

@@ -1,3 +1,7 @@
+#![feature(binary_heap_drain_sorted)]
+
+use std::cmp::Reverse;
+use std::collections::BinaryHeap;
 use advent::utilities::get_input::get_input;
 use itertools::Itertools;
 use utilities::{
@@ -53,20 +57,21 @@ fn parse_input(input: &str) -> Input {
         .collect()
 }
 
-fn connections(junction_boxes: &Input) -> impl Iterator<Item = (usize, usize)> {
+fn connections(junction_boxes: &Input) -> BinaryHeap<Reverse<(usize, usize, usize)>> {
     junction_boxes
         .iter()
         .enumerate()
         .tuple_combinations()
-        .map(|((a_idx, a), (b_idx, b))| (a.dist(b), a_idx, b_idx))
-        .sorted_by_cached_key(|(dist, _, _)| *dist)
-        .map(|(_, a, b)| (a, b))
+        .map(|((a_idx, a), (b_idx, b))| Reverse((a.dist(b), a_idx, b_idx)))
+        .collect()
 }
 
 fn part1(junction_boxes: &Input, max_connections: usize) -> Output {
     let mut lights = UnionFind::new(junction_boxes.len());
 
-    for (a, b) in connections(junction_boxes).take(max_connections) {
+    let mut connects = connections(junction_boxes);
+    for _ in 0..max_connections {
+        let Reverse((_, a, b)) = connects.pop().unwrap();
         lights.union(a, b);
     }
 
@@ -81,7 +86,8 @@ fn part1(junction_boxes: &Input, max_connections: usize) -> Output {
 
 fn part2(junction_boxes: &Input) -> Output {
     let mut lights = UnionFind::new(junction_boxes.len());
-    for (a, b) in connections(junction_boxes) {
+    let mut connects = connections(junction_boxes);
+    while let Some(Reverse((_, a, b))) = connects.pop() {
         lights.union(a, b);
         let root_len = *lights
             .size
@@ -95,10 +101,10 @@ fn part2(junction_boxes: &Input) -> Output {
     unreachable!()
 }
 
-// Input parsed (42μs)
-// 1. 181584 (19.766ms)
-// 2. 8465902405 (19.225ms)
-// Total: 39.040ms
+// Input parsed (59μs)
+// 1. 181584 (5.434ms)
+// 2. 8465902405 (6.289ms)
+// Total: 11.789ms
 
 #[cfg(test)]
 mod tests {
