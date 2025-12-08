@@ -12,23 +12,24 @@ class Y25D07(manifold: String) : Day {
 
         var splits = 0
 
-        var todo = LongArray(width - 1)
-        todo[manifold.indexOf('S')] = 1
-        var next = LongArray(width - 1)
-        for (row in 2 .. finished) {
+        var todo = LongArray(1) { 1 }
+        var next = LongArray(todo.size + 2)
+
+        val middle = manifold.indexOf('S')
+
+        for (row in 2 .. finished step 2) {
             for ((pos, timeline) in todo.withIndex()) {
                 if (timeline == 0L) continue
-                if (manifold[pos + row * width] == '^') {
+                if (manifold[(pos + middle - (row / 2 - 1)) + row * width] == '^') {
                     splits++
-                    for (offset in -1..1 step(2)) {
-                        next[pos + offset] += timeline
-                    }
-                } else {
                     next[pos] += timeline
+                    next[pos + 2] += timeline
+                } else {
+                    next[pos + 1] += timeline
                 }
             }
             todo = next
-            next = LongArray(width - 1)
+            next = LongArray(todo.size + 2)
         }
         p1Answer = splits
         p2Answer = todo.sum()
