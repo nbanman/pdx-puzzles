@@ -6,6 +6,7 @@ use utilities::{
     structs::{
         coord::Coord,
         stopwatch::{ReportDuration, Stopwatch},
+        union_find::UnionFind,
     },
 };
 
@@ -43,44 +44,6 @@ impl Junction for JBox {
             .map(|(a, b)| a.abs_diff(b).pow(2))
             .sum::<usize>();
         OrderedFloat((inner as f32).sqrt())
-    }
-}
-
-struct UnionFind {
-    parent: Vec<usize>,
-    size: Vec<usize>,
-}
-
-impl UnionFind {
-    fn new(n: usize) -> Self {
-        Self {
-            parent: (0..n).collect(),
-            size: vec![1; n],
-        }
-    }
-
-    fn find(&mut self, x: usize) -> usize {
-        if self.parent[x] != x {
-            self.parent[x] = self.find(self.parent[x]);
-        }
-        self.parent[x]
-    }
-
-    fn union(&mut self, x: usize, y: usize) -> bool {
-        let x = self.find(x);
-        let y = self.find(y);
-
-        if x == y {
-            return false;
-        }
-        if self.size[x] >= self.size[y] {
-            self.parent[y] = x;
-            self.size[x] += self.size[y];
-        } else {
-            self.parent[x] = y;
-            self.size[y] += self.size[x];
-        }
-        true
     }
 }
 
