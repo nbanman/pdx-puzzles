@@ -133,7 +133,7 @@ mod tests {
         let input = get_input(25, 8).unwrap();
         let input = parse_input(&input);
         assert_eq!(181584, part1(&input, MAX_CONNECTIONS));
-        // assert_eq!(YY, part2(&input));
+        assert_eq!(8465902405, part2(&input));
     }
 
     #[test]
