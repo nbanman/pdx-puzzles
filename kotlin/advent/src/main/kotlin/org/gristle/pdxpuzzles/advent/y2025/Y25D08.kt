@@ -50,7 +50,7 @@ class Y25D08(input: String) : Day {
     }
 }
 
-fun main() = Day.benchmarkDay(Y25D08::class)
+fun main() = Day.runDay(Y25D08::class)
 
 //    Class creation: 5ms
 //    Part 1: 181584 (95ms)
