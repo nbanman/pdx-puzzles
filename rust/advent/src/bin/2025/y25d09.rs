@@ -1,6 +1,6 @@
 use advent::utilities::get_input::get_input;
+use indexmap::IndexSet;
 use itertools::Itertools;
-use rayon::slice::ParallelSliceMut;
 use rustc_hash::FxHashMap;
 use utilities::minmax::minmax;
 use utilities::{
@@ -48,13 +48,21 @@ fn part1(red_tiles: &Input) -> Output {
 }
 
 fn part2(red_tiles: &Input) -> Output {
-    let (xmin, xmax) = red_tiles
+    let x_map: IndexSet<usize> = red_tiles.iter()
+        .map(|tile| tile.x())
+        .sorted_unstable()
+        .collect();
+    let y_map: IndexSet<usize> = red_tiles.iter()
+        .map(|tile| tile.y())
+        .sorted_unstable()
+        .collect();
+    let (x_lo, x_hi) = red_tiles
         .iter()
         .map(|pos| pos.x())
         .minmax()
         .into_option()
         .unwrap();
-    let (ymin, ymax) = red_tiles
+    let (y_lo, y_hi) = red_tiles
         .iter()
         .map(|pos| pos.y())
         .minmax()
@@ -75,29 +83,11 @@ fn part2(red_tiles: &Input) -> Output {
         }
     }
 
-    green_x.retain(|_, v| {
-        if v.len() < 3 {
-            false
-        } else {
-            v.sort();
-            v.pop();
-            v.remove(0);
-            true
-        }
-    });
-    green_y.retain(|_, v| {
-        if v.len() < 3 {
-            false
-        } else {
-            v.sort();
-            v.pop();
-            v.remove(0);
-            true
-        }
-    });
-
-    red_tiles
+    let possible = red_tiles
         .iter()
+        .filter(|&pos| {
+            pos.x() != x_lo && pos.x() != x_hi && pos.y() != y_lo && pos.y() != y_hi
+        })
         .tuple_combinations()
         .filter(|&(&a, &b)| {
             let (&xmin, &xmax) = minmax(&a.x(), &b.x());
@@ -110,15 +100,18 @@ fn part2(red_tiles: &Input) -> Output {
                     .get(&xmax)
                     .map(|it| it.iter().all(|&y| y <= ymin || y >= ymax))
                     .unwrap_or(true)
-                && green_x
+                && green_y
                     .get(&ymin)
-                    .map(|it| it.iter().all(|&x| x <= xmin || x >= ymax))
+                    .map(|it| it.iter().all(|&x| x <= xmin || x >= xmax))
                     .unwrap_or(true)
-                && green_x
-                    .get(&xmax)
-                    .map(|it| it.iter().all(|&x| x <= xmin || x >= ymax))
+                && green_y
+                    .get(&ymax)
+                    .map(|it| it.iter().all(|&x| x <= xmin || x >= xmax))
                     .unwrap_or(true)
         })
+        .collect_vec();
+
+    possible.into_iter()
         .map(|(a, b)| rect_area(*a, *b))
         .max()
         .unwrap()
@@ -132,4 +125,7 @@ fn default() {
     // assert_eq!(YY, part2(&input));
 }
 
-// 2916129645 too high
+// 2877792786 too high
+// 2445498515
+// 2080559052
+// 1603439684 (supposed answer)
