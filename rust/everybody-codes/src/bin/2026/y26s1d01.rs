@@ -190,8 +190,8 @@ fn examples() {
     assert_eq!(part3(example3), 292320)
 }
 
-// Input parsed (47μs)
+// Input parsed (43μs)
 // 1. 51660 (8μs)
 // 2. 55911 (46μs)
-// 3. 11645480 (190μs)
-// Total: 296μs
+// 3. 11645480 (174μs)
+// Total: 274μs
