@@ -9,12 +9,6 @@ use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 type Input<'a> = &'a str;
 type Pos = Coord2;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-enum Wave {
-    Bone,
-    Stream,
-}
-
 #[derive(Debug, Copy, Clone)]
 struct Finity {
     tl: Pos,
@@ -52,7 +46,7 @@ enum SurroundCheck {
     EscapesFinity,
 }
 
-type Template = FxHashMap<Pos, Wave>;
+type Template = FxHashSet<Pos>;
 
 fn main() {
     let mut stopwatch = Stopwatch::new();
@@ -71,23 +65,24 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse(input: Input) -> (Template, Finity, Pos) {
-    let width = input.chars().position(|c| c == '\n').unwrap();
-    let mut template = FxHashMap::default();
+fn parse(input: Input) -> (Template, Finity, Pos, Pos) {
+    let mut template = FxHashSet::default();
     let mut source: Option<Pos> = None;
+    let mut bone: Option<Pos> = None;
     'outer: for (y, line) in input.lines().enumerate() {
         for (x, &b) in line.as_bytes().iter().enumerate() {
             let pos = Pos::new2d(x as i64, y as i64);
             match b {
                 b'@' => {
                     source = Some(pos);
-                    template.insert(pos, Wave::Stream);
+                    template.insert(pos);
                     if template.len() == 2 {
                         break 'outer;
                     }
                 }
                 b'#' => {
-                    template.insert(pos, Wave::Bone);
+                    bone = Some(pos);
+                    template.insert(pos);
                     if template.len() == 2 {
                         break 'outer;
                     }
@@ -96,9 +91,7 @@ fn parse(input: Input) -> (Template, Finity, Pos) {
             }
         }
     }
-    let mut template_iterator = template
-        .iter()
-        .map(|(pos, _)| *pos);
+    let mut template_iterator = template.iter();
     let [x1, y1] = template_iterator.next().unwrap().0;
     let [x2, y2] = template_iterator.next().unwrap().0;
     let (&xmin, &xmax) = minmax(&x1, &x2);
@@ -107,50 +100,48 @@ fn parse(input: Input) -> (Template, Finity, Pos) {
         tl: Pos::new2d(xmin, ymin),
         br: Pos::new2d(xmax, ymax),
     };
-    (template, finity, source.unwrap())
+    (template, finity, source.unwrap(), bone.unwrap())
 }
 
 fn part1(input: Input) -> u64 {
-    let (mut template, mut finity, mut source) = parse(input);
+    let (mut template, mut finity, mut source, bone) = parse(input);
     let mut steps = 0;
     for &dir in Cardinal::entries().iter().cycle() {
         let step = source.move_direction(dir, 1).unwrap();
+        if step == bone {
+            return steps + 1;
+        }
         match template.get(&step) {
             None => {
                 finity.push(step);
-                template.insert(step, Wave::Stream);
+                template.insert(step);
                 source = step;
                 steps += 1
             },
-            Some(&Wave::Bone) => {
-                return steps + 1;
-            },
-            Some(&Wave::Stream) => { },
+            Some(_) => { },
         }
     }
     unreachable!()
 }
 
 fn part2(input: Input) -> u64 {
-    let (mut template, mut finity, mut source) = parse(input);
-    let mut true_steps = 0;
+    let (mut template, mut finity, mut source, bone) = parse(input);
     let mut steps = 0;
     for &dir in Cardinal::entries().iter().cycle() {
-        true_steps += 1;
         let step = source.move_direction(dir, 1).unwrap();
         match template.get(&step) {
             None => {
                 steps += 1;
                 source = step;
                 finity.push(step);
-                template.insert(step, Wave::Stream);
+                template.insert(step);
 
                 println!("Step {}: Move to {}", steps, step);
 
                 for adj in source.adjacent(false) {
                     print!("BFS {}: ", adj);
                     match template.get(&adj) {
-                        Some(&Wave::Stream) => {
+                        Some(_) => {
                             println!("hit stream; abort");
                         },
                         _ => {
@@ -158,7 +149,7 @@ fn part2(input: Input) -> u64 {
                                 SurroundCheck::SurroundsSpace(stream_spaces) => {
                                     println!("surrounds space");
                                     for new_stream in stream_spaces.into_iter() {
-                                        template.insert(new_stream, Wave::Stream);
+                                        template.insert(new_stream);
                                     }
                                 },
                                 SurroundCheck::EscapesFinity => {
@@ -168,14 +159,17 @@ fn part2(input: Input) -> u64 {
                         },
                     }
                 }
-                print_finite(finity, &template, source);
+                print_finite(finity, &template, source, bone);
+                if bone.adjacent(false)
+                    .iter()
+                    .all(|adj| template.contains(adj)) {
+
+                    return steps;
+                }
             },
             _ => {
                 println!("Step {}: Attempt to move to {}, but not empty.", steps + 1, step);
             },
-        }
-        if true_steps > 120 {
-            break;
         }
     }
     unreachable!()
@@ -195,12 +189,8 @@ fn bfs(pos: Pos, template: &Template, finity: Finity) -> SurroundCheck {
             if !finity.check(neighbor) {
                 return SurroundCheck::EscapesFinity;
             }
-            match template.get(&neighbor) {
-                Some(&Wave::Stream) => { continue; },
-                Some(&Wave::Bone) => {
-                    continue;
-                }
-                None => {},
+            if template.contains(&neighbor) {
+                continue;
             }
 
             visited.insert(neighbor);
@@ -210,7 +200,7 @@ fn bfs(pos: Pos, template: &Template, finity: Finity) -> SurroundCheck {
     SurroundCheck::SurroundsSpace(visited)
 }
 
-fn print_finite(finity: Finity, template: &Template, source: Pos) {
+fn print_finite(finity: Finity, template: &Template, source: Pos, bone: Pos) {
     for y in finity.tl.y()..=finity.br.y() {
         for x in finity.tl.x()..=finity.br.x() {
             let pos = Pos::new2d(x, y);
@@ -218,10 +208,14 @@ fn print_finite(finity: Finity, template: &Template, source: Pos) {
                 print!("@");
                 continue;
             }
-            let c = match template.get(&pos) {
-                None => '.',
-                Some(Wave::Bone) => '#',
-                Some(Wave::Stream) => '+',
+            if pos == bone {
+                print!("#");
+                continue;
+            }
+            let c = if template.contains(&pos) {
+                '+'
+            } else {
+                '.'
             };
             print!("{c}");
         }
