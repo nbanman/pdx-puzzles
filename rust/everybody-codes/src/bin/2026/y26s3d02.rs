@@ -1,8 +1,7 @@
-use std::collections::VecDeque;
+use everybody_codes::utilities::inputs::{get_story_inputs_provisional};
 use rustc_hash::{FxHashMap, FxHashSet};
-use everybody_codes::utilities::inputs::{get_story_inputs, get_story_inputs_provisional};
+use std::collections::VecDeque;
 use utilities::enums::cardinals::Cardinal;
-use utilities::minmax::minmax;
 use utilities::structs::coord::Coord2;
 use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
@@ -37,7 +36,7 @@ impl Finity {
 
     fn check(&self, pos: Pos) -> bool {
         (self.tl.x()..=self.br.x()).contains(&pos.x())
-            || (self.tl.y()..=self.br.y()).contains(&pos.x())
+            && (self.tl.y()..=self.br.y()).contains(&pos.y())
     }
 }
 
@@ -46,7 +45,13 @@ enum SurroundCheck {
     EscapesFinity,
 }
 
-type Template = FxHashSet<Pos>;
+type Template = FxHashMap<Pos, Wave>;
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+enum Wave {
+    Bone,
+    Stream,
+}
 
 fn main() {
     let mut stopwatch = Stopwatch::new();
@@ -65,67 +70,116 @@ fn main() {
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse(input: Input) -> (Template, Finity, Pos, Pos) {
-    let mut template = FxHashSet::default();
+fn parse(input: Input) -> (Template, Finity, Pos) {
+    let mut template = FxHashMap::default();
     let mut source: Option<Pos> = None;
-    let mut bone: Option<Pos> = None;
-    'outer: for (y, line) in input.lines().enumerate() {
+    for (y, line) in input.lines().enumerate() {
         for (x, &b) in line.as_bytes().iter().enumerate() {
             let pos = Pos::new2d(x as i64, y as i64);
             match b {
                 b'@' => {
                     source = Some(pos);
-                    template.insert(pos);
-                    if template.len() == 2 {
-                        break 'outer;
-                    }
+                    template.insert(pos, Wave::Stream);
                 }
                 b'#' => {
-                    bone = Some(pos);
-                    template.insert(pos);
-                    if template.len() == 2 {
-                        break 'outer;
-                    }
-                },
-                _ => { },
+                    template.insert(pos, Wave::Bone);
+                }
+                _ => {}
             }
         }
     }
-    let mut template_iterator = template.iter();
-    let [x1, y1] = template_iterator.next().unwrap().0;
-    let [x2, y2] = template_iterator.next().unwrap().0;
-    let (&xmin, &xmax) = minmax(&x1, &x2);
-    let (&ymin, &ymax) = minmax(&y1, &y2);
+    let mut x_min = i64::MAX;
+    let mut x_max = i64::MIN;
+    let mut y_min = i64::MAX;
+    let mut y_max = i64::MIN;
+
+    for (&pos, _) in template.iter() {
+        let x = pos.x();
+        if x < x_min { x_min = x; }
+        if x > x_max { x_max = x; }
+        let y = pos.y();
+        if y < y_min { y_min = y; }
+        if y > y_max { y_max = y; }
+    }
+    
     let finity = Finity {
-        tl: Pos::new2d(xmin, ymin),
-        br: Pos::new2d(xmax, ymax),
+        tl: Pos::new2d(x_min, y_min),
+        br: Pos::new2d(x_max, y_max),
     };
-    (template, finity, source.unwrap(), bone.unwrap())
+
+    // pre-mark as streamed any spots within finity that are completely enclosed by bones
+    let touches_infinity: FxHashSet<Pos> = touches_infinity(&template, &finity);
+
+    Pos::for_rectangle(finity.tl, finity.br, |pos| {
+        if !template.contains_key(&pos)
+            && !touches_infinity.contains(&pos)
+        {
+            template.insert(pos, Wave::Stream);
+        }
+    });
+    
+    (template, finity, source.unwrap())
+}
+
+fn touches_infinity(template: &Template, finity: &Finity) -> FxHashSet<Pos> {
+    let start = Pos::new2d(finity.tl.x() - 1, finity.tl.y() - 1);
+    let mut frontier = VecDeque::new();
+    frontier.push_back(start);
+    let mut border = FxHashSet::default();
+    border.insert(start);
+    let mut touches = FxHashSet::default();
+
+    while let Some(current) = frontier.pop_front() {
+        for neighbor in current.adjacent(false) {
+            if finity.check(neighbor) {
+                if touches.contains(&neighbor) || template.contains_key(&neighbor) {
+                    continue;
+                }
+                touches.insert(neighbor);
+                frontier.push_back(neighbor);
+            } else {
+                if border.contains(&neighbor) {
+                    continue;
+                }
+                if neighbor.x() >= finity.tl.x() - 1
+                    && neighbor.x() <= finity.br.x() + 1
+                    && neighbor.y() >= finity.tl.y() - 1
+                    && neighbor.y() <= finity.br.y() + 1
+                {
+                    border.insert(neighbor);
+                    frontier.push_back(neighbor);
+                }
+            }
+        }
+    }
+    touches
 }
 
 fn part1(input: Input) -> u64 {
-    let (mut template, mut finity, mut source, bone) = parse(input);
+    let (mut template, mut finity, mut source) = parse(input);
     let mut steps = 0;
     for &dir in Cardinal::entries().iter().cycle() {
         let step = source.move_direction(dir, 1).unwrap();
-        if step == bone {
-            return steps + 1;
-        }
         match template.get(&step) {
             None => {
                 finity.push(step);
-                template.insert(step);
+                template.insert(step, Wave::Stream);
                 source = step;
                 steps += 1
             },
-            Some(_) => { },
+            Some(&Wave::Bone) => { return steps + 1 },
+            Some(_) => {},
         }
     }
     unreachable!()
 }
 
 fn part2(input: Input) -> u64 {
-    let (mut template, mut finity, mut source, bone) = parse(input);
+    let (mut template, mut finity, mut source) = parse(input);
+    let bone_neighbors = template.iter()
+        .find(|&(_, &wave)| wave == Wave::Bone)
+        .map(|(pos, _)| pos.adjacent(false))
+        .unwrap();
     let mut steps = 0;
     for &dir in Cardinal::entries().iter().cycle() {
         let step = source.move_direction(dir, 1).unwrap();
@@ -134,42 +188,29 @@ fn part2(input: Input) -> u64 {
                 steps += 1;
                 source = step;
                 finity.push(step);
-                template.insert(step);
-
-                println!("Step {}: Move to {}", steps, step);
-
+                template.insert(step, Wave::Stream);
                 for adj in source.adjacent(false) {
-                    print!("BFS {}: ", adj);
                     match template.get(&adj) {
-                        Some(_) => {
-                            println!("hit stream; abort");
-                        },
-                        _ => {
-                            match bfs(adj, &template, finity) {
-                                SurroundCheck::SurroundsSpace(stream_spaces) => {
-                                    println!("surrounds space");
-                                    for new_stream in stream_spaces.into_iter() {
-                                        template.insert(new_stream);
-                                    }
-                                },
-                                SurroundCheck::EscapesFinity => {
-                                    println!("escapes to infinity");
-                                },
+                        Some(_) => { }
+                        _ => match bfs(adj, &template, finity) {
+                            SurroundCheck::SurroundsSpace(stream_spaces) => {
+                                for new_stream in stream_spaces.into_iter() {
+                                    template.insert(new_stream, Wave::Stream);
+                                }
+                            }
+                            SurroundCheck::EscapesFinity => {
                             }
                         },
                     }
                 }
-                print_finite(finity, &template, source, bone);
-                if bone.adjacent(false)
+                if bone_neighbors
                     .iter()
-                    .all(|adj| template.contains(adj)) {
-
+                    .all(|adj| template.contains_key(adj))
+                {
                     return steps;
                 }
             },
-            _ => {
-                println!("Step {}: Attempt to move to {}, but not empty.", steps + 1, step);
-            },
+            _ => { },
         }
     }
     unreachable!()
@@ -189,7 +230,7 @@ fn bfs(pos: Pos, template: &Template, finity: Finity) -> SurroundCheck {
             if !finity.check(neighbor) {
                 return SurroundCheck::EscapesFinity;
             }
-            if template.contains(&neighbor) {
+            if template.contains_key(&neighbor) {
                 continue;
             }
 
@@ -200,53 +241,169 @@ fn bfs(pos: Pos, template: &Template, finity: Finity) -> SurroundCheck {
     SurroundCheck::SurroundsSpace(visited)
 }
 
-fn print_finite(finity: Finity, template: &Template, source: Pos, bone: Pos) {
-    for y in finity.tl.y()..=finity.br.y() {
-        for x in finity.tl.x()..=finity.br.x() {
-            let pos = Pos::new2d(x, y);
-            if pos == source {
-                print!("@");
-                continue;
+fn part3(input: Input) -> u64 {
+    let (mut template, mut finity, mut source) = parse(input);
+
+    let mut contiguous_bones: FxHashSet<Pos> = FxHashSet::default();
+    let mut bone_groups: Vec<FxHashSet<Pos>> = Vec::new();
+    let mut bone_surrounds: FxHashSet<Pos> = FxHashSet::default();
+    
+    for bone in template.iter()
+        .filter(|(_, wave)| wave == &&Wave::Bone)
+        .map(|(pos, _)| *pos)
+    {
+        if !contiguous_bones.contains(&bone) {
+            let (bone_group, bone_surround) = get_bone_groups_and_surrounds(bone, &template);
+            contiguous_bones.extend(bone_group.iter());
+            bone_groups.push(bone_group);
+            for bone in bone_surround {
+                if !template.contains_key(&bone) {
+                    bone_surrounds.insert(bone);
+                }
             }
-            if pos == bone {
-                print!("#");
-                continue;
-            }
-            let c = if template.contains(&pos) {
-                '+'
-            } else {
-                '.'
-            };
-            print!("{c}");
         }
-        println!();
     }
+
+    let mut steps = 0;
+    for &dir in Cardinal::entries().iter()
+        .flat_map(|dir| std::iter::repeat_n(dir, 3))
+        .cycle()
+    {
+        let step = source.move_direction(dir, 1).unwrap();
+        match template.get(&step) {
+            None => {
+                steps += 1;
+                source = step;
+                finity.push(step);
+                template.insert(step, Wave::Stream);
+
+                for adj in source.adjacent(false) {
+                    match template.get(&adj) {
+                        Some(&Wave::Bone) => { },
+                        Some(&Wave::Stream) => {
+                            bone_surrounds.remove(&adj);
+                        },
+                        _ => match bfs(adj, &template, finity) {
+                            SurroundCheck::SurroundsSpace(stream_spaces) => {
+                                for new_stream in stream_spaces.into_iter() {
+                                    bone_surrounds.remove(&new_stream);
+                                    template.insert(new_stream, Wave::Stream);
+                                }
+                            },
+                            SurroundCheck::EscapesFinity => { },
+                        },
+                    }
+                }
+
+                if bone_surrounds.is_empty() {
+                    return steps;
+                }
+            },
+            _ => { },
+        }
+    }
+    unreachable!()
 }
 
-fn part3(input: Input) -> u64 {
-
-    todo!()
+fn get_bone_groups_and_surrounds(bone: Pos, template: &Template) -> (FxHashSet<Pos>, FxHashSet<Pos>) {
+    let mut frontier = VecDeque::new();
+    frontier.push_back(bone);
+    let mut bone_group = FxHashSet::default();
+    bone_group.insert(bone);
+    let mut surrounds = FxHashSet::default();
+    while let Some(current) = frontier.pop_front() {
+        for neighbor in current.adjacent(false) {
+            if template.get(&neighbor) == Some(&Wave::Bone) {
+                if bone_group.contains(&neighbor) {
+                    continue;
+                }
+                bone_group.insert(neighbor);
+                frontier.push_back(neighbor);
+            } else {
+                if surrounds.contains(&neighbor) {
+                    continue;
+                }
+                surrounds.insert(neighbor);
+            }
+        }
+    }
+    (bone_group, surrounds)
 }
 
 #[test]
 fn default() {
-    // let (input1, input2, input3) = get_story_inputs(26, 3, 2);
-    // assert_eq!(225, part1(&input1));
-    // assert_eq!(ZZ, part2(&input2));
-    // assert_eq!(ZZ, part3(&input3));
+    let (input1, input2, input3) =
+        everybody_codes::utilities::inputs::get_story_inputs(26, 3, 2);
+    assert_eq!(225, part1(&input1));
+    assert_eq!(3264, part2(&input2));
+    assert_eq!(2388, part3(&input3));
 }
 
 #[test]
 fn example() {
-    let input1 = r".......
+    let input = r".......
 .......
 .......
 .#.@...
 .......
 .......
 .......";
-    assert_eq!(12, part1(input1));
-    assert_eq!(47, part2(input1));
-    let input3 = r"";
-    // assert_eq!(ZZ, part1(input3));
+    assert_eq!(12, part1(input));
+    assert_eq!(47, part2(input));
+    assert_eq!(87, part3(input));
+    let input2 = r"#..#.......#...
+...#...........
+...#...........
+#######........
+...#....#######
+...#...@...#...
+...#.......#...
+...........#...
+...........#...
+#..........#...
+##......#######";
+    assert_eq!(239, part3(input2));
+    let input3 = r"................................................................
+.........................###.........###........................
+....................##...###########.#####......#.......###.....
+.........##.............############....####.............##.....
+.......######..............#############.###....................
+.........##................#############.###.......##...........
+...............##...........########....####....................
+...............................####.#######...........##........
+........................##################...........####.......
+....#.........#########################.....##......######......
+..............#.##......##....##..##.##...............##........
+..............................##....##..........##..............
+........####....#################..######...................##..
+........###.....###...####..###..##...##.########...............
+.................####....###..##.##.##..###....##.....##........
+....##...........#######.....##..##..##......#####..........#...
+...........##......#########......#....##.######..........#####.
+...........##........###########################....#.......#...
+.........######............##################.......#...........
+...........##.............#########.............................
+............#.........#############....................#........
+.....#...........##..####......###......##........#.............
+.............##................###..........#.....#.............
+..................##...........##...................##..........
+..........................###.####.####.........................
+................#.###########..###.############.#...............
+.....#####....###...............................###.............
+.....#####...#############......@......#############............
+.....#########.###################################.#............
+...###########..##.....###################.....##..##...........
+...######...#######.##...###.........##...##...###.##...........
+.....##.########........#####..###..####.......#.########.......
+............#########################################...........
+..............#####################################.............
+...............................###..............................
+................................................................";
+    assert_eq!(1539, part3(input3));
 }
+
+// Input parsed (34μs)
+// 1. 225 (42μs)
+// 2. 3264 (25.342ms)
+// 3. 2388 (22.328ms)
+// Total: 47.753ms
