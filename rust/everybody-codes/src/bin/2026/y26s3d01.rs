@@ -51,7 +51,7 @@ impl Scale {
             if self.g > self.b {
                 DominantColor::Green
             } else if self.b > self.g {
-                DominantColor:: Blue
+                DominantColor::Blue
             } else {
                 DominantColor::Indeterminate
             }
@@ -100,7 +100,7 @@ enum Shine {
 fn main() {
     let mut stopwatch = Stopwatch::new();
     stopwatch.start();
-    let (input1, input2, input3) = get_story_inputs(26, 1, 1);
+    let (input1, input2, input3) = get_story_inputs(26, 3, 1);
     println!("Input parsed ({})", stopwatch.lap().report());
     println!("1. {} ({})", part1(&input1), stopwatch.lap().report());
     println!("2. {} ({})", part2(&input2), stopwatch.lap().report());
@@ -135,11 +135,11 @@ fn part2(input: &str) -> usize {
 }
 
 fn part3(input: &str) -> usize {
+    let mut scale_groups: [Vec<usize>; 6] = std::array::from_fn(|_| Vec::new());
     let scales = parse(input).filter(|scale| {
         scale.shine() != Shine::Indeterminate
             && scale.dominant_color() != DominantColor::Indeterminate
     });
-    let mut scale_groups: Vec<Vec<usize>> = vec![Vec::new(); 6];
     for scale in scales {
         let index = scale.dominant_color() as usize + 3 * scale.shine() as usize;
         scale_groups[index].push(scale.value);
@@ -153,7 +153,7 @@ fn part3(input: &str) -> usize {
 
 #[test]
 fn default() {
-    let (input1, input2, input3) = get_story_inputs(26, 1, 1);
+    let (input1, input2, input3) = get_story_inputs(26, 3, 1);
     assert_eq!(51660, part1(&input1));
     assert_eq!(55911, part2(&input2));
     assert_eq!(11645480, part3(&input3));
