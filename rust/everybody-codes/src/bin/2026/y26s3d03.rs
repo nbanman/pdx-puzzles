@@ -36,12 +36,6 @@ enum Bond {
     Weak(usize),
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum Start {
-    Left(usize),
-    Right(usize),
-}
-
 impl<'a> From<&'a str> for Node<'a> {
     fn from(line: &'a str) -> Self {
         static RE: LazyLock<Regex> =
@@ -90,26 +84,27 @@ fn build_tree(input: Input, bond_rules: BondRules) -> Tree {
     let mut lines = input.lines();
     let root_node = Node::from(lines.next().unwrap());
     tree.push(root_node);
-    for line in lines {
+    for (node_index, line) in lines.enumerate() {
         tree.push(Node::from(line));
-        add_node(&mut tree, 0, bond_rules);
+        let mut node_index = node_index + 1;
+        add_node(&mut tree, 0, &mut node_index, bond_rules);
     }
     tree
 }
 
-fn add_node(tree: &mut Tree, root_index: usize, node_index: usize, bond_rules: BondRules) -> bool {
+fn add_node(tree: &mut Tree, root_index: usize, node_index: &mut usize, bond_rules: BondRules) -> bool {
     let mut placed = false;
 
-    let color_match = tree[root_index].left_color == tree[node_index].plug_color;
-    let shape_match = tree[root_index].left_shape == tree[node_index].plug_shape;
+    let color_match = tree[root_index].left_color == tree[*node_index].plug_color;
+    let shape_match = tree[root_index].left_shape == tree[*node_index].plug_shape;
     match tree[root_index].left_bond {
         Bond::None => {
             if color_match && shape_match {
-                tree[root_index].left_bond = Bond::Strong(node_index);
+                tree[root_index].left_bond = Bond::Strong(*node_index);
                 placed = true;
             } else if bond_rules != BondRules::StrongOnly {
                 if color_match || shape_match {
-                    tree[root_index].left_bond = Bond::Weak(node_index);
+                    tree[root_index].left_bond = Bond::Weak(*node_index);
                     placed = true;
                 }
             }
@@ -125,9 +120,8 @@ fn add_node(tree: &mut Tree, root_index: usize, node_index: usize, bond_rules: B
                 },
                 BondRules::StrongBreaksWeak => {
                     if color_match && shape_match {
-                        tree[root_index].left_bond = Bond::Strong(node_index);
-                        placed = true; // todo check if this is what I want
-                        todo!()
+                        tree[root_index].left_bond = Bond::Strong(*node_index);
+                        *node_index = index;
                     } else {
                         placed = add_node(tree, index, node_index, bond_rules);
                     }
@@ -138,36 +132,63 @@ fn add_node(tree: &mut Tree, root_index: usize, node_index: usize, bond_rules: B
     if placed {
         return true;
     }
-
+    let color_match = tree[root_index].right_color == tree[*node_index].plug_color;
+    let shape_match = tree[root_index].right_shape == tree[*node_index].plug_shape;
     match tree[root_index].right_bond {
-        Some(right_index) => {
-            placed = add_node(tree, right_index, allow_weak_bonds);
-        }
-        None => {
-            let color_match = tree[root_index].right_color == tree[node_index].plug_color;
-            let shape_match = tree[root_index].right_shape == tree[node_index].plug_shape;
-            let bond_formed = if allow_weak_bonds {
-                color_match || shape_match
-            } else {
-                color_match && shape_match
-            };
-            if bond_formed {
-                tree[root_index].right_bond = Some(node_index);
+        Bond::None => {
+            if color_match && shape_match {
+                tree[root_index].right_bond = Bond::Strong(*node_index);
                 placed = true;
+            } else if bond_rules != BondRules::StrongOnly {
+                if color_match || shape_match {
+                    tree[root_index].right_bond = Bond::Weak(*node_index);
+                    placed = true;
+                }
             }
-        }
+        },
+        Bond::Strong(index) => {
+            placed = add_node(tree, index, node_index, bond_rules);
+        },
+        Bond::Weak(index) => {
+            match bond_rules {
+                BondRules::StrongOnly => unreachable!(),
+                BondRules::Weak => {
+                    placed = add_node(tree, index, node_index, bond_rules);
+                },
+                BondRules::StrongBreaksWeak => {
+                    if color_match && shape_match {
+                        tree[root_index].right_bond = Bond::Strong(*node_index);
+                        *node_index = index;
+                    } else {
+                        placed = add_node(tree, index, node_index, bond_rules);
+                    }
+                },
+            }
+        },
     }
-
-    placed
+        if placed {
+            return true;
+        }
+        if root_index == 0 {
+            add_node(tree, root_index, node_index, bond_rules)
+        } else {
+            false
+        }
 }
 
 fn read_ids(tree: &Tree, root: usize, ids: &mut Vec<usize>) {
-    if let Some(left_index) = tree[root].left_bond {
-        read_ids(tree, left_index, ids);
+    match tree[root].left_bond {
+        // read_ids(tree, left_index, ids);
+        Bond::None => {},
+        Bond::Strong(index) => read_ids(tree, index, ids),
+        Bond::Weak(index) => read_ids(tree, index, ids),
     }
     ids.push(tree[root].id);
-    if let Some(right_index) = tree[root].right_bond {
-        read_ids(tree, right_index, ids);
+    match tree[root].right_bond {
+        // read_ids(tree, left_index, ids);
+        Bond::None => {},
+        Bond::Strong(index) => read_ids(tree, index, ids),
+        Bond::Weak(index) => read_ids(tree, index, ids),
     }
 }
 
@@ -179,21 +200,24 @@ fn checksum(ids: &Vec<usize>) -> usize {
 }
 
 fn part1(input: Input) -> usize {
-    let tree = build_tree(input, false);
+    let tree = build_tree(input, BondRules::StrongOnly);
     let mut ids = Vec::new();
     read_ids(&tree, 0, &mut ids);
     checksum(&ids)
 }
 
 fn part2(input: Input) -> usize {
-    let tree = build_tree(input, true);
+    let tree = build_tree(input, BondRules::Weak);
     let mut ids = Vec::new();
     read_ids(&tree, 0, &mut ids);
     checksum(&ids)
 }
 
-fn part3(input: Input) -> u64 {
-    todo!()
+fn part3(input: Input) -> usize {
+    let tree = build_tree(input, BondRules::StrongBreaksWeak);
+    let mut ids = Vec::new();
+    read_ids(&tree, 0, &mut ids);
+    checksum(&ids)
 }
 
 #[test]
