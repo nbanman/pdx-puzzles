@@ -92,7 +92,12 @@ fn build_tree(input: Input, bond_rules: BondRules) -> Tree {
     tree
 }
 
-fn add_node(tree: &mut Tree, root_index: usize, node_index: &mut usize, bond_rules: BondRules) -> bool {
+fn add_node(
+    tree: &mut Tree,
+    root_index: usize,
+    node_index: &mut usize,
+    bond_rules: BondRules,
+) -> bool {
     let mut placed = false;
 
     let color_match = tree[root_index].left_color == tree[*node_index].plug_color;
@@ -108,24 +113,22 @@ fn add_node(tree: &mut Tree, root_index: usize, node_index: &mut usize, bond_rul
                     placed = true;
                 }
             }
-        },
+        }
         Bond::Strong(index) => {
             placed = add_node(tree, index, node_index, bond_rules);
-        },
-        Bond::Weak(index) => {
-            match bond_rules {
-                BondRules::StrongOnly => unreachable!(),
-                BondRules::Weak => {
+        }
+        Bond::Weak(index) => match bond_rules {
+            BondRules::StrongOnly => unreachable!(),
+            BondRules::Weak => {
+                placed = add_node(tree, index, node_index, bond_rules);
+            }
+            BondRules::StrongBreaksWeak => {
+                if color_match && shape_match {
+                    tree[root_index].left_bond = Bond::Strong(*node_index);
+                    *node_index = index;
+                } else {
                     placed = add_node(tree, index, node_index, bond_rules);
-                },
-                BondRules::StrongBreaksWeak => {
-                    if color_match && shape_match {
-                        tree[root_index].left_bond = Bond::Strong(*node_index);
-                        *node_index = index;
-                    } else {
-                        placed = add_node(tree, index, node_index, bond_rules);
-                    }
-                },
+                }
             }
         },
     }
@@ -145,48 +148,46 @@ fn add_node(tree: &mut Tree, root_index: usize, node_index: &mut usize, bond_rul
                     placed = true;
                 }
             }
-        },
+        }
         Bond::Strong(index) => {
             placed = add_node(tree, index, node_index, bond_rules);
-        },
-        Bond::Weak(index) => {
-            match bond_rules {
-                BondRules::StrongOnly => unreachable!(),
-                BondRules::Weak => {
+        }
+        Bond::Weak(index) => match bond_rules {
+            BondRules::StrongOnly => unreachable!(),
+            BondRules::Weak => {
+                placed = add_node(tree, index, node_index, bond_rules);
+            }
+            BondRules::StrongBreaksWeak => {
+                if color_match && shape_match {
+                    tree[root_index].right_bond = Bond::Strong(*node_index);
+                    *node_index = index;
+                } else {
                     placed = add_node(tree, index, node_index, bond_rules);
-                },
-                BondRules::StrongBreaksWeak => {
-                    if color_match && shape_match {
-                        tree[root_index].right_bond = Bond::Strong(*node_index);
-                        *node_index = index;
-                    } else {
-                        placed = add_node(tree, index, node_index, bond_rules);
-                    }
-                },
+                }
             }
         },
     }
-        if placed {
-            return true;
-        }
-        if root_index == 0 {
-            add_node(tree, root_index, node_index, bond_rules)
-        } else {
-            false
-        }
+    if placed {
+        return true;
+    }
+    if root_index == 0 {
+        add_node(tree, root_index, node_index, bond_rules)
+    } else {
+        false
+    }
 }
 
 fn read_ids(tree: &Tree, root: usize, ids: &mut Vec<usize>) {
     match tree[root].left_bond {
         // read_ids(tree, left_index, ids);
-        Bond::None => {},
+        Bond::None => {}
         Bond::Strong(index) => read_ids(tree, index, ids),
         Bond::Weak(index) => read_ids(tree, index, ids),
     }
     ids.push(tree[root].id);
     match tree[root].right_bond {
         // read_ids(tree, left_index, ids);
-        Bond::None => {},
+        Bond::None => {}
         Bond::Strong(index) => read_ids(tree, index, ids),
         Bond::Weak(index) => read_ids(tree, index, ids),
     }
@@ -199,34 +200,31 @@ fn checksum(ids: &Vec<usize>) -> usize {
         .sum()
 }
 
-fn part1(input: Input) -> usize {
-    let tree = build_tree(input, BondRules::StrongOnly);
+fn solve(input: Input, bond_rules: BondRules) -> usize {
+    let tree = build_tree(input, bond_rules);
     let mut ids = Vec::new();
     read_ids(&tree, 0, &mut ids);
     checksum(&ids)
+}
+
+fn part1(input: Input) -> usize {
+    solve(input, BondRules::StrongOnly)
 }
 
 fn part2(input: Input) -> usize {
-    let tree = build_tree(input, BondRules::Weak);
-    let mut ids = Vec::new();
-    read_ids(&tree, 0, &mut ids);
-    checksum(&ids)
+    solve(input, BondRules::Weak)
 }
 
 fn part3(input: Input) -> usize {
-    let tree = build_tree(input, BondRules::StrongBreaksWeak);
-    let mut ids = Vec::new();
-    read_ids(&tree, 0, &mut ids);
-    checksum(&ids)
+    solve(input, BondRules::StrongBreaksWeak)
 }
 
 #[test]
 fn default() {
-    // let (input1, input2, input3) =
-    //        everybody_codes::utilities::inputs::get_story_inputs(26, 3, 2);
-    // assert_eq!(ZZ, part1(&input1));
-    // assert_eq!(ZZ, part2(&input2));
-    // assert_eq!(ZZ, part3(&input3));
+    let (input1, input2, input3) = everybody_codes::utilities::inputs::get_story_inputs(26, 3, 3);
+    assert_eq!(5800, part1(&input1));
+    assert_eq!(320990, part2(&input2));
+    assert_eq!(406577, part3(&input3));
 }
 
 #[test]
@@ -252,3 +250,9 @@ id=5, plug=BLUE TRIANGLE, leftSocket=GREEN CIRCLE, rightSocket=RED CIRCLE, data=
 id=6, plug=BLUE TRIANGLE, leftSocket=GREEN CIRCLE, rightSocket=RED CIRCLE, data=?";
     assert_eq!(60, part3(input3));
 }
+
+// Input parsed (52μs)
+// 1. 5800 (391μs)
+// 2. 320990 (195μs)
+// 3. 406577 (192μs)
+// Total: 834μs
