@@ -211,3 +211,11 @@ path = "src/bin/2026/y26s3d03.rs"
 [[bin]]
 name = "ec-y26s4d01"
 path = "src/bin/2026/y26s4d01.rs"
+
+[[bin]]
+name = "ec-y26s4d02"
+path = "src/bin/2026/y26s4d02.rs"
+
+[[bin]]
+name = "ec-y26s4d03"
+path = "src/bin/2026/y26s4d03.rs"
