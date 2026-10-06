@@ -13,30 +13,33 @@ struct Pattern {
     vt: Vec<u8>,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-enum Walls {
-    None,
-    Down,
-    Right,
-    Both,
-}
+#[derive(Debug, Default, Copy, Clone, PartialEq)]
+struct Walls(u8);
 
 impl Walls {
-    fn has_down(&self) -> bool {
-        match self {
-            Walls::None => false,
-            Walls::Down => true,
-            Walls::Right => false,
-            Walls::Both => true,
-        }
+    fn add_up(&mut self) {
+        self.0 += 8;
+    }
+    fn add_right(&mut self) {
+        self.0 += 4;
+    }
+    fn add_down(&mut self) {
+        self.0 += 2;
+    }
+    fn add_left(&mut self) {
+        self.0 += 1;
+    }
+    fn has_up(&self) -> bool {
+        self.0 >> 3 == 1
     }
     fn has_right(&self) -> bool {
-        match self {
-            Walls::None => false,
-            Walls::Down => false,
-            Walls::Right => true,
-            Walls::Both => true,
-        }
+        self.0 >> 2 & 1 == 1
+    }
+    fn has_down(&self) -> bool {
+        self.0 >> 1 & 1 == 1
+    }
+    fn has_left(&self) -> bool {
+        self.0 & 1 == 1
     }
 }
 
@@ -85,6 +88,16 @@ fn parse(input: &str) -> Input {
         hz,
         vt,
     }
+}
+
+fn find_isolated(input: Input) -> [u64; 2] {
+    let Pattern {
+        height,
+        width,
+        hz,
+        vt,
+    } = input;
+    todo!()
 }
 
 fn part1(input: Input) -> u64 {
@@ -138,75 +151,67 @@ fn part2(input: Input) -> u64 {
         vt,
     } = input;
 
-    let mut tiles = Tiles::new2d(vec![Walls::None; width * height], width).unwrap();
+    let mut tiles = vec![Walls::default(); width * height];
 
-    for (x, &y_offset) in vt.iter().cycle().enumerate().take(width) {
+    for (x, (&left, &right)) in vt.iter()
+        .cycle()
+        .take(width + 1)
+        .tuple_windows()
+        .enumerate()
+    {
         for y in 0..height {
-            if (y & 1) as u8 == y_offset {
-                tiles.data[y * width + x] = Walls::Right;
+            let offset = (y & 1) as u8;
+            if left == offset {
+                tiles[y * width + x].add_left();
+            }
+            if right == offset {
+                tiles[y * width + x].add_right();
             }
         }
     }
-    for (y, &x_offset) in hz.iter().cycle().enumerate().take(height) {
+
+    for (y, (&up, &down)) in hz.iter()
+        .cycle()
+        .take(height + 1)
+        .tuple_windows()
+        .enumerate()
+    {
         for x in 0..width {
-            if (x & 1) as u8 == x_offset {
-                let pos = tiles.data.get_mut(y * width + x).unwrap();
-                *pos = match pos {
-                    Walls::None => Walls::Down,
-                    Walls::Right => Walls::Both,
-                    _ => unreachable!(),
-                }
+            let offset = (x & 1) as u8;
+            if up == offset {
+                tiles[y * width + x].add_up();
+            }
+            if down == offset {
+                tiles[y * width + x].add_down();
             }
         }
     }
 
     let mut count = [0u64; 2];
+    let mut start_colors = vec![false; height];
     for y in 0..height {
-        let mut toggle = if y == 0 {
+        let mut color = if y == 0 {
             true
         } else {
-            !tiles.data[(y - 1) * width].has_down()
+           if tiles[y * width].has_up() {
+               !start_colors[y - 1]
+           } else {
+               start_colors[y - 1]
+           }
         };
-        let up = if y == 0 {
-            height - 1
-        } else {
-            y - 1
-        };
-        
+        start_colors[y] = color;
         for x in 0..width {
-            let left = if x == 0 {
-                width - 1
-            } else {
-                x - 1
-            };
-            print!("({x}, {y}): ");
-            if tiles.data[up * width + x].has_down() {
-                print!("Up ");
-            }
-            if tiles.data[y * width + x].has_right() {
-                print!("Right ");
-            }
-            if tiles.data[y * width + x].has_down() {
-                print!("Down ");
-            }
-            if tiles.data[y * width + left].has_right() {
-                print!("Left ");
-            }
-            println!();
-            
-            if tiles.data[y * width + x] == Walls::Both
-                && tiles.data[up * width + x].has_down()
-                && tiles.data[y * width + left].has_right()
-            {
-                if toggle {
+            let walls = tiles[y * width + x];
+           if walls == Walls(15) {
+                if color {
                     count[0] += 1;
                 } else {
                     count[1] += 1;
                 }
             }
 
-            if tiles.data[y * width + x].has_right() {
-                toggle = !toggle;
+            if walls.has_right() {
+                color = !color;
             }
         }
     }
@@ -214,6 +219,14 @@ fn part2(input: Input) -> u64 {
 }
 
 fn part3(input: Input) -> u64 {
+    let Pattern {
+        height,
+        width,
+        hz,
+        vt,
+    } = input;
+
+    let mut tiles = vec![Walls::default(); hz.len() * vt.len()];
     todo!()
 }
 
@@ -234,7 +247,6 @@ horizontal-offsets=10011
 vertical-offsets=11011";
     assert_eq!(27, part1(parse(input1)));
     assert_eq!(15, part2(parse(input1)));
-    println!("\n\n");
     let input2 = r"width=40
 height=12
 horizontal-offsets=11100
