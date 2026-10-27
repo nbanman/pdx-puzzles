@@ -26,6 +26,30 @@ pub fn get_event_input(year: u16, day: u8, quest: u8) -> String {
     contents
 }
 
+pub fn get_event_inputs_provisional(year: u16, day: u8)
+    -> (Option<String>, Option<String>, Option<String>) {
+
+    let year = if year > 2000 { year - 2000 } else { year };
+    (1..=3)
+        .map(|part| get_event_input_provisional(year, day, part))
+        .collect_tuple()
+        .unwrap()
+}
+
+pub fn get_event_input_provisional(year: u16, day: u8, quest: u8) -> Option<String> {
+    let manifest_dir =
+        std::env::var("CARGO_MANIFEST_DIR").expect("Failed to find manifest directory");
+    let path = manifest_dir
+        + &format!(
+        "/../../inputs/everybody_codes/20{}/y{}d{:02}q{}.txt",
+        year, year, day, quest
+    );
+    let mut file = File::open(&path).ok()?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).ok()?;
+    Some(contents)
+}
+
 pub fn get_story_inputs(year: u16, story: u8, day: u8) -> (String, String, String) {
     let year = if year > 2000 { year - 2000 } else { year };
     (1..=3)
@@ -69,6 +93,6 @@ pub fn get_story_input_provisional(year: u16, story: u8, day: u8, quest: u8) -> 
     );
     let mut file = File::open(&path).ok()?;
     let mut contents = String::new();
-    file.read_to_string(&mut contents).unwrap();
+    file.read_to_string(&mut contents).ok()?;
     Some(contents)
 }
