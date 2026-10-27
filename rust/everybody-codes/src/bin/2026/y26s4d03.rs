@@ -1,47 +1,8 @@
 use everybody_codes::utilities::inputs::get_story_inputs_provisional;
 use itertools::Itertools;
-use utilities::structs::{coord::Coord2U, grid::Grid2, stopwatch::{ReportDuration, Stopwatch}};
+use utilities::structs::stopwatch::{ReportDuration, Stopwatch};
 
-type Input = Pattern;
-type Pos = Coord2U;
-type Tiles = Grid2<Walls>;
-
-struct Pattern {
-    width: usize,
-    height: usize,
-    hz: Vec<u8>,
-    vt: Vec<u8>,
-}
-
-#[derive(Debug, Default, Copy, Clone, PartialEq)]
-struct Walls(u8);
-
-impl Walls {
-    fn add_up(&mut self) {
-        self.0 += 8;
-    }
-    fn add_right(&mut self) {
-        self.0 += 4;
-    }
-    fn add_down(&mut self) {
-        self.0 += 2;
-    }
-    fn add_left(&mut self) {
-        self.0 += 1;
-    }
-    fn has_up(&self) -> bool {
-        self.0 >> 3 == 1
-    }
-    fn has_right(&self) -> bool {
-        self.0 >> 2 & 1 == 1
-    }
-    fn has_down(&self) -> bool {
-        self.0 >> 1 & 1 == 1
-    }
-    fn has_left(&self) -> bool {
-        self.0 & 1 == 1
-    }
-}
+type Input<'a> = &'a str;
 
 fn main() {
     let mut stopwatch = Stopwatch::new();
@@ -51,28 +12,42 @@ fn main() {
     if let Some(input1) = input1 {
         println!(
             "1. {} ({})",
-            part1(parse(&input1)),
+            part1(&input1),
             stopwatch.lap().report()
         );
     }
     if let Some(input2) = input2 {
         println!(
             "2. {} ({})",
-            part2(parse(&input2)),
+            part2(&input2),
             stopwatch.lap().report()
         );
     }
     if let Some(input3) = input3 {
         println!(
             "3. {} ({})",
-            part3(parse(&input3)),
+            part3(&input3),
             stopwatch.lap().report()
         );
     }
     println!("Total: {}", stopwatch.stop().report());
 }
 
-fn parse(input: &str) -> Input {
+fn part1(input: Input) -> usize {
+    solve(input, |iso| iso.into_iter().sum())
+}
+
+fn part2(input: Input) -> usize {
+    solve(input, |iso| iso.into_iter().max().unwrap())
+}
+
+fn part3(input: Input) -> usize { part2(input) }
+
+fn solve<F>(input: Input, f: F) -> usize
+where
+    F: Fn([usize; 2]) -> usize,
+{
+    // parse input
     let (width, height, hz, vt) = input
         .lines()
         .map(|line| line.rsplit_once('=').unwrap().1)
@@ -80,163 +55,53 @@ fn parse(input: &str) -> Input {
         .unwrap();
     let width: usize = width.parse().unwrap();
     let height: usize = height.parse().unwrap();
-    let hz = hz.chars().map(|c| (c as u8) - 48).collect();
-    let vt = vt.chars().map(|c| (c as u8) - 48).collect();
-    Input {
-        width,
-        height,
-        hz,
-        vt,
-    }
-}
 
-fn find_isolated(input: Input) -> [u64; 2] {
-    let Pattern {
-        height,
-        width,
-        hz,
-        vt,
-    } = input;
-    todo!()
-}
-
-fn part1(input: Input) -> u64 {
-    let Pattern {
-        height,
-        width,
-        hz,
-        vt,
-    } = input;
-    let mut isolated = 0;
-    let vt_walls: Vec<_> = (0..=width)
-        .map(|y| vt[y % vt.len()])
-        .tuple_windows()
-        .enumerate()
-        .filter_map(|(index, (left, right))| {
-            if left != right {
-                None
-            } else {
-                Some((index, left))
-            }
-        })
+    // double the offsets, because due to parity issues, an odd length will not repeat exactly
+    let offset: fn(&str) -> Vec<usize> = |s: &str| s
+        .repeat(2)
+        .as_bytes()
+        .iter()
+        .map(|&b| b as usize - 48)
         .collect();
-    let hz_walls: Vec<_> = (0..=height)
-        .map(|x| hz[x % hz.len()])
-        .tuple_windows()
-        .enumerate()
-        .filter_map(|(index, (top, bottom))| {
-            if top != bottom {
-                None
-            } else {
-                Some((index, top))
-            }
-        })
-        .collect();
-        
-    for (x, y_offset) in vt_walls {
-        for &(y, x_offset) in hz_walls.iter() {
-            if (y & 1) as u8 == y_offset && (x & 1) as u8 == x_offset {
-                isolated += 1;
-            }
-        }
-    }
-    isolated
-}
+    let hz = offset(hz);
+    let vt = offset(vt);
 
-fn part2(input: Input) -> u64 {
-    let Pattern {
-        height,
-        width,
-        hz,
-        vt,
-    } = input;
+    let rows = hz.len();
+    let cols = vt.len();
 
-    let mut tiles = vec![Walls::default(); width * height];
+    let mut row_parity = 0;
+    let mut total = [0; 2];
 
-    for (x, (&left, &right)) in vt.iter()
-        .cycle()
-        .take(width + 1)
-        .tuple_windows()
-        .enumerate()
-    {
-        for y in 0..height {
-            let offset = (y & 1) as u8;
-            if left == offset {
-                tiles[y * width + x].add_left();
-            }
-            if right == offset {
-                tiles[y * width + x].add_right();
-            }
-        }
-    }
+    for y in 0..rows.min(height) {
+        row_parity ^= usize::from(y > 0 && hz[y] == 0);
+        let mut col_parity = 0;
 
-    for (y, (&up, &down)) in hz.iter()
-        .cycle()
-        .take(height + 1)
-        .tuple_windows()
-        .enumerate()
-    {
-        for x in 0..width {
-            let offset = (x & 1) as u8;
-            if up == offset {
-                tiles[y * width + x].add_up();
-            }
-            if down == offset {
-                tiles[y * width + x].add_down();
-            }
-        }
-    }
+        // if hz offsets are 11 or 00, twin vertical stitches can be drawn
+        if hz[y] == hz[(y + 1) % rows] {
+            for x in 0..cols.min(width) {
+                col_parity ^= usize::from(x > 0 && vt[x] == y & 1);
 
-    let mut count = [0u64; 2];
-    let mut start_colors = vec![false; height];
-    for y in 0..height {
-        let mut color = if y == 0 {
-            true
-        } else {
-           if tiles[y * width].has_up() {
-               !start_colors[y - 1]
-           } else {
-               start_colors[y - 1]
-           }
-        };
-        start_colors[y] = color;
-        for x in 0..width {
-            let walls = tiles[y * width + x];
-           if walls == Walls(15) {
-                if color {
-                    count[0] += 1;
-                } else {
-                    count[1] += 1;
+                if hz[y] == x & 1
+                    && vt[x] == y & 1
+                    && vt[(x + 1) % cols] == y & 1
+                {
+                    let repeat_x = (width - x).div_ceil(cols);
+                    let repeat_y = (height - y).div_ceil(rows);
+                    total[row_parity ^ col_parity] += repeat_x * repeat_y;
                 }
             }
-
-            if walls.has_right() {
-                color = !color;
-            }
         }
     }
-    *count.iter().max().unwrap()
-}
-
-fn part3(input: Input) -> u64 {
-    let Pattern {
-        height,
-        width,
-        hz,
-        vt,
-    } = input;
-
-    let mut tiles = vec![Walls::default(); hz.len() * vt.len()];
-    todo!()
+    f(total)
 }
 
 #[test]
 fn default() {
-    // let (input1, input2, input3) =
-    //        everybody_codes::utilities::inputs::get_story_inputs(26, XX, XX);
-    // assert_eq!(ZZ, part1(&input1));
-    // assert_eq!(ZZ, part2(&input2));
-    // assert_eq!(ZZ, part3(&input3));
+    let (input1, input2, input3) =
+           everybody_codes::utilities::inputs::get_story_inputs(26, 4, 3);
+    assert_eq!(290, part1(&input1));
+    assert_eq!(10490, part2(&input2));
+    assert_eq!(609374314218696, part3(&input3));
 }
 
 #[test]
@@ -245,16 +110,22 @@ fn example() {
 height=10
 horizontal-offsets=10011
 vertical-offsets=11011";
-    assert_eq!(27, part1(parse(input1)));
-    assert_eq!(15, part2(parse(input1)));
+    assert_eq!(27, part1(input1));
+    assert_eq!(15, part2(input1));
     let input2 = r"width=40
 height=12
 horizontal-offsets=11100
 vertical-offsets=001101";
-    assert_eq!(7, part2(parse(input2)));
+    assert_eq!(7, part2(input2));
     let input3 = r"width=100
 height=70
 horizontal-offsets=111101111101101111000100100110
 vertical-offsets=110100001110111011101000001111";
-    assert_eq!(269, part2(parse(input3)));
+    assert_eq!(269, part2(input3));
 }
+
+// Input parsed (24μs)
+// 1. 290 (7μs)
+// 2. 10490 (3μs)
+// 3. 609374314218696 (31μs)
+// Total: 68μs
